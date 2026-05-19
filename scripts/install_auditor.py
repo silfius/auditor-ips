@@ -66,22 +66,19 @@ def color(text: str, name: str) -> str:
     return f"{ANSI.get(name, '')}{text}{ANSI['reset']}"
 
 
-def line(char: str = "-", width: int = 72, color_name: str = "muted") -> None:
+def line(char: str = "-", width: int = 64, color_name: str = "muted") -> None:
     log(color(char * width, color_name))
 
 
 def section(title: str, description: str = "") -> None:
     log("")
-    line("=", color_name="title")
-    log(color(title, "title"))
+    log(color(f"== {title} ==", "title"))
     if description:
-        line("-", color_name="muted")
-        log(color(description, "info"))
-    line("=", color_name="title")
+        log(color(f"  {description}", "info"))
 
 
 def note(message: str) -> None:
-    log(color(f"  {message}", "muted"))
+    log(color(f"  - {message}", "muted"))
 
 
 def run_cmd(cmd: list[str], cwd: Path | None = None, check: bool = False, capture: bool = True) -> CommandResult:
@@ -217,7 +214,7 @@ def ask(prompt: str, default: str, assume_yes: bool, help_text: str = "") -> str
     if help_text:
         note(help_text)
     suffix = f" [{default}]" if default else ""
-    value = input(f"{prompt}{suffix}: ").strip()
+    value = input(color(f"{prompt}{suffix}: ", "prompt")).strip()
     return value or default
 
 
@@ -229,7 +226,7 @@ def ask_bool(prompt: str, default: bool, assume_yes: bool, help_text: str = "") 
     if help_text:
         note(help_text)
     suffix = "S/n" if default else "s/N"
-    value = input(f"{prompt} [{suffix}]: ").strip().lower()
+    value = input(color(f"{prompt} [{suffix}]: ", "prompt")).strip().lower()
     if not value:
         return default
     return value in {"s", "si", "sí", "y", "yes"}
@@ -595,7 +592,7 @@ def main() -> int:
         if candidates:
             section(
                 "Redes detectadas",
-                "Se muestra como referencia. La primera red se usara como valor por defecto en las preguntas siguientes; podras aceptar o cambiar IP/CIDR cuando se solicite.",
+                "Referencia para los valores por defecto. No se responde aqui: la IP y la red se preguntaran despues.",
             )
             for item in candidates:
                 log(f"  - {item['interface']}: {item['ip']} / {item['cidr']}")
