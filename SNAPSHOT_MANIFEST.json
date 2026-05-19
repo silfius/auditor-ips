@@ -1,11 +1,11 @@
 {
   "repo_name": "auditor-ips",
-  "generated_at": "2026-05-19T13:30:49.917554+00:00",
+  "generated_at": "2026-05-19T13:54:05.271455+00:00",
   "source_root": "<internal-source-redacted>",
-  "snapshot_dir": "auditor-ips-20260519-153049",
-  "files_count": 84,
+  "snapshot_dir": "auditor-ips-20260519-155404",
+  "files_count": 85,
   "high_findings_count": 0,
-  "warn_findings_count": 236,
+  "warn_findings_count": 265,
   "files": [
     {
       "path": "app/scan_scheduler.py",
@@ -354,8 +354,8 @@
     },
     {
       "path": "README.md",
-      "size": 5390,
-      "sha256": "13bbb934449e1f80dc5c48b66a439d65b29e9e74c089b46039435a82027eeb90"
+      "size": 6227,
+      "sha256": "a66055eae9dfaf62d1773666113cfce39e46fac394716157f008150a6fdc4ae8"
     },
     {
       "path": "LICENSE",
@@ -426,13 +426,32 @@
       "path": "scripts/install_auditor.py",
       "size": 31452,
       "sha256": "6624b534d0c2920a8b1bc314fa04474238671db2bfb67a49c84b352a92c9802d"
+    },
+    {
+      "path": "scripts/install_auditor_agent.py",
+      "size": 15709,
+      "sha256": "15353d282a2b28af9502b7ebce1a2c2e46cb595fd45ccd858d7ca76497185ae5"
     }
   ],
   "findings": [
     {
       "severity": "WARN",
       "path": "README.md",
-      "line": 147,
+      "line": 120,
+      "pattern": "secret_word",
+      "sample": "3. Copia el token mostrado una sola vez."
+    },
+    {
+      "severity": "WARN",
+      "path": "README.md",
+      "line": 127,
+      "pattern": "secret_word",
+      "sample": "--token-file /ruta/segura/token.txt \\"
+    },
+    {
+      "severity": "WARN",
+      "path": "README.md",
+      "line": 174,
       "pattern": "localhost_url",
       "sample": "curl -k https://127.0.0.1:9909/api/system/healthz"
     },
@@ -673,6 +692,195 @@
       "line": 277,
       "pattern": "secret_word",
       "sample": "api_key TEXT NOT NULL DEFAULT '',"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 40,
+      "pattern": "localhost_url",
+      "sample": "AUDITOR_URL=\"${AUDITOR_URL:-https://127.0.0.1:9909}\""
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 81,
+      "pattern": "secret_word",
+      "sample": "url, token, host, script, status, exit_code, now, duration, progress, step_label, log_json, verify_tls = sys.argv[1:]"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 100,
+      "pattern": "secret_word",
+      "sample": "\"Authorization\": \"Bearer \" + token,"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 214,
+      "pattern": "secret_word",
+      "sample": "if args.token:"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 215,
+      "pattern": "secret_word",
+      "sample": "return args.token.strip()"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 220,
+      "pattern": "secret_word",
+      "sample": "raise FileNotFoundError(f\"No existe token-file: {token_path}\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 224,
+      "pattern": "secret_word",
+      "sample": "raise RuntimeError(\"En modo --yes debes indicar --token o --token-file\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 226,
+      "pattern": "secret_word",
+      "sample": "token = getpass.getpass(\"Token del agente creado en Auditor IPs: \").strip()"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 227,
+      "pattern": "secret_word",
+      "sample": "if not token:"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 228,
+      "pattern": "secret_word",
+      "sample": "raise RuntimeError(\"Token vacío\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 229,
+      "pattern": "secret_word",
+      "sample": "return token"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 232,
+      "pattern": "secret_word",
+      "sample": "def send_test_status(server_url: str, host_name: str, token: str, verify_tls: bool) -> None:"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 252,
+      "pattern": "secret_word",
+      "sample": "\"Authorization\": \"Bearer \" + token,"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 271,
+      "pattern": "secret_word",
+      "sample": "def write_config(args: argparse.Namespace, server_url: str, host_name: str, token: str) -> tuple[Path, Path]:"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 275,
+      "pattern": "secret_word",
+      "sample": "token_file = config_dir / \"token\""
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 288,
+      "pattern": "secret_word",
+      "sample": "section(\"Escritura de ficheros\", \"Instala helper, configuración local y token con permisos restringidos.\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 292,
+      "pattern": "secret_word",
+      "sample": "write_text(token_file, token + \"\\n\", mode=0o600, dry_run=args.dry_run)"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 362,
+      "pattern": "secret_word",
+      "sample": "\"- El token queda guardado en el fichero `token` con permisos 600.\","
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 363,
+      "pattern": "secret_word",
+      "sample": "\"- No compartas capturas o logs donde aparezca el token.\","
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 364,
+      "pattern": "secret_word",
+      "sample": "\"- Si sospechas exposición, rota el token desde Auditor IPs.\","
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 375,
+      "pattern": "secret_word",
+      "sample": "parser.add_argument(\"--token\", default=\"\", help=\"Token del agente. Preferible usar --token-file o prompt interactivo.\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 376,
+      "pattern": "secret_word",
+      "sample": "parser.add_argument(\"--token-file\", default=\"\", help=\"Fichero desde el que leer el token del agente.\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 386,
+      "pattern": "secret_word",
+      "sample": "parser.add_argument(\"--check-only\", action=\"store_true\", help=\"Solo valida argumentos y token, no escribe ficheros.\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 398,
+      "pattern": "localhost_url",
+      "sample": "server_url = normalize_url(args.server_url or (\"\" if args.yes else input(\"URL servidor Auditor IPs [https://127.0.0.1:9909]: \").strip() or \"https://127.0.0.1:9909\"))"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 400,
+      "pattern": "secret_word",
+      "sample": "token = read_token(args)"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 416,
+      "pattern": "secret_word",
+      "sample": "config_file, helper_path = write_config(args, server_url, host_name, token)"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor_agent.py",
+      "line": 421,
+      "pattern": "secret_word",
+      "sample": "send_test_status(server_url, host_name, token, args.verify_tls)"
     },
     {
       "severity": "WARN",

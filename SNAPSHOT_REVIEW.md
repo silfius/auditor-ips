@@ -5,7 +5,7 @@ Este snapshot ha sido generado de forma local y no ha sido publicado.
 ## Resultado del escaneo ligero
 
 - Hallazgos HIGH: 0
-- Hallazgos WARN: 236
+- Hallazgos WARN: 265
 
 Los hallazgos WARN pueden corresponder a documentación o nombres de variables.
 Los hallazgos HIGH deben bloquear la publicación hasta revisión.
@@ -22,7 +22,9 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 
 ## Hallazgos
 
-- `WARN` `README.md:147` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
+- `WARN` `README.md:120` `secret_word` — 3. Copia el token mostrado una sola vez.
+- `WARN` `README.md:127` `secret_word` — --token-file /ruta/segura/token.txt \
+- `WARN` `README.md:174` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
 - `WARN` `app/host_classification.py:175` `secret_word` — for token in tokens:
 - `WARN` `app/host_classification.py:176` `secret_word` — token_norm = _norm_text(token)
 - `WARN` `app/host_classification.py:177` `secret_word` — token_compact = _compact_text(token)
@@ -57,6 +59,33 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/auth_middleware.py:166` `secret_word` — c.execute("DELETE FROM auth_sessions WHERE token=?", (token,))
 - `WARN` `app/auth_middleware.py:184` `secret_word` — rows = c.execute("""SELECT token,username,created_at,expires_at,ip,user_agent
 - `WARN` `app/database.py:277` `secret_word` — api_key TEXT NOT NULL DEFAULT '',
+- `WARN` `scripts/install_auditor_agent.py:40` `localhost_url` — AUDITOR_URL="${AUDITOR_URL:-https://127.0.0.1:9909}"
+- `WARN` `scripts/install_auditor_agent.py:81` `secret_word` — url, token, host, script, status, exit_code, now, duration, progress, step_label, log_json, verify_tls = sys.argv[1:]
+- `WARN` `scripts/install_auditor_agent.py:100` `secret_word` — "Authorization": "Bearer " + token,
+- `WARN` `scripts/install_auditor_agent.py:214` `secret_word` — if args.token:
+- `WARN` `scripts/install_auditor_agent.py:215` `secret_word` — return args.token.strip()
+- `WARN` `scripts/install_auditor_agent.py:220` `secret_word` — raise FileNotFoundError(f"No existe token-file: {token_path}")
+- `WARN` `scripts/install_auditor_agent.py:224` `secret_word` — raise RuntimeError("En modo --yes debes indicar --token o --token-file")
+- `WARN` `scripts/install_auditor_agent.py:226` `secret_word` — token = getpass.getpass("Token del agente creado en Auditor IPs: ").strip()
+- `WARN` `scripts/install_auditor_agent.py:227` `secret_word` — if not token:
+- `WARN` `scripts/install_auditor_agent.py:228` `secret_word` — raise RuntimeError("Token vacío")
+- `WARN` `scripts/install_auditor_agent.py:229` `secret_word` — return token
+- `WARN` `scripts/install_auditor_agent.py:232` `secret_word` — def send_test_status(server_url: str, host_name: str, token: str, verify_tls: bool) -> None:
+- `WARN` `scripts/install_auditor_agent.py:252` `secret_word` — "Authorization": "Bearer " + token,
+- `WARN` `scripts/install_auditor_agent.py:271` `secret_word` — def write_config(args: argparse.Namespace, server_url: str, host_name: str, token: str) -> tuple[Path, Path]:
+- `WARN` `scripts/install_auditor_agent.py:275` `secret_word` — token_file = config_dir / "token"
+- `WARN` `scripts/install_auditor_agent.py:288` `secret_word` — section("Escritura de ficheros", "Instala helper, configuración local y token con permisos restringidos.")
+- `WARN` `scripts/install_auditor_agent.py:292` `secret_word` — write_text(token_file, token + "\n", mode=0o600, dry_run=args.dry_run)
+- `WARN` `scripts/install_auditor_agent.py:362` `secret_word` — "- El token queda guardado en el fichero `token` con permisos 600.",
+- `WARN` `scripts/install_auditor_agent.py:363` `secret_word` — "- No compartas capturas o logs donde aparezca el token.",
+- `WARN` `scripts/install_auditor_agent.py:364` `secret_word` — "- Si sospechas exposición, rota el token desde Auditor IPs.",
+- `WARN` `scripts/install_auditor_agent.py:375` `secret_word` — parser.add_argument("--token", default="", help="Token del agente. Preferible usar --token-file o prompt interactivo.")
+- `WARN` `scripts/install_auditor_agent.py:376` `secret_word` — parser.add_argument("--token-file", default="", help="Fichero desde el que leer el token del agente.")
+- `WARN` `scripts/install_auditor_agent.py:386` `secret_word` — parser.add_argument("--check-only", action="store_true", help="Solo valida argumentos y token, no escribe ficheros.")
+- `WARN` `scripts/install_auditor_agent.py:398` `localhost_url` — server_url = normalize_url(args.server_url or ("" if args.yes else input("URL servidor Auditor IPs [https://127.0.0.1:9909]: ").strip() or "https://127.0.0.1:9909"))
+- `WARN` `scripts/install_auditor_agent.py:400` `secret_word` — token = read_token(args)
+- `WARN` `scripts/install_auditor_agent.py:416` `secret_word` — config_file, helper_path = write_config(args, server_url, host_name, token)
+- `WARN` `scripts/install_auditor_agent.py:421` `secret_word` — send_test_status(server_url, host_name, token, args.verify_tls)
 - `WARN` `scripts/install_auditor.py:122` `secret_word` — if any(token in raw for token in ["debian", "ubuntu", "linuxmint", "raspbian"]):
 - `WARN` `scripts/install_auditor.py:124` `secret_word` — if any(token in raw for token in ["arch", "manjaro", "endeavouros"]):
 - `WARN` `scripts/install_auditor.py:504` `localhost_url` — f"curl -k https://127.0.0.1:{effective_port}/api/system/healthz",
@@ -193,34 +222,5 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/routers/auth.py:187` `secret_word` — token = request.cookies.get(SESSION_COOKIE)
 - `WARN` `app/routers/auth.py:189` `secret_word` — username = validate_session(DB_PATH, token)
 - `WARN` `app/routers/auth.py:191` `secret_word` — if token:
-- `WARN` `app/routers/auth.py:192` `secret_word` — destroy_session(DB_PATH, token)
-- `WARN` `app/routers/auth.py:199` `secret_word` — session_token=token,
-- `WARN` `app/routers/auth.py:220` `secret_word` — password = (payload.get("password") or "").strip()
-- `WARN` `app/routers/auth.py:225` `secret_word` — result = create_user(DB_PATH, username, password)
-- `WARN` `app/routers/auth.py:256` `secret_word` — @router.post("/api/auth/change-password")
-- `WARN` `app/routers/auth.py:297` `secret_word` — "SELECT token FROM auth_sessions WHERE token LIKE ?",
-- `WARN` `app/routers/auth.py:302` `secret_word` — destroy_session(DB_PATH, row["token"])
-- `WARN` `app/static/js/i18n.js:367` `secret_word` — "cfg.agent.rotate":"Rotar token",
-- `WARN` `app/static/js/i18n.js:373` `secret_word` — "cfg.agent.token_copied":"Token copiado",
-- `WARN` `app/static/js/i18n.js:374` `secret_word` — "cfg.agent.token_copy_manual":"Copia manualmente el token seleccionado",
-- `WARN` `app/static/js/i18n.js:377` `secret_word` — "cfg.agent.created":"✓ Agente creado. Copia el token antes de cerrar.",
-- `WARN` `app/static/js/i18n.js:382` `secret_word` — "cfg.agent.rotated":"✓ Token rotado para {host}. Copia el nuevo token.",
-- `WARN` `app/static/js/i18n.js:453` `secret_word` — "auth.password_changed":"✓ Password changed successfully",
-- `WARN` `app/static/js/i18n.js:538` `secret_word` — "cfg.agent.rotate":"Rotate token",
-- `WARN` `app/static/js/i18n.js:544` `secret_word` — "cfg.agent.token_copied":"Token copied",
-- `WARN` `app/static/js/i18n.js:545` `secret_word` — "cfg.agent.token_copy_manual":"Copy the selected token manually",
-- `WARN` `app/static/js/i18n.js:548` `secret_word` — "cfg.agent.created":"✓ Agent created. Copy the token before closing.",
-- `WARN` `app/static/js/i18n.js:553` `secret_word` — "cfg.agent.rotated":"✓ Token rotated for {host}. Copy the new token.",
-- `WARN` `app/static/js/i18n.js:709` `secret_word` — "cfg.agent.rotate":"Rotar token",
-- `WARN` `app/static/js/i18n.js:715` `secret_word` — "cfg.agent.token_copied":"Token copiat",
-- `WARN` `app/static/js/i18n.js:716` `secret_word` — "cfg.agent.token_copy_manual":"Copia manualment el token seleccionat",
-- `WARN` `app/static/js/i18n.js:719` `secret_word` — "cfg.agent.created":"✓ Agent creat. Copia el token abans de tancar.",
-- `WARN` `app/static/js/i18n.js:724` `secret_word` — "cfg.agent.rotated":"✓ Token rotat per a {host}. Copia el nou token.",
-- `WARN` `app/static/js/app.js:1583` `secret_word` — return cleanTokens.some(token => text.includes(token));
-- `WARN` `app/static/js/syncthing_control.js:662` `secret_word` — <input id="st-node-api-key" type="password" class="form-control form-control-sm" placeholder="Nueva clave o vacío al editar" autocomplete="new-password">
-- `WARN` `app/static/js/syncthing_control.js:1971` `secret_word` — document.getElementById('st-node-api-key').value = '';
-- `WARN` `app/static/js/syncthing_control.js:2050` `secret_word` — api_key: document.getElementById('st-node-api-key')?.value || '',
-- `WARN` `app/static/js/auth.js:63` `secret_word` — body: JSON.stringify({username: user, password: pass})
-- `WARN` `app/static/js/auth.js:172` `secret_word` — const password = document.getElementById('newUserPw').value;
-- ... 36 hallazgos adicionales no listados.
+- ... 65 hallazgos adicionales no listados.
 
