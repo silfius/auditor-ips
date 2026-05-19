@@ -530,20 +530,32 @@ def validate_compose(target_dir: Path) -> None:
     log("docker compose config --quiet OK")
 
 
-def build_and_start(target_dir: Path, no_start: bool) -> None:
+def build_and_start(target_dir: Path, no_start: bool, port: str) -> None:
     log("Ejecutando docker compose build")
     run_cmd(["docker", "compose", "build"], cwd=target_dir, check=True, capture=False)
     if no_start:
         log("Omitido docker compose up -d por --no-start")
         return
+
     log("Ejecutando docker compose up -d")
     run_cmd(["docker", "compose", "up", "-d"], cwd=target_dir, check=True, capture=False)
-    log("Validando healthz")
-    result = run_cmd(["bash", "-lc", "curl -kfsS https://127.0.0.1:${PORT:-9909}/api/system/healthz >/dev/null"], cwd=target_dir, capture=True)
+
+    healthz_url = f"https://127.0.0.1:{port}/api/system/healthz"
+    log(f"Validando healthz en {healthz_url}")
+
+    result = run_cmd(
+        [
+            "bash",
+            "-lc",
+            f"for i in $(seq 1 30); do curl -kfsS {healthz_url} >/dev/null && exit 0; sleep 1; done; exit 1",
+        ],
+        cwd=target_dir,
+        capture=True,
+    )
     if result.returncode != 0:
-        log("WARN: healthz no respondio correctamente. Revisar docker compose logs.")
+        log("WARN: healthz no respondio correctamente en el puerto configurado. Revisar docker compose logs.")
     else:
-        log("healthz OK")
+        log(color("healthz OK", "ok"))
 
 
 def parse_args() -> argparse.Namespace:
@@ -644,7 +656,7 @@ def main() -> int:
             effective_no_start = not do_start
 
         if not effective_no_build:
-            build_and_start(target_dir, effective_no_start)
+            build_and_start(target_dir, effective_no_start, effective_config.get("PORT", args.port))
         else:
             log("Omitido build por --no-build o decision interactiva")
 
