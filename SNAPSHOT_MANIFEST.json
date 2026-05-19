@@ -1,11 +1,11 @@
 {
   "repo_name": "auditor-ips",
-  "generated_at": "2026-05-19T07:47:55.823881+00:00",
+  "generated_at": "2026-05-19T08:27:40.117772+00:00",
   "source_root": "<internal-source-redacted>",
-  "snapshot_dir": "auditor-ips-20260519-094755",
-  "files_count": 79,
+  "snapshot_dir": "auditor-ips-20260519-102739",
+  "files_count": 80,
   "high_findings_count": 0,
-  "warn_findings_count": 231,
+  "warn_findings_count": 235,
   "files": [
     {
       "path": "app/scan_scheduler.py",
@@ -354,8 +354,8 @@
     },
     {
       "path": "README.md",
-      "size": 1778,
-      "sha256": "cc01263697b49e3ad8b119264f5a7753a2e08aa58d66ec2808be08c0127466fe"
+      "size": 2029,
+      "sha256": "340f2688b4ebb150998bfac9c8f03669ce435823548618f3355c4094c6bd5f98"
     },
     {
       "path": "LICENSE",
@@ -379,8 +379,8 @@
     },
     {
       "path": "docs/INSTALL.md",
-      "size": 1130,
-      "sha256": "9ba2c65cdf31da3f258fde4f43d5572ada9daf356bb711df53f11edfd15a4581"
+      "size": 1373,
+      "sha256": "17a8b190e0f4f3179fd2ac1bf6ca4e2484b9595ca80bee207715b63214b0618b"
     },
     {
       "path": "docs/SECURITY.md",
@@ -401,13 +401,18 @@
       "path": "scripts/smoke_system_health.sh",
       "size": 5253,
       "sha256": "c79e6a6bf60c56c1717aafec8ba391d8f3628f49c7fc802cca1feb55a4f3387a"
+    },
+    {
+      "path": "scripts/install_auditor.py",
+      "size": 15603,
+      "sha256": "b46ff9ad1032f08ff349fec106afe41af87e9c11c9b0f6baa79783f774d1e66b"
     }
   ],
   "findings": [
     {
       "severity": "WARN",
       "path": "README.md",
-      "line": 46,
+      "line": 58,
       "pattern": "localhost_url",
       "sample": "curl -k https://127.0.0.1:9909/api/system/healthz"
     },
@@ -651,6 +656,34 @@
     },
     {
       "severity": "WARN",
+      "path": "scripts/install_auditor.py",
+      "line": 85,
+      "pattern": "secret_word",
+      "sample": "if any(token in raw for token in [\"debian\", \"ubuntu\", \"linuxmint\", \"raspbian\"]):"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor.py",
+      "line": 87,
+      "pattern": "secret_word",
+      "sample": "if any(token in raw for token in [\"arch\", \"manjaro\", \"endeavouros\"]):"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor.py",
+      "line": 325,
+      "pattern": "localhost_url",
+      "sample": "\"curl -k https://127.0.0.1:${PORT:-9909}/api/system/healthz\","
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor.py",
+      "line": 355,
+      "pattern": "localhost_url",
+      "sample": "result = run_cmd([\"bash\", \"-lc\", \"curl -kfsS https://127.0.0.1:${PORT:-9909}/api/system/healthz >/dev/null\"], cwd=target_dir, capture=True)"
+    },
+    {
+      "severity": "WARN",
       "path": "scripts/smoke_system_health.sh",
       "line": 15,
       "pattern": "localhost_url",
@@ -673,21 +706,21 @@
     {
       "severity": "WARN",
       "path": "docs/INSTALL.md",
-      "line": 29,
+      "line": 42,
       "pattern": "localhost_url",
       "sample": "curl -k https://127.0.0.1:9909/api/system/healthz"
     },
     {
       "severity": "WARN",
       "path": "docs/INSTALL.md",
-      "line": 47,
+      "line": 60,
       "pattern": "localhost_url",
       "sample": "curl -k https://127.0.0.1:9909/api/system/healthz"
     },
     {
       "severity": "WARN",
       "path": "docs/INSTALL.md",
-      "line": 53,
+      "line": 66,
       "pattern": "localhost_url",
       "sample": "AUDITOR_BASE_URL=https://127.0.0.1:9909 scripts/smoke_system_health.sh"
     },

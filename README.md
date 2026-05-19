@@ -35,7 +35,19 @@ Distribuciones objetivo iniciales:
 - Arch Linux.
 - Derivadas razonables de esas familias.
 
-## Instalación rápida
+## Instalación guiada
+
+```bash
+python3 scripts/install_auditor.py --target-dir /opt/auditor-ips
+```
+
+Para validar sin arrancar el contenedor:
+
+```bash
+python3 scripts/install_auditor.py --target-dir /tmp/auditor-ips-test --yes --no-start
+```
+
+## Instalación rápida manual
 
 ```bash
 cp .env.example .env
