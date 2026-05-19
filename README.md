@@ -109,6 +109,33 @@ Si no hay usuarios admin, la pantalla de primera configuración te pedirá crear
 
 Por seguridad, el instalador no pide ni guarda contraseñas de administrador.
 
+## Agentes remotos de automatizaciones
+
+Auditor IPs puede recibir estados de scripts ejecutados en otros hosts mediante agentes API.
+
+Flujo recomendado:
+
+1. En Auditor IPs, entra en Configuración → Automatizaciones → Agentes API remotos.
+2. Crea un agente para el host remoto.
+3. Copia el token mostrado una sola vez.
+4. En el host remoto, ejecuta el instalador del agente:
+
+```bash
+python3 scripts/install_auditor_agent.py \
+  --server-url https://IP_DEL_SERVIDOR:PUERTO \
+  --host-name NOMBRE_DEL_HOST \
+  --token-file /ruta/segura/token.txt \
+  --systemd
+```
+
+El agente no permite ejecutar comandos remotos desde Auditor IPs. Solo envía estado y logs hacia el servidor.
+
+Para enviar estado manualmente desde un script remoto:
+
+```bash
+auditor-agent-send-status nombre_script completed 0 "mensaje opcional" /ruta/al/log.log
+```
+
 ## Comandos útiles
 
 Entrar en la instalación:
