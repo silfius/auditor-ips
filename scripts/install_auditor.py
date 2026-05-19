@@ -523,6 +523,225 @@ def write_install_state(target_dir: Path, args: argparse.Namespace, dry_run: boo
     (target_dir / "install_summary.md").write_text("\n".join(summary))
 
 
+
+def read_env_file(path: Path) -> dict[str, str]:
+    values: dict[str, str] = {}
+    if not path.exists():
+        return values
+
+    for raw_line in path.read_text().splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        values[key] = value
+
+    return values
+
+
+def resolve_host_path(target_dir: Path, configured: str) -> Path:
+    value = (configured or "").strip()
+    if not value:
+        return target_dir
+    path = Path(value).expanduser()
+    if path.is_absolute():
+        return path
+    return target_dir / path
+
+
+def copy_upgrade_file(src: Path, backup_root: Path, label: str) -> None:
+    if not src.exists() or not src.is_file():
+        return
+
+    dst = backup_root / label
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(src, dst)
+
+
+def create_upgrade_backup(target_dir: Path, env_values: dict[str, str], dry_run: bool) -> Path:
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+    backup_root = target_dir / "upgrade_backups" / stamp
+
+    section(
+        "Backup previo de upgrade",
+        "Se guardan configuración local y base de datos si existen. No se sube a Git.",
+    )
+
+    if dry_run:
+        log(f"DRY-RUN crear backup en {backup_root}")
+        return backup_root
+
+    backup_root.mkdir(parents=True, exist_ok=True)
+
+    for name in [
+        ".env",
+        "docker-compose.yml",
+        "install_state.json",
+        "install_summary.md",
+        "upgrade_state.json",
+        "upgrade_summary.md",
+    ]:
+        copy_upgrade_file(target_dir / name, backup_root, name)
+
+    data_dir = resolve_host_path(target_dir, env_values.get("DATA_DIR", "./data"))
+    copy_upgrade_file(data_dir / "auditor.db", backup_root, "data/auditor.db")
+    copy_upgrade_file(data_dir / "auditor.db-wal", backup_root, "data/auditor.db-wal")
+    copy_upgrade_file(data_dir / "auditor.db-shm", backup_root, "data/auditor.db-shm")
+
+    manifest = [
+        "# Auditor IPs - backup previo de upgrade",
+        "",
+        f"- Fecha UTC: {datetime.now(timezone.utc).isoformat()}",
+        f"- Instalación: {target_dir}",
+        f"- DATA_DIR: {data_dir}",
+        "",
+        "Contenido incluido si existía:",
+        "- .env",
+        "- docker-compose.yml",
+        "- install_state.json",
+        "- install_summary.md",
+        "- upgrade_state.json",
+        "- upgrade_summary.md",
+        "- data/auditor.db*",
+        "",
+    ]
+    (backup_root / "manifest.md").write_text("\n".join(manifest))
+
+    log(f"Backup creado en {backup_root}")
+    return backup_root
+
+
+def write_upgrade_state(
+    target_dir: Path,
+    args: argparse.Namespace,
+    env_values: dict[str, str],
+    backup_dir: Path,
+    dry_run: bool,
+) -> None:
+    result = run_cmd(["git", "rev-parse", "--short", "HEAD"], cwd=target_dir, capture=True)
+    git_head = result.stdout.strip() if result.returncode == 0 else ""
+
+    port = env_values.get("PORT", args.port)
+    server_ip = env_values.get("SERVER_IP", "127.0.0.1")
+    container_name = env_values.get("AUDITOR_CONTAINER_NAME", args.container_name)
+
+    state = {
+        "upgraded_at": datetime.now(timezone.utc).isoformat(),
+        "repo_url": args.repo_url,
+        "branch": args.branch,
+        "git_head": git_head,
+        "target_dir": str(target_dir),
+        "container_name": container_name,
+        "port": port,
+        "server_ip": server_ip,
+        "backup_dir": str(backup_dir),
+        "no_build": bool(args.no_build),
+        "no_start": bool(args.no_start),
+    }
+
+    summary = [
+        "# Auditor IPs - resumen de upgrade",
+        "",
+        f"- Fecha UTC: {state['upgraded_at']}",
+        f"- Repo: {args.repo_url}",
+        f"- Rama: {args.branch}",
+        f"- HEAD: {git_head}",
+        f"- Ruta: {target_dir}",
+        f"- Puerto: {port}",
+        f"- Contenedor: {container_name}",
+        f"- Backup previo: {backup_dir}",
+        "",
+        "## Validación",
+        "",
+        "- `docker compose config --quiet` ejecutado correctamente.",
+        "- Si el servicio se arrancó, el instalador validó `healthz` en el puerto configurado.",
+        "",
+        "## Comandos útiles",
+        "",
+        "```bash",
+        f"cd {target_dir}",
+        "docker compose ps",
+        "docker compose logs --tail 100",
+        f"curl -k https://127.0.0.1:{port}/api/system/healthz",
+        "```",
+        "",
+        "## Acceso",
+        "",
+        f"- https://{server_ip}:{port}/login",
+        "",
+    ]
+
+    if dry_run:
+        log(f"DRY-RUN escribir {target_dir / 'upgrade_state.json'}")
+        log(f"DRY-RUN escribir {target_dir / 'upgrade_summary.md'}")
+        return
+
+    (target_dir / "upgrade_state.json").write_text(json.dumps(state, indent=2, ensure_ascii=False) + "\n")
+    (target_dir / "upgrade_summary.md").write_text("\n".join(summary))
+    log(f"Escrito {target_dir / 'upgrade_state.json'}")
+    log(f"Escrito {target_dir / 'upgrade_summary.md'}")
+
+
+def run_upgrade(args: argparse.Namespace, target_dir: Path) -> int:
+    section(
+        "Upgrade guiado",
+        "Actualiza una instalación existente sin sobrescribir la configuración local.",
+    )
+
+    if not target_dir.exists() or not (target_dir / ".git").exists():
+        raise RuntimeError(f"--upgrade requiere una instalación Git existente en {target_dir}")
+
+    env_path = target_dir / ".env"
+    compose_path = target_dir / "docker-compose.yml"
+
+    if not env_path.exists():
+        raise RuntimeError(f"No existe .env en {target_dir}. No se puede actualizar con seguridad.")
+    if not compose_path.exists():
+        raise RuntimeError(f"No existe docker-compose.yml en {target_dir}. No se puede actualizar con seguridad.")
+
+    env_values = read_env_file(env_path)
+    port = env_values.get("PORT", args.port)
+
+    show_effective_config_summary(target_dir, args.repo_url, args.branch, {
+        "PORT": port,
+        "AUDITOR_CONTAINER_NAME": env_values.get("AUDITOR_CONTAINER_NAME", args.container_name),
+        "TLS_CERT_DNS": env_values.get("TLS_CERT_DNS", ""),
+        "TLS_CERT_IP": env_values.get("TLS_CERT_IP", ""),
+        "SERVER_IP": env_values.get("SERVER_IP", ""),
+        "SCAN_CIDR": env_values.get("SCAN_CIDR", ""),
+        "DATA_DIR": env_values.get("DATA_DIR", ""),
+        "EXPORTS_HOST_DIR": env_values.get("EXPORTS_HOST_DIR", ""),
+    })
+
+    if not args.yes and not confirm("Continuar con el upgrade usando la configuración local existente", args.yes):
+        log("Cancelado por el usuario.")
+        return 1
+
+    backup_dir = create_upgrade_backup(target_dir, env_values, args.dry_run)
+
+    clone_or_update_repo(args.repo_url, args.branch, target_dir, args.dry_run)
+
+    if args.dry_run:
+        log("dry-run upgrade OK")
+        return 0
+
+    validate_compose(target_dir)
+    write_upgrade_state(target_dir, args, env_values, backup_dir, args.dry_run)
+
+    if args.no_build:
+        log("Omitido build por --no-build")
+    else:
+        build_and_start(target_dir, args.no_start, port)
+
+    log("")
+    log(color("Upgrade completado.", "ok"))
+    log(color(f"Backup previo: {backup_dir}", "ok"))
+    log(color(f"Acceso: https://{env_values.get('SERVER_IP', '127.0.0.1')}:{port}/login", "ok"))
+    return 0
+
 def validate_compose(target_dir: Path) -> None:
     result = run_cmd(["docker", "compose", "config", "--quiet"], cwd=target_dir, capture=True)
     if result.returncode != 0:
@@ -579,6 +798,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--no-start", action="store_true", help="No ejecuta docker compose up -d.")
     parser.add_argument("--no-build", action="store_true", help="No ejecuta docker compose build.")
     parser.add_argument("--force-config", action="store_true", help="Sobrescribe .env/docker-compose.yml locales.")
+    parser.add_argument("--upgrade", action="store_true", help="Actualiza una instalación existente sin reconfigurarla.")
     return parser.parse_args()
 
 
@@ -614,6 +834,9 @@ def main() -> int:
         if args.check_only:
             log("check-only OK")
             return 0
+
+        if args.upgrade:
+            return run_upgrade(args, target_dir)
 
         if target_dir.exists() and not args.yes:
             if not confirm(f"Continuar usando {target_dir}", args.yes):

@@ -5,7 +5,7 @@ Este snapshot ha sido generado de forma local y no ha sido publicado.
 ## Resultado del escaneo ligero
 
 - Hallazgos HIGH: 0
-- Hallazgos WARN: 235
+- Hallazgos WARN: 236
 
 Los hallazgos WARN pueden corresponder a documentación o nombres de variables.
 Los hallazgos HIGH deben bloquear la publicación hasta revisión.
@@ -60,7 +60,8 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `scripts/install_auditor.py:122` `secret_word` — if any(token in raw for token in ["debian", "ubuntu", "linuxmint", "raspbian"]):
 - `WARN` `scripts/install_auditor.py:124` `secret_word` — if any(token in raw for token in ["arch", "manjaro", "endeavouros"]):
 - `WARN` `scripts/install_auditor.py:504` `localhost_url` — f"curl -k https://127.0.0.1:{effective_port}/api/system/healthz",
-- `WARN` `scripts/install_auditor.py:543` `localhost_url` — healthz_url = f"https://127.0.0.1:{port}/api/system/healthz"
+- `WARN` `scripts/install_auditor.py:668` `localhost_url` — f"curl -k https://127.0.0.1:{port}/api/system/healthz",
+- `WARN` `scripts/install_auditor.py:762` `localhost_url` — healthz_url = f"https://127.0.0.1:{port}/api/system/healthz"
 - `WARN` `scripts/smoke_system_health.sh:15` `localhost_url` — #   AUDITOR_BASE_URL=https://127.0.0.1:9909 ./LOCAL/scripts/smoke_system_health.sh
 - `WARN` `scripts/smoke_system_health.sh:18` `localhost_url` — BASE_URL="${AUDITOR_BASE_URL:-${1:-https://127.0.0.1:9909}}"
 - `WARN` `scripts/smoke_system_health.sh:153` `secret_word` — "password": os.environ.get("AUDITOR_SMOKE_PASS", ""),
@@ -221,6 +222,5 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/static/js/syncthing_control.js:2050` `secret_word` — api_key: document.getElementById('st-node-api-key')?.value || '',
 - `WARN` `app/static/js/auth.js:63` `secret_word` — body: JSON.stringify({username: user, password: pass})
 - `WARN` `app/static/js/auth.js:172` `secret_word` — const password = document.getElementById('newUserPw').value;
-- `WARN` `app/static/js/auth.js:175` `secret_word` — const r    = await fetch('/api/auth/users', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username, password})});
-- ... 35 hallazgos adicionales no listados.
+- ... 36 hallazgos adicionales no listados.
 
