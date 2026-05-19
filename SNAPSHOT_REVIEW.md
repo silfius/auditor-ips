@@ -57,10 +57,10 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/auth_middleware.py:166` `secret_word` — c.execute("DELETE FROM auth_sessions WHERE token=?", (token,))
 - `WARN` `app/auth_middleware.py:184` `secret_word` — rows = c.execute("""SELECT token,username,created_at,expires_at,ip,user_agent
 - `WARN` `app/database.py:277` `secret_word` — api_key TEXT NOT NULL DEFAULT '',
-- `WARN` `scripts/install_auditor.py:85` `secret_word` — if any(token in raw for token in ["debian", "ubuntu", "linuxmint", "raspbian"]):
-- `WARN` `scripts/install_auditor.py:87` `secret_word` — if any(token in raw for token in ["arch", "manjaro", "endeavouros"]):
-- `WARN` `scripts/install_auditor.py:325` `localhost_url` — "curl -k https://127.0.0.1:${PORT:-9909}/api/system/healthz",
-- `WARN` `scripts/install_auditor.py:355` `localhost_url` — result = run_cmd(["bash", "-lc", "curl -kfsS https://127.0.0.1:${PORT:-9909}/api/system/healthz >/dev/null"], cwd=target_dir, capture=True)
+- `WARN` `scripts/install_auditor.py:86` `secret_word` — if any(token in raw for token in ["debian", "ubuntu", "linuxmint", "raspbian"]):
+- `WARN` `scripts/install_auditor.py:88` `secret_word` — if any(token in raw for token in ["arch", "manjaro", "endeavouros"]):
+- `WARN` `scripts/install_auditor.py:356` `localhost_url` — f"curl -k https://127.0.0.1:{effective_port}/api/system/healthz",
+- `WARN` `scripts/install_auditor.py:386` `localhost_url` — result = run_cmd(["bash", "-lc", "curl -kfsS https://127.0.0.1:${PORT:-9909}/api/system/healthz >/dev/null"], cwd=target_dir, capture=True)
 - `WARN` `scripts/smoke_system_health.sh:15` `localhost_url` — #   AUDITOR_BASE_URL=https://127.0.0.1:9909 ./LOCAL/scripts/smoke_system_health.sh
 - `WARN` `scripts/smoke_system_health.sh:18` `localhost_url` — BASE_URL="${AUDITOR_BASE_URL:-${1:-https://127.0.0.1:9909}}"
 - `WARN` `scripts/smoke_system_health.sh:153` `secret_word` — "password": os.environ.get("AUDITOR_SMOKE_PASS", ""),

@@ -17,6 +17,7 @@ import argparse
 import ipaddress
 import json
 import platform
+import re
 import shutil
 import socket
 import subprocess
@@ -159,6 +160,18 @@ def default_scan_cidr() -> str:
     return "192.168.1.0/24"
 
 
+
+def sanitize_container_name(value: str) -> str:
+    # Devuelve un nombre de contenedor compatible sin ocultar la eleccion del usuario.
+    cleaned = re.sub(r"[^A-Za-z0-9_.-]+", "_", value.strip())
+    cleaned = cleaned.strip("._-")
+    if not cleaned:
+        cleaned = DEFAULT_CONTAINER_NAME
+    if not re.match(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$", cleaned):
+        cleaned = DEFAULT_CONTAINER_NAME
+    return cleaned
+
+
 def ask(prompt: str, default: str, assume_yes: bool) -> str:
     if assume_yes:
         return default
@@ -224,7 +237,7 @@ def render_env(template_text: str, overrides: dict[str, str]) -> str:
     return "\n".join(output).rstrip() + "\n"
 
 
-def write_local_config(target_dir: Path, args: argparse.Namespace, assume_yes: bool, dry_run: bool) -> None:
+def write_local_config(target_dir: Path, args: argparse.Namespace, assume_yes: bool, dry_run: bool) -> dict[str, str]:
     env_template_path = target_dir / ".env.example"
     compose_template_path = target_dir / "docker-compose.yml.example"
     if not env_template_path.exists():
@@ -236,7 +249,10 @@ def write_local_config(target_dir: Path, args: argparse.Namespace, assume_yes: b
     detected_cidr = default_scan_cidr()
 
     port = ask("Puerto web", args.port, assume_yes)
-    container_name = ask("Nombre del contenedor", args.container_name, assume_yes)
+    container_name_raw = ask("Nombre del contenedor", args.container_name, assume_yes)
+    container_name = sanitize_container_name(container_name_raw)
+    if container_name != container_name_raw:
+        log(f"WARN: nombre de contenedor normalizado a {container_name}")
     tls_dns = ask("DNS local para certificado", args.tls_dns, assume_yes)
     tls_ip = ask("IP para certificado TLS", args.tls_ip or detected_ip, assume_yes)
     server_ip = ask("SERVER_IP", args.server_ip or detected_ip, assume_yes)
@@ -289,12 +305,17 @@ def write_local_config(target_dir: Path, args: argparse.Namespace, assume_yes: b
         else:
             target.mkdir(parents=True, exist_ok=True)
 
+    return env_overrides
 
-def write_install_state(target_dir: Path, args: argparse.Namespace, dry_run: bool) -> None:
+
+def write_install_state(target_dir: Path, args: argparse.Namespace, dry_run: bool, effective_config: dict[str, str]) -> None:
     git_head = ""
     result = run_cmd(["git", "rev-parse", "--short", "HEAD"], cwd=target_dir, capture=True)
     if result.returncode == 0:
         git_head = result.stdout.strip()
+
+    effective_port = effective_config.get("PORT", args.port)
+    effective_container_name = effective_config.get("AUDITOR_CONTAINER_NAME", args.container_name)
 
     state = {
         "installed_at": datetime.now(timezone.utc).isoformat(),
@@ -302,8 +323,14 @@ def write_install_state(target_dir: Path, args: argparse.Namespace, dry_run: boo
         "branch": args.branch,
         "git_head": git_head,
         "target_dir": str(target_dir),
-        "container_name": args.container_name,
-        "port": args.port,
+        "container_name": effective_container_name,
+        "port": effective_port,
+        "tls_cert_ip": effective_config.get("TLS_CERT_IP", ""),
+        "tls_cert_dns": effective_config.get("TLS_CERT_DNS", ""),
+        "server_ip": effective_config.get("SERVER_IP", ""),
+        "scan_cidr": effective_config.get("SCAN_CIDR", ""),
+        "data_dir": effective_config.get("DATA_DIR", ""),
+        "exports_host_dir": effective_config.get("EXPORTS_HOST_DIR", ""),
         "no_start": bool(args.no_start),
     }
 
@@ -315,14 +342,18 @@ def write_install_state(target_dir: Path, args: argparse.Namespace, dry_run: boo
         f"- Rama: {args.branch}",
         f"- HEAD: {git_head}",
         f"- Ruta: {target_dir}",
-        f"- Puerto: {args.port}",
+        f"- Puerto: {effective_port}",
+        f"- Contenedor: {effective_container_name}",
+        f"- TLS DNS: {effective_config.get('TLS_CERT_DNS', '')}",
+        f"- TLS IP: {effective_config.get('TLS_CERT_IP', '')}",
+        f"- Red principal: {effective_config.get('SCAN_CIDR', '')}",
         "",
         "## Siguientes pasos",
         "",
         "```bash",
         f"cd {target_dir}",
         "docker compose up -d",
-        "curl -k https://127.0.0.1:${PORT:-9909}/api/system/healthz",
+        f"curl -k https://127.0.0.1:{effective_port}/api/system/healthz",
         "```",
         "",
     ]
@@ -416,14 +447,14 @@ def main() -> int:
                 return 1
 
         clone_or_update_repo(args.repo_url, args.branch, target_dir, args.dry_run)
-        write_local_config(target_dir, args, args.yes, args.dry_run)
+        effective_config = write_local_config(target_dir, args, args.yes, args.dry_run)
 
         if args.dry_run:
             log("dry-run OK")
             return 0
 
         validate_compose(target_dir)
-        write_install_state(target_dir, args, args.dry_run)
+        write_install_state(target_dir, args, args.dry_run, effective_config)
 
         if not args.no_build:
             build_and_start(target_dir, args.no_start)
