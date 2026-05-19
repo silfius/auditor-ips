@@ -1,9 +1,9 @@
 {
   "repo_name": "auditor-ips",
-  "generated_at": "2026-05-19T10:37:01.914853+00:00",
+  "generated_at": "2026-05-19T13:07:32.758324+00:00",
   "source_root": "<internal-source-redacted>",
-  "snapshot_dir": "auditor-ips-20260519-123700",
-  "files_count": 80,
+  "snapshot_dir": "auditor-ips-20260519-150731",
+  "files_count": 84,
   "high_findings_count": 0,
   "warn_findings_count": 235,
   "files": [
@@ -359,13 +359,33 @@
     },
     {
       "path": "LICENSE",
-      "size": 1065,
-      "sha256": "2113ed97490a1fbbf8f3716beda03d2c464a00c59a1a39bef2dc5235391661f8"
+      "size": 1074,
+      "sha256": "661a2dc1b702539101ffe90cc44733424fd0dca67ba3cdb80cbf5aeb47eb345c"
     },
     {
       "path": "CHANGELOG.md",
       "size": 283,
       "sha256": "2d0dbeb4fe554f7b7ac7d11671db94ccce2c815bca1a96b3e4b36f8a4ec5b57c"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/bug_report.md",
+      "size": 646,
+      "sha256": "58c84f31ad37d65f3f77f87cc7b6e672c3ebf410bdb3415e20f816eea1aef5d3"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/config.yml",
+      "size": 243,
+      "sha256": "4591b1c065e7dc9aaf4f599d00f9bb67934d074f49e0d56e9132c1a360f55b4b"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/feature_request.md",
+      "size": 403,
+      "sha256": "831d6467cfcf85df114e60d048d969fca527b3e143e80c8ec13519fd276fb796"
+    },
+    {
+      "path": ".github/pull_request_template.md",
+      "size": 349,
+      "sha256": "b9d54ca1ea2ff167df91ac49debe87478bae372fdf03ed809940bab45e1cf77c"
     },
     {
       "path": "docs/BACKUP_RESTORE.md",
