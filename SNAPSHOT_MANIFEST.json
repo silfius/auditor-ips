@@ -1,8 +1,8 @@
 {
   "repo_name": "auditor-ips",
-  "generated_at": "2026-05-19T09:40:10.569130+00:00",
+  "generated_at": "2026-05-19T09:48:27.048791+00:00",
   "source_root": "<internal-source-redacted>",
-  "snapshot_dir": "auditor-ips-20260519-114009",
+  "snapshot_dir": "auditor-ips-20260519-114826",
   "files_count": 80,
   "high_findings_count": 0,
   "warn_findings_count": 235,
@@ -404,8 +404,8 @@
     },
     {
       "path": "scripts/install_auditor.py",
-      "size": 23753,
-      "sha256": "af8821692c4edc29a02f8fc767a08950a2a766f1f649106ad8e576593629ae04"
+      "size": 23645,
+      "sha256": "3f8cc56c2db5727e91d74eeb237d25be64b5b5817f7dfe6953055a6deeb2bf6e"
     }
   ],
   "findings": [
@@ -657,28 +657,28 @@
     {
       "severity": "WARN",
       "path": "scripts/install_auditor.py",
-      "line": 125,
+      "line": 122,
       "pattern": "secret_word",
       "sample": "if any(token in raw for token in [\"debian\", \"ubuntu\", \"linuxmint\", \"raspbian\"]):"
     },
     {
       "severity": "WARN",
       "path": "scripts/install_auditor.py",
-      "line": 127,
+      "line": 124,
       "pattern": "secret_word",
       "sample": "if any(token in raw for token in [\"arch\", \"manjaro\", \"endeavouros\"]):"
     },
     {
       "severity": "WARN",
       "path": "scripts/install_auditor.py",
-      "line": 507,
+      "line": 504,
       "pattern": "localhost_url",
       "sample": "f\"curl -k https://127.0.0.1:{effective_port}/api/system/healthz\","
     },
     {
       "severity": "WARN",
       "path": "scripts/install_auditor.py",
-      "line": 545,
+      "line": 542,
       "pattern": "localhost_url",
       "sample": "result = run_cmd([\"bash\", \"-lc\", \"curl -kfsS https://127.0.0.1:${PORT:-9909}/api/system/healthz >/dev/null\"], cwd=target_dir, capture=True)"
     },
