@@ -1,8 +1,8 @@
 {
   "repo_name": "auditor-ips",
-  "generated_at": "2026-05-19T10:08:40.268316+00:00",
+  "generated_at": "2026-05-19T10:37:01.914853+00:00",
   "source_root": "<internal-source-redacted>",
-  "snapshot_dir": "auditor-ips-20260519-120839",
+  "snapshot_dir": "auditor-ips-20260519-123700",
   "files_count": 80,
   "high_findings_count": 0,
   "warn_findings_count": 235,
@@ -354,8 +354,8 @@
     },
     {
       "path": "README.md",
-      "size": 2029,
-      "sha256": "340f2688b4ebb150998bfac9c8f03669ce435823548618f3355c4094c6bd5f98"
+      "size": 5390,
+      "sha256": "13bbb934449e1f80dc5c48b66a439d65b29e9e74c089b46039435a82027eeb90"
     },
     {
       "path": "LICENSE",
@@ -412,7 +412,7 @@
     {
       "severity": "WARN",
       "path": "README.md",
-      "line": 58,
+      "line": 147,
       "pattern": "localhost_url",
       "sample": "curl -k https://127.0.0.1:9909/api/system/healthz"
     },
