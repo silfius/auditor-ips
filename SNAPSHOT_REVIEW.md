@@ -22,7 +22,7 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 
 ## Hallazgos
 
-- `WARN` `README.md:58` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
+- `WARN` `README.md:147` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
 - `WARN` `app/host_classification.py:175` `secret_word` — for token in tokens:
 - `WARN` `app/host_classification.py:176` `secret_word` — token_norm = _norm_text(token)
 - `WARN` `app/host_classification.py:177` `secret_word` — token_compact = _compact_text(token)
