@@ -127,6 +127,9 @@ def cfg_defaults() -> Dict[str, Any]:
         "router_ssh_key":      ROUTER_SSH_KEY,
         # Auth
         "auth_sections":       "config,alertas",
+        "initial_setup_wizard_completed": "0",
+        "initial_setup_wizard_completed_at": "",
+        "initial_setup_wizard_version": "2",
         # Pestañas ocultas legacy (csv de tab IDs: services,quality,groups,alerts,scripts)
         "hidden_tabs":         "",
         # Módulos opcionales habilitados/deshabilitados por instalador/configuración.

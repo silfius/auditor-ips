@@ -1,11 +1,11 @@
 {
   "repo_name": "auditor-ips",
-  "generated_at": "2026-05-19T13:54:05.271455+00:00",
+  "generated_at": "2026-05-19T15:41:26.846371+00:00",
   "source_root": "<internal-source-redacted>",
-  "snapshot_dir": "auditor-ips-20260519-155404",
+  "snapshot_dir": "auditor-ips-20260519-174125",
   "files_count": 85,
   "high_findings_count": 0,
-  "warn_findings_count": 265,
+  "warn_findings_count": 279,
   "files": [
     {
       "path": "app/scan_scheduler.py",
@@ -29,8 +29,8 @@
     },
     {
       "path": "app/config.py",
-      "size": 15671,
-      "sha256": "372aecacf4b350596f44dad5c96fe9aef8bcaa7d9d79f2edd028bd23a06f7e00"
+      "size": 15812,
+      "sha256": "824bc23d74627f1956dbd3caf2bd17b6a2858fa5651de87e528804e7973b6c27"
     },
     {
       "path": "app/requirements.txt",
@@ -49,8 +49,8 @@
     },
     {
       "path": "app/main.py",
-      "size": 13678,
-      "sha256": "ca64dbd89ef1df2854ec625f7293b240211f031b13c3d0ab44efdf99fea91bbc"
+      "size": 16355,
+      "sha256": "bc0d8a6f043e6440d7c504921362c31230e0d0eb82f5675f2f713221eea51988"
     },
     {
       "path": "app/auditor-ips.filter.conf",
@@ -124,8 +124,8 @@
     },
     {
       "path": "app/templates/login.html",
-      "size": 22456,
-      "sha256": "9e6acc42d9af7d1b9f21cf59b37ea79278a20c9d31cbb3146ecf227bbf4f02da"
+      "size": 35597,
+      "sha256": "e82fc02e8d7f5e2f19470ce0810cec2cbf2f5408bc18c106e98fceca1eb65d92"
     },
     {
       "path": "app/static/icon-192.png",
@@ -334,8 +334,8 @@
     },
     {
       "path": "app/routers/auth.py",
-      "size": 14490,
-      "sha256": "44d8ca050670f8ac4fc4821a024a3d917aaa5a14ff8b289ee6d2c3b8a874cdda"
+      "size": 21406,
+      "sha256": "0d980b49f1016c0a8b7a92a70b30027f1228c83a6f3dec3bcb8d6f6ac4c21db4"
     },
     {
       "path": ".env.example",
@@ -493,7 +493,7 @@
     {
       "severity": "WARN",
       "path": "app/config.py",
-      "line": 155,
+      "line": 158,
       "pattern": "localhost_url",
       "sample": "\"ai_ollama_url\":       os.getenv(\"OLLAMA_URL\",     \"http://localhost:11434\"),"
     },
@@ -507,21 +507,21 @@
     {
       "severity": "WARN",
       "path": "app/main.py",
-      "line": 163,
+      "line": 239,
       "pattern": "secret_word",
       "sample": "token = request.cookies.get(SESSION_COOKIE)"
     },
     {
       "severity": "WARN",
       "path": "app/main.py",
-      "line": 165,
+      "line": 241,
       "pattern": "secret_word",
       "sample": "username = validate_session(DB_PATH, token) if auth_enabled(DB_PATH) else None"
     },
     {
       "severity": "WARN",
       "path": "app/main.py",
-      "line": 200,
+      "line": 276,
       "pattern": "secret_word",
       "sample": "session_token=token,"
     },
@@ -1137,51 +1137,86 @@
     {
       "severity": "WARN",
       "path": "app/templates/login.html",
-      "line": 519,
+      "line": 518,
       "pattern": "secret_word",
       "sample": "inp.type = vis ? 'password' : 'text';"
     },
     {
       "severity": "WARN",
       "path": "app/templates/login.html",
-      "line": 543,
+      "line": 542,
       "pattern": "secret_word",
       "sample": "body: JSON.stringify({username, password: pw})"
     },
     {
       "severity": "WARN",
       "path": "app/templates/login.html",
-      "line": 552,
+      "line": 551,
       "pattern": "secret_word",
       "sample": "body: JSON.stringify({username, password: pw})"
     },
     {
       "severity": "WARN",
       "path": "app/templates/login.html",
-      "line": 573,
+      "line": 572,
       "pattern": "secret_word",
       "sample": "inp.type = vis ? 'password' : 'text';"
     },
     {
       "severity": "WARN",
       "path": "app/templates/login.html",
-      "line": 579,
+      "line": 578,
       "pattern": "secret_word",
       "sample": "const password = document.getElementById('loginPassword').value;"
     },
     {
       "severity": "WARN",
       "path": "app/templates/login.html",
-      "line": 584,
+      "line": 583,
       "pattern": "secret_word",
       "sample": "if (!username || !password) {"
     },
     {
       "severity": "WARN",
       "path": "app/templates/login.html",
-      "line": 597,
+      "line": 596,
       "pattern": "secret_word",
       "sample": "body: JSON.stringify({username, password})"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/login.html",
+      "line": 669,
+      "pattern": "secret_word",
+      "sample": "password: el('setupV2Password')?.value || '',"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/login.html",
+      "line": 702,
+      "pattern": "secret_word",
+      "sample": "if (p.password.length < 8) return 'La contraseña debe tener al menos 8 caracteres.';"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/login.html",
+      "line": 703,
+      "pattern": "secret_word",
+      "sample": "if (p.password !== p.password2) return 'Las contraseñas no coinciden.';"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/login.html",
+      "line": 819,
+      "pattern": "secret_word",
+      "sample": "<input id=\"setupV2Password\" type=\"password\" class=\"form-control\" autocomplete=\"new-password\">"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/login.html",
+      "line": 821,
+      "pattern": "secret_word",
+      "sample": "<input id=\"setupV2Password2\" type=\"password\" class=\"form-control\" autocomplete=\"new-password\">"
     },
     {
       "severity": "WARN",
@@ -1753,133 +1788,196 @@
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 61,
+      "line": 109,
       "pattern": "secret_word",
-      "sample": "token = request.cookies.get(SESSION_COOKIE)"
+      "sample": "password = str(payload.get(\"password\") or \"\")"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 62,
+      "line": 114,
       "pattern": "secret_word",
-      "sample": "if validate_session(DB_PATH, token):"
+      "sample": "if len(password) < 8:"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 84,
+      "line": 116,
       "pattern": "secret_word",
-      "sample": "token = request.cookies.get(SESSION_COOKIE)"
+      "sample": "if password != password2:"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 85,
+      "line": 134,
       "pattern": "secret_word",
-      "sample": "username = validate_session(DB_PATH, token) if enabled else None"
+      "sample": "token = secrets.token_urlsafe(32)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 108,
+      "line": 172,
       "pattern": "secret_word",
-      "sample": "password = (payload.get(\"password\") or \"\").strip()"
+      "sample": "(username, hash_password(password), now),"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 132,
+      "line": 181,
       "pattern": "secret_word",
-      "sample": "if not user or not _am.verify_password(password, user[\"password_hash\"]):"
+      "sample": "(token,user_id,username,created_at,expires_at,ip,user_agent)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 163,
+      "line": 183,
       "pattern": "secret_word",
-      "sample": "token = create_session(DB_PATH, user[\"id\"], username, ip, ua)"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/auth.py",
-      "line": 170,
-      "pattern": "secret_word",
-      "sample": "session_token=token,"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/auth.py",
-      "line": 176,
-      "pattern": "secret_word",
-      "sample": "token,"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/auth.py",
-      "line": 187,
-      "pattern": "secret_word",
-      "sample": "token = request.cookies.get(SESSION_COOKIE)"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/auth.py",
-      "line": 189,
-      "pattern": "secret_word",
-      "sample": "username = validate_session(DB_PATH, token)"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/auth.py",
-      "line": 191,
-      "pattern": "secret_word",
-      "sample": "if token:"
+      "sample": "(token, user_id, username, now, expires_at, ip, ua),"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
       "line": 192,
       "pattern": "secret_word",
-      "sample": "destroy_session(DB_PATH, token)"
+      "sample": "now, ip, username, token[:10],"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 199,
+      "line": 210,
       "pattern": "secret_word",
-      "sample": "session_token=token,"
+      "sample": "token,"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 220,
+      "line": 223,
+      "pattern": "secret_word",
+      "sample": "token = request.cookies.get(SESSION_COOKIE)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 224,
+      "pattern": "secret_word",
+      "sample": "if validate_session(DB_PATH, token):"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 246,
+      "pattern": "secret_word",
+      "sample": "token = request.cookies.get(SESSION_COOKIE)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 247,
+      "pattern": "secret_word",
+      "sample": "username = validate_session(DB_PATH, token) if enabled else None"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 270,
       "pattern": "secret_word",
       "sample": "password = (payload.get(\"password\") or \"\").strip()"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 225,
+      "line": 294,
+      "pattern": "secret_word",
+      "sample": "if not user or not _am.verify_password(password, user[\"password_hash\"]):"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 325,
+      "pattern": "secret_word",
+      "sample": "token = create_session(DB_PATH, user[\"id\"], username, ip, ua)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 332,
+      "pattern": "secret_word",
+      "sample": "session_token=token,"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 338,
+      "pattern": "secret_word",
+      "sample": "token,"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 349,
+      "pattern": "secret_word",
+      "sample": "token = request.cookies.get(SESSION_COOKIE)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 351,
+      "pattern": "secret_word",
+      "sample": "username = validate_session(DB_PATH, token)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 353,
+      "pattern": "secret_word",
+      "sample": "if token:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 354,
+      "pattern": "secret_word",
+      "sample": "destroy_session(DB_PATH, token)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 361,
+      "pattern": "secret_word",
+      "sample": "session_token=token,"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 387,
+      "pattern": "secret_word",
+      "sample": "password = (payload.get(\"password\") or \"\").strip()"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 392,
       "pattern": "secret_word",
       "sample": "result = create_user(DB_PATH, username, password)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 256,
+      "line": 423,
       "pattern": "secret_word",
       "sample": "@router.post(\"/api/auth/change-password\")"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 297,
+      "line": 464,
       "pattern": "secret_word",
       "sample": "\"SELECT token FROM auth_sessions WHERE token LIKE ?\","
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 302,
+      "line": 469,
       "pattern": "secret_word",
       "sample": "destroy_session(DB_PATH, row[\"token\"])"
     },
