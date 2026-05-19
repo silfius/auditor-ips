@@ -1,0 +1,52 @@
+# Local configuration
+.env
+.env.*
+!.env.example
+
+# Runtime data
+data/
+LOCAL/
+exports/
+logs/
+backups/
+tmp/
+temp/
+
+# Databases and dumps
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+*.bak
+
+# Logs
+*.log
+
+# Archives
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.7z
+
+# Secrets and certificates
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+cookies.txt
+
+# Python / JS noise
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+node_modules/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

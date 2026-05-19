@@ -1,0 +1,29 @@
+services:
+  auditor_ips:
+    build:
+      context: ./app
+      dockerfile: dockerfile
+    container_name: ${AUDITOR_CONTAINER_NAME:-auditor_ips}
+    network_mode: "host"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    env_file:
+      - .env
+    environment:
+      PORT: ${PORT:-9909}
+      DB_PATH: ${DB_PATH:-/data/auditor.db}
+
+      # TLS local. Ajustar en .env según IP/DNS de cada instalación.
+      TLS_CERT_IP: ${TLS_CERT_IP:-}
+      TLS_CERT_DNS: ${TLS_CERT_DNS:-auditips.local}
+      SERVER_IP: ${SERVER_IP:-}
+
+      # Rutas internas del contenedor.
+      SCRIPTS_STATUS_DIR: /data/scripts_status
+      SCRIPTS_PROMPTS_DIR: /data/scripts_prompts
+      EXPORTS_DIR: /data/exports
+    volumes:
+      - ${DATA_DIR:-./data}:/data
+      - ${EXPORTS_HOST_DIR:-./exports}:/data/exports
+    restart: unless-stopped

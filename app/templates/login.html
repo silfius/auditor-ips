@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{{ page_title }} — Acceso</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/darkly/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --accent: #4dffb5;
+      --accent2: #375a7f;
+    }
+    body {
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem;
+      position: relative;
+      overflow-x: hidden;
+      overflow-y: auto;
+      background:
+        radial-gradient(circle at top left, rgba(77,255,181,0.18), transparent 26%),
+        radial-gradient(circle at top right, rgba(55,90,127,0.34), transparent 30%),
+        linear-gradient(180deg, #0e131a 0%, #141a22 48%, #0d1117 100%);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: auto;
+      border-radius: 50%;
+      filter: blur(18px);
+      pointer-events: none;
+      opacity: .75;
+      animation: loginAmbientFloat 14s ease-in-out infinite;
+    }
+    body::before {
+      width: 420px;
+      height: 420px;
+      left: -120px;
+      top: -80px;
+      background: radial-gradient(circle, rgba(77,255,181,0.18) 0%, rgba(77,255,181,0.04) 48%, transparent 72%);
+    }
+    body::after {
+      width: 520px;
+      height: 520px;
+      right: -180px;
+      bottom: -160px;
+      background: radial-gradient(circle, rgba(71,125,184,0.2) 0%, rgba(71,125,184,0.05) 46%, transparent 74%);
+      animation-delay: -5s;
+    }
+    @keyframes loginAmbientFloat {
+      0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+      50% { transform: translate3d(0, -14px, 0) scale(1.04); }
+    }
+    @keyframes loginElectricFlicker {
+      0%, 100% {
+        opacity: .82;
+        filter:
+          blur(.35px)
+          drop-shadow(0 0 6px rgba(77,255,181,0.34))
+          drop-shadow(0 0 16px rgba(77,255,181,0.18));
+      }
+      8%  { opacity: .96; }
+      14% { opacity: .72; }
+      22% { opacity: .98; }
+      37% { opacity: .76; }
+      49% { opacity: .94; }
+      63% { opacity: .70; }
+      74% { opacity: .97; }
+      88% { opacity: .84; }
+    }
+    @keyframes loginElectricJitter {
+      0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+      20% { transform: translate3d(.2px, -.25px, 0) scale(1.001); }
+      40% { transform: translate3d(-.25px, .15px, 0) scale(.999); }
+      60% { transform: translate3d(.3px, .1px, 0) scale(1.001); }
+      80% { transform: translate3d(-.2px, -.15px, 0) scale(1); }
+    }
+    @keyframes loginCardGlow {
+      0%, 100% {
+        box-shadow:
+          0 34px 90px rgba(0,0,0,0.5),
+          0 0 0 1px rgba(255,255,255,0.025) inset,
+          inset 0 1px 0 rgba(255,255,255,0.04),
+          0 0 0 rgba(77,255,181,0);
+      }
+      50% {
+        box-shadow:
+          0 36px 96px rgba(0,0,0,0.54),
+          0 0 0 1px rgba(255,255,255,0.03) inset,
+          inset 0 1px 0 rgba(255,255,255,0.05),
+          0 0 26px rgba(77,255,181,0.08);
+      }
+    }
+    .login-card {
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+      background:
+        linear-gradient(180deg, rgba(31,37,46,0.98), rgba(19,24,31,0.985)),
+        radial-gradient(circle at top right, rgba(77,255,181,0.08), transparent 30%);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 28px;
+      padding: 2.1rem 2rem 1.9rem;
+      width: 100%;
+      max-width: 560px;
+      box-shadow:
+        0 34px 90px rgba(0,0,0,0.5),
+        0 0 0 1px rgba(255,255,255,0.025) inset,
+        inset 0 1px 0 rgba(255,255,255,0.04);
+      backdrop-filter: blur(14px);
+      animation: loginCardGlow 4.8s ease-in-out infinite;
+    }
+    .login-card > * {
+      position: relative;
+      z-index: 1;
+    }
+    .login-card::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      pointer-events: none;
+      z-index: 0;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 560 420' preserveAspectRatio='none'><defs><filter id='e'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='1' seed='7' result='noise'/><feDisplacementMap in='SourceGraphic' in2='noise' scale='7'/></filter></defs><rect x='8' y='8' width='544' height='404' rx='28' ry='28' fill='none' stroke='%234dffb5' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round' filter='url(%23e)'/></svg>");
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      opacity: .88;
+      filter:
+        blur(.35px)
+        drop-shadow(0 0 6px rgba(77,255,181,0.34))
+        drop-shadow(0 0 16px rgba(77,255,181,0.18));
+      animation:
+        loginElectricFlicker 2.1s steps(10) infinite,
+        loginElectricJitter .9s steps(2) infinite;
+    }
+    .login-card::after {
+      content: "";
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      right: -90px;
+      top: -90px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(77,255,181,0.12), rgba(77,255,181,0.03) 42%, transparent 72%);
+      filter: blur(14px);
+      z-index: -1;
+    }
+    .login-logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 1.15rem;
+    }
+    .login-logo-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(77,255,181,0.18), transparent 36%),
+        linear-gradient(135deg, #1c2d40, #0b1622);
+      border: 1px solid rgba(77,255,181,0.22);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      box-shadow:
+        0 16px 34px rgba(0,0,0,0.28),
+        0 0 0 1px rgba(77,255,181,0.05) inset;
+    }
+    .login-logo-text h1 {
+      font-size: 1.48rem;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      margin: 0;
+      color: #f1f7fd;
+    }
+    .login-logo-text p {
+      font-size: .88rem;
+      color: rgba(255,255,255,0.6);
+      margin: 0;
+      line-height: 1.5;
+      max-width: 46ch;
+    }
+    .login-hero-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      margin: 0 0 1.45rem;
+    }
+    .login-hero-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: .38rem;
+      padding: .42rem .72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.78);
+      font-size: .74rem;
+      font-weight: 700;
+      letter-spacing: .02em;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+    .login-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      margin-bottom: .55rem;
+      padding: .32rem .68rem;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(77,255,181,0.14), rgba(77,255,181,0.08));
+      border: 1px solid rgba(77,255,181,0.22);
+      color: #c7ffe8;
+      font-size: .68rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      box-shadow: 0 8px 22px rgba(77,255,181,0.08);
+    }
+    @media (max-width: 640px) {
+      body {
+        display: block;
+        min-height: 100dvh;
+        padding: .85rem .85rem 1.35rem;
+      }
+      .login-card {
+        margin: 0 auto;
+        padding: 1.35rem 1.1rem 1.2rem;
+        border-radius: 20px;
+      }
+      .login-logo {
+        align-items: flex-start;
+      }
+    }
+    .login-panel-intro {
+      margin: 0 0 1.2rem;
+      padding: .15rem 0 .15rem .95rem;
+      border-left: 3px solid rgba(77,255,181,0.42);
+      background: linear-gradient(90deg, rgba(77,255,181,0.055), transparent 72%);
+      border-radius: 0 14px 14px 0;
+    }
+    .login-panel-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #eef5fb;
+      margin-bottom: .28rem;
+    }
+    .login-panel-subtitle {
+      font-size: .84rem;
+      color: rgba(255,255,255,0.58);
+      line-height: 1.45;
+    }
+    .form-label {
+      font-size: .74rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.62);
+      margin-bottom: .45rem;
+    }
+    .form-control {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.11);
+      border-radius: 12px;
+      color: #e8eef6;
+      padding: .78rem .95rem;
+      font-size: .93rem;
+      transition: border-color .2s, box-shadow .2s, background .2s;
+    }
+    .form-control::placeholder {
+      color: rgba(255,255,255,0.28);
+    }
+    .form-control:focus {
+      background: rgba(255,255,255,0.07);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(77,255,181,0.14);
+      color: #e8eef6;
+    }
+    .btn-login {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .55rem;
+      background: linear-gradient(135deg, var(--accent), #7cffca);
+      color: #091018;
+      border: none;
+      border-radius: 12px;
+      padding: .82rem 1.2rem;
+      font-weight: 800;
+      font-size: .95rem;
+      width: 100%;
+      box-shadow: 0 12px 28px rgba(77,255,181,0.14);
+      transition: opacity .2s, transform .1s, box-shadow .2s;
+    }
+    .btn-login:hover {
+      opacity: .96;
+      box-shadow: 0 16px 30px rgba(77,255,181,0.18);
+    }
+    .btn-login:active { transform: scale(.985); }
+    .btn-login:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+    .error-box {
+      background: rgba(255,99,99,0.12);
+      border: 1px solid rgba(255,99,99,0.28);
+      border-radius: 12px;
+      padding: .78rem .92rem;
+      font-size: .84rem;
+      color: #ffb0b0;
+      display: none;
+      line-height: 1.45;
+    }
+    .input-group-text {
+      background: rgba(255,255,255,0.045);
+      border: 1px solid rgba(255,255,255,0.11);
+      border-right: none;
+      color: rgba(255,255,255,0.46);
+      border-radius: 12px 0 0 12px;
+      padding: 0 .95rem;
+    }
+    .input-group .form-control {
+      border-left: none;
+      border-radius: 0 12px 12px 0;
+    }
+    .input-group .form-control:focus { z-index: 1; }
+    .pw-toggle {
+      background: rgba(255,255,255,0.045);
+      border: 1px solid rgba(255,255,255,0.11);
+      border-left: none;
+      color: rgba(255,255,255,0.46);
+      border-radius: 0 12px 12px 0;
+      min-width: 46px;
+      cursor: pointer;
+      transition: color .2s, background .2s;
+    }
+    .pw-toggle:hover {
+      color: rgba(255,255,255,0.78);
+      background: rgba(255,255,255,0.07);
+    }
+    .divider {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      margin: 1.7rem 0 1.15rem;
+    }
+    .public-wol-entry {
+      display: flex;
+      justify-content: center;
+    }
+    .public-wol-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      min-height: 44px;
+      padding: .68rem 1.08rem;
+      border-radius: 999px;
+      border: 1px solid rgba(77,255,181,0.26);
+      background: linear-gradient(180deg, rgba(77,255,181,0.22), rgba(77,255,181,0.11));
+      color: #e2fff3;
+      text-decoration: none;
+      font-size: .86rem;
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+      box-shadow:
+        0 16px 34px rgba(77,255,181,0.08),
+        inset 0 1px 0 rgba(255,255,255,0.06);
+      transition: opacity .2s, transform .1s, background .2s, box-shadow .2s;
+    }
+    .public-wol-link:hover {
+      opacity: .98;
+      background: linear-gradient(180deg, rgba(77,255,181,0.28), rgba(77,255,181,0.13));
+      box-shadow:
+        0 20px 38px rgba(77,255,181,0.11),
+        inset 0 1px 0 rgba(255,255,255,0.07);
+    }
+    .public-wol-link:active {
+      transform: scale(.985);
+    }
+    .setup-hint {
+      background: linear-gradient(180deg, rgba(77,255,181,0.08), rgba(77,255,181,0.04));
+      border: 1px solid rgba(77,255,181,0.18);
+      border-radius: 14px;
+      padding: .9rem 1rem;
+      font-size: .82rem;
+      color: rgba(255,255,255,0.76);
+      line-height: 1.45;
+    }
+    /* First-time setup accordion */
+    .setup-section { display: none; }
+    .setup-section.visible { display: block; }
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(0,0,0,0.3);
+      border-top-color: #0b0f14;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+  </style>
+</head>
+<body>
+
+<div class="login-card">
+
+  <!-- Logo -->
+  <div class="login-logo">
+    <div class="login-logo-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 64 64">
+        <circle cx="22" cy="32" r="12" fill="#4dffb5" opacity="0.95"/>
+        <path d="M16 32l4 4 8-10" fill="none" stroke="#0b0f14" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="38" y="39" font-family="Arial" font-size="16" font-weight="700" fill="#e8eef6">IP</text>
+      </svg>
+    </div>
+    <div class="login-logo-text">
+      <div class="login-kicker">Acceso privado</div>
+      <h1>{{ page_title }}</h1>
+      <p>Monitorización LAN, inventario de hosts y operaciones de administración en un único panel.</p>
+    </div>
+  </div>
+
+  <div class="login-hero-line" aria-label="Capacidades principales">
+    <div class="login-hero-chip"><i class="bi bi-speedometer2"></i><span>Dashboard</span></div>
+    <div class="login-hero-chip"><i class="bi bi-diagram-3"></i><span>Hosts y red</span></div>
+    <div class="login-hero-chip"><i class="bi bi-robot"></i><span>Automatización e IA</span></div>
+  </div>
+
+  {% if no_users %}
+  <!-- ── PRIMER ARRANQUE: crear primer usuario ── -->
+  <div class="login-panel-intro">
+    <div class="login-panel-title">Primera configuración</div>
+    <div class="login-panel-subtitle">Crea el primer usuario administrador para activar el acceso privado y dejar lista la aplicación para el uso diario.</div>
+  </div>
+  <div class="setup-hint mb-3">
+    <i class="bi bi-stars"></i> <strong>Instancia sin usuarios</strong><br>
+    No hay usuarios admin. Crea el primero para activar la autenticación.
+  </div>
+  <div id="setupForm">
+    <div class="mb-3">
+      <label class="form-label">Nombre de usuario</label>
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-person"></i></span>
+        <input type="text" id="setupUsername" class="form-control" placeholder="admin" autocomplete="username">
+      </div>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Contraseña <span style="color:rgba(255,255,255,0.35)">(mín. 8 caracteres)</span></label>
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+        <input type="password" id="setupPassword" class="form-control" placeholder="••••••••" autocomplete="new-password">
+        <button class="btn pw-toggle" type="button" id="setupPwToggle"><i class="bi bi-eye"></i></button>
+      </div>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Repetir contraseña</label>
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+        <input type="password" id="setupPassword2" class="form-control" placeholder="••••••••" autocomplete="new-password">
+      </div>
+    </div>
+    <div class="error-box mb-3" id="setupError"></div>
+    <button class="btn-login" id="setupBtn" type="button">
+      <i class="bi bi-shield-check"></i> Crear usuario y entrar
+    </button>
+  </div>
+
+  {% else %}
+  <!-- ── LOGIN NORMAL ── -->
+  <div class="login-panel-intro">
+    <div class="login-panel-title">Inicia sesión para administrar el entorno</div>
+    <div class="login-panel-subtitle">Accede a configuración, inventario, automatizaciones y herramientas operativas desde el panel privado.</div>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Usuario</label>
+    <div class="input-group">
+      <span class="input-group-text"><i class="bi bi-person"></i></span>
+      <input type="text" id="loginUsername" class="form-control" placeholder="admin"
+             autocomplete="username" autofocus tabindex="1">
+    </div>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Contraseña</label>
+    <div class="input-group">
+      <span class="input-group-text"><i class="bi bi-lock"></i></span>
+      <input type="password" id="loginPassword" class="form-control" placeholder="••••••••"
+             autocomplete="current-password" tabindex="2">
+      <button class="btn pw-toggle" type="button" id="pwToggle" tabindex="-1"><i class="bi bi-eye"></i></button>
+    </div>
+  </div>
+
+  <div class="error-box mb-3" id="loginError"></div>
+
+  <button class="btn-login" id="loginBtn" type="button" tabindex="3">
+    <i class="bi bi-box-arrow-in-right"></i> Entrar
+  </button>
+  {% endif %}
+
+
+  <hr class="divider">
+  <div class="public-wol-entry">
+    <a class="public-wol-link" href="/wol"><i class="bi bi-broadcast-pin"></i><span>Abrir /wol</span></a>
+  </div>
+
+</div>
+
+<script>
+const NEXT = {{ next | tojson }};
+
+{% if no_users %}
+// ── Setup primer usuario ──────────────────────────────────
+document.getElementById('setupPwToggle').addEventListener('click', function() {
+  const inp = document.getElementById('setupPassword');
+  const vis = inp.type === 'text';
+  inp.type = vis ? 'password' : 'text';
+  this.innerHTML = vis ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+});
+
+async function doSetup() {
+  const username = document.getElementById('setupUsername').value.trim();
+  const pw       = document.getElementById('setupPassword').value;
+  const pw2      = document.getElementById('setupPassword2').value;
+  const errEl    = document.getElementById('setupError');
+  const btn      = document.getElementById('setupBtn');
+  errEl.style.display = 'none';
+
+  if (!username) { errEl.textContent = 'Introduce un nombre de usuario'; errEl.style.display='block'; return; }
+  if (pw.length < 8) { errEl.textContent = 'La contraseña debe tener al menos 8 caracteres'; errEl.style.display='block'; return; }
+  if (pw !== pw2) { errEl.textContent = 'Las contraseñas no coinciden'; errEl.style.display='block'; return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Creando…';
+
+  try {
+    // Create user
+    const r1 = await fetch('/api/auth/users', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({username, password: pw})
+    });
+    const d1 = await r1.json();
+    if (!d1.ok) { errEl.textContent = d1.error; errEl.style.display='block'; btn.disabled=false; btn.innerHTML='<i class="bi bi-shield-check"></i> Crear usuario y entrar'; return; }
+
+    // Auto-login
+    const r2 = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({username, password: pw})
+    });
+    const d2 = await r2.json();
+    if (d2.ok) { window.location.href = NEXT || '/'; }
+    else { errEl.textContent = d2.error; errEl.style.display='block'; btn.disabled=false; }
+  } catch(e) {
+    errEl.textContent = 'Error de red'; errEl.style.display='block'; btn.disabled=false;
+    btn.innerHTML = '<i class="bi bi-shield-check"></i> Crear usuario y entrar';
+  }
+}
+
+document.getElementById('setupBtn').addEventListener('click', doSetup);
+['setupUsername','setupPassword','setupPassword2'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => { if(e.key==='Enter') doSetup(); });
+});
+
+{% else %}
+// ── Login normal ──────────────────────────────────────────
+document.getElementById('pwToggle').addEventListener('click', function() {
+  const inp = document.getElementById('loginPassword');
+  const vis = inp.type === 'text';
+  inp.type = vis ? 'password' : 'text';
+  this.innerHTML = vis ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+});
+
+async function doLogin() {
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl    = document.getElementById('loginError');
+  const btn      = document.getElementById('loginBtn');
+  errEl.style.display = 'none';
+
+  if (!username || !password) {
+    errEl.textContent = 'Introduce usuario y contraseña';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Comprobando…';
+
+  try {
+    const r    = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({username, password})
+    });
+    const data = await r.json();
+    if (data.ok) {
+      btn.innerHTML = '<i class="bi bi-check-lg"></i> Correcto';
+      window.location.href = NEXT || '/';
+    } else {
+      errEl.textContent = data.error || 'Credenciales incorrectas';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-box-arrow-in-right"></i> Entrar';
+      document.getElementById('loginPassword').value = '';
+      document.getElementById('loginPassword').focus();
+    }
+  } catch(e) {
+    errEl.textContent = 'Error de red';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-box-arrow-in-right"></i> Entrar';
+  }
+}
+
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+document.getElementById('loginUsername').addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === 'Tab') {
+    if (e.key === 'Tab') return; // leave native tab handling
+    e.preventDefault();
+    document.getElementById('loginPassword').focus();
+  }
+});
+document.getElementById('loginPassword').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+// Ensure username field gets focus on load
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const u = document.getElementById('loginUsername');
+    if (u) { u.focus(); u.select(); }
+  }, 150);
+});
+{% endif %}
+
+</script>
+</body>
+</html>

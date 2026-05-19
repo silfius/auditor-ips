@@ -1,0 +1,1216 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%3E%0A%20%20%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20ry%3D%2214%22%20fill%3D%22%231b1f24%22/%3E%0A%20%20%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2212%22%20fill%3D%22%234dffb5%22%20opacity%3D%220.95%22/%3E%0A%20%20%3Cpath%20d%3D%22M16%2032l4%204%208-10%22%20fill%3D%22none%22%20stroke%3D%22%230b0f14%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%0A%20%20%3Ctext%20x%3D%2238%22%20y%3D%2239%22%20font-family%3D%22Arial%2C%20Helvetica%2C%20sans-serif%22%20font-size%3D%2218%22%20font-weight%3D%22700%22%20fill%3D%22%23e8eef6%22%3EIP%3C/text%3E%0A%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%3E%0A%20%20%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20ry%3D%2214%22%20fill%3D%22%231b1f24%22/%3E%0A%20%20%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2212%22%20fill%3D%22%234dffb5%22%20opacity%3D%220.95%22/%3E%0A%20%20%3Cpath%20d%3D%22M16%2032l4%204%208-10%22%20fill%3D%22none%22%20stroke%3D%22%230b0f14%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%0A%20%20%3Ctext%20x%3D%2238%22%20y%3D%2239%22%20font-family%3D%22Arial%2C%20Helvetica%2C%20sans-serif%22%20font-size%3D%2218%22%20font-weight%3D%22700%22%20fill%3D%22%23e8eef6%22%3EIP%3C/text%3E%0A%3C/svg%3E">
+  <link rel="shortcut icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%3E%0A%20%20%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20ry%3D%2214%22%20fill%3D%22%231b1f24%22/%3E%0A%20%20%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2212%22%20fill%3D%22%234dffb5%22%20opacity%3D%220.95%22/%3E%0A%20%20%3Cpath%20d%3D%22M16%2032l4%204%208-10%22%20fill%3D%22none%22%20stroke%3D%22%230b0f14%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%0A%20%20%3Ctext%20x%3D%2238%22%20y%3D%2239%22%20font-family%3D%22Arial%2C%20Helvetica%2C%20sans-serif%22%20font-size%3D%2218%22%20font-weight%3D%22700%22%20fill%3D%22%23e8eef6%22%3EIP%3C/text%3E%0A%3C/svg%3E">
+  <link rel="manifest" href="/manifest.json"/>
+  <link rel="apple-touch-icon" href="/static/icon-192.png"/>
+  <meta name="theme-color" content="#0d1a2a"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="AuditorIPs"/>
+
+  <title>Wake-on-LAN público</title>
+  <style>
+    :root{
+      --bg-1:#06111f;
+      --bg-2:#091827;
+      --bg-3:#0d1420;
+      --panel:rgba(12, 24, 39, .72);
+      --panel-strong:rgba(15, 29, 47, .88);
+      --panel-soft:rgba(255,255,255,.03);
+      --border:rgba(146, 182, 220, .16);
+      --border-strong:rgba(146, 182, 220, .24);
+      --text:#edf4ff;
+      --muted:#9db2c9;
+      --accent:#6cbcff;
+      --accent-2:#69ffd0;
+      --accent-3:#8f7dff;
+      --ok:#49e2a4;
+      --off:#91a2b6;
+      --shadow:0 24px 60px rgba(0,0,0,.34);
+      --shadow-soft:0 12px 30px rgba(0,0,0,.24);
+      --radius-xl:26px;
+      --radius-lg:22px;
+      --radius-md:16px;
+      --transition-fast:160ms ease;
+      --transition-base:260ms ease;
+    }
+
+    *{box-sizing:border-box}
+    html{color-scheme:dark;scroll-behavior:smooth}
+
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 14% 18%, rgba(108,188,255,.20), transparent 0 28%),
+        radial-gradient(circle at 85% 16%, rgba(143,125,255,.16), transparent 0 24%),
+        radial-gradient(circle at 50% 120%, rgba(105,255,208,.14), transparent 0 34%),
+        linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 44%, var(--bg-3) 100%);
+      overflow-x:hidden;
+      position:relative;
+    }
+
+    body::before,
+    body::after{
+      content:"";
+      position:fixed;
+      width:32rem;
+      height:32rem;
+      border-radius:50%;
+      filter:blur(72px);
+      opacity:.14;
+      z-index:0;
+      pointer-events:none;
+      animation:floatGlow 16s ease-in-out infinite;
+    }
+
+    body::before{
+      top:-9rem;
+      left:-11rem;
+      background:radial-gradient(circle, rgba(108,188,255,.9) 0%, rgba(108,188,255,0) 70%);
+    }
+
+    body::after{
+      right:-10rem;
+      bottom:-11rem;
+      background:radial-gradient(circle, rgba(105,255,208,.8) 0%, rgba(105,255,208,0) 70%);
+      animation-duration:19s;
+      animation-delay:-6s;
+    }
+
+    .noise{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:0;
+      opacity:.04;
+      background-image:
+        radial-gradient(rgba(255,255,255,.9) .4px, transparent .6px),
+        radial-gradient(rgba(255,255,255,.55) .3px, transparent .55px);
+      background-position:0 0, 14px 16px;
+      background-size:20px 20px, 28px 28px;
+      mix-blend-mode:soft-light;
+    }
+
+    .wrap{
+      position:relative;
+      z-index:1;
+      max-width:1060px;
+      margin:0 auto;
+      padding:24px 16px 30px;
+    }
+
+    .hero{
+      position:relative;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+      padding:20px 22px;
+      border:1px solid var(--border);
+      border-radius:var(--radius-xl);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.015)),
+        linear-gradient(140deg, rgba(108,188,255,.09), rgba(105,255,208,.02) 46%, rgba(143,125,255,.06));
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
+      overflow:hidden;
+      isolation:isolate;
+    }
+
+    .hero::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);
+      transform:translateX(-100%);
+      animation:heroSweep 8s linear infinite;
+      pointer-events:none;
+      opacity:.45;
+    }
+
+    .hero::after{
+      content:"";
+      position:absolute;
+      inset:1px;
+      border-radius:calc(var(--radius-xl) - 1px);
+      border:1px solid rgba(255,255,255,.03);
+      pointer-events:none;
+    }
+
+    .hero-copy{max-width:620px}
+
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 11px;
+      margin-bottom:10px;
+      border-radius:999px;
+      border:1px solid rgba(108,188,255,.22);
+      background:rgba(108,188,255,.08);
+      color:#b8dfff;
+      font-size:.75rem;
+      font-weight:700;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .eyebrow::before{
+      content:"";
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow:0 0 18px rgba(105,255,208,.6);
+      animation:pulseDot 2.2s ease-in-out infinite;
+    }
+
+    .title{
+      margin:0 0 8px;
+      font-size:clamp(1.9rem, 4.2vw, 3rem);
+      line-height:1.02;
+      font-weight:800;
+      letter-spacing:-.03em;
+      text-wrap:balance;
+      max-width:12ch;
+    }
+
+    .sub{
+      margin:0;
+      color:var(--muted);
+      font-size:.96rem;
+      line-height:1.55;
+      max-width:60ch;
+    }
+
+    .toolbar{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .btn,
+    .btn-link{
+      position:relative;
+      appearance:none;
+      border:1px solid var(--border-strong);
+      color:var(--text);
+      border-radius:14px;
+      font-weight:700;
+      cursor:pointer;
+      transition:
+        transform var(--transition-fast),
+        border-color var(--transition-fast),
+        background var(--transition-fast),
+        box-shadow var(--transition-fast),
+        opacity var(--transition-fast);
+      text-decoration:none;
+      white-space:nowrap;
+      overflow:hidden;
+      isolation:isolate;
+    }
+
+    .btn::before,
+    .btn-link::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(120deg, transparent 20%, rgba(255,255,255,.16) 50%, transparent 80%);
+      transform:translateX(-125%);
+      transition:transform 540ms ease;
+      pointer-events:none;
+    }
+
+    .btn:hover::before,
+    .btn-link:hover::before{transform:translateX(125%)}
+
+    .btn:hover,
+    .btn-link:hover{
+      transform:translateY(-1px);
+      border-color:rgba(255,255,255,.24);
+      box-shadow:0 12px 26px rgba(0,0,0,.22);
+    }
+
+    .btn:active,
+    .btn-link:active{transform:translateY(0)}
+
+    .btn:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
+
+    .btn-refresh{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:12px 15px;
+      background:rgba(255,255,255,.04);
+      backdrop-filter:blur(12px);
+      -webkit-backdrop-filter:blur(12px);
+    }
+
+    .btn-refresh svg{width:16px;height:16px;transition:transform 600ms ease;opacity:.9}
+    .btn-refresh.is-spinning svg{transform:rotate(360deg)}
+
+    .btn-link{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      padding:12px 16px;
+      background:linear-gradient(135deg, rgba(108,188,255,.14), rgba(143,125,255,.12));
+      backdrop-filter:blur(12px);
+      -webkit-backdrop-filter:blur(12px);
+    }
+
+    .btn-primary{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      min-height:44px;
+      padding:10px 14px;
+      background:linear-gradient(135deg, rgba(73,226,164,.28), rgba(108,188,255,.3));
+      border-color:rgba(121,236,197,.28);
+      box-shadow:0 14px 30px rgba(48,130,189,.16);
+    }
+
+    .btn-primary:hover{box-shadow:0 18px 34px rgba(48,130,189,.26)}
+    .btn-primary:disabled{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08);color:rgba(237,244,255,.72)}
+
+    .info-bar{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+      margin-bottom:14px;
+    }
+
+    .info-chip{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-height:66px;
+      padding:13px 15px;
+      border:1px solid var(--border);
+      border-radius:18px;
+      background:var(--panel);
+      box-shadow:var(--shadow-soft);
+      backdrop-filter:blur(16px);
+      -webkit-backdrop-filter:blur(16px);
+    }
+
+    .info-icon{
+      display:grid;
+      place-items:center;
+      width:40px;
+      height:40px;
+      border-radius:14px;
+      color:#d7efff;
+      background:linear-gradient(135deg, rgba(108,188,255,.22), rgba(105,255,208,.18));
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+      flex:0 0 auto;
+    }
+
+    .info-icon svg{width:18px;height:18px;opacity:.92}
+    .info-label{color:var(--muted);font-size:.8rem;margin-bottom:3px}
+    .info-value{font-size:.95rem;font-weight:700;letter-spacing:.01em}
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:14px;
+      align-items:stretch;
+    }
+
+    .card,
+    .empty{
+      opacity:0;
+      transform:translateY(16px) scale(.985);
+      animation:cardIn 520ms cubic-bezier(.2,.75,.2,1) forwards;
+    }
+
+    .card{
+      position:relative;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      min-height:212px;
+      padding:16px;
+      border:1px solid var(--border);
+      border-radius:var(--radius-lg);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.018)),
+        linear-gradient(160deg, rgba(11,23,38,.9), rgba(15,25,39,.76));
+      box-shadow:var(--shadow-soft);
+      overflow:hidden;
+      isolation:isolate;
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
+      transition:
+        transform var(--transition-base),
+        border-color var(--transition-base),
+        box-shadow var(--transition-base),
+        background var(--transition-base);
+    }
+
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:-40% auto auto -20%;
+      width:180px;
+      height:180px;
+      border-radius:50%;
+      background:radial-gradient(circle, rgba(108,188,255,.24) 0%, rgba(108,188,255,0) 72%);
+      opacity:.34;
+      pointer-events:none;
+      transition:opacity var(--transition-base), transform 800ms ease;
+    }
+
+    .card::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius:inherit;
+      padding:1px;
+      background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,0));
+      -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite:xor;
+      mask-composite:exclude;
+      opacity:.4;
+      pointer-events:none;
+    }
+
+    .card:hover{
+      transform:translateY(-3px);
+      border-color:rgba(108,188,255,.24);
+      box-shadow:0 22px 50px rgba(0,0,0,.30);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.022)),
+        linear-gradient(160deg, rgba(11,23,38,.96), rgba(16,28,44,.82));
+    }
+
+    .card:hover::before{opacity:.5;transform:translate(18px, 10px)}
+
+
+    .card-soft-refresh{
+      box-shadow:0 0 0 1px rgba(108,188,255,.16), 0 16px 34px rgba(0,0,0,.22);
+    }
+
+    .badge,
+    .status-line strong,
+    .status-line .meta-note,
+    .msg{
+      transition:
+        color var(--transition-fast),
+        background-color var(--transition-fast),
+        border-color var(--transition-fast),
+        opacity var(--transition-fast),
+        box-shadow var(--transition-fast);
+    }
+
+    .card-head{
+      position:relative;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      z-index:1;
+    }
+
+    .name-wrap{min-width:0}
+
+    .name{
+      margin:0 0 6px;
+      font-size:1.08rem;
+      font-weight:800;
+      line-height:1.15;
+      letter-spacing:-.015em;
+      word-break:break-word;
+    }
+
+    .address{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      min-width:0;
+      max-width:100%;
+      padding:5px 9px;
+      border-radius:999px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.06);
+      color:#c7d5e5;
+      font-size:.8rem;
+      letter-spacing:.02em;
+    }
+
+    .badge{
+      position:relative;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:7px 11px;
+      border-radius:999px;
+      font-size:.78rem;
+      font-weight:800;
+      border:1px solid transparent;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      white-space:nowrap;
+      flex:0 0 auto;
+    }
+
+    .badge::before{
+      content:"";
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      box-shadow:0 0 0 0 currentColor;
+    }
+
+    .badge-online{background:rgba(73,226,164,.12);border-color:rgba(73,226,164,.24);color:#9bffd2}
+    .badge-online::before{background:currentColor;animation:onlinePulse 1.9s ease-out infinite}
+    .badge-offline{background:rgba(145,162,182,.12);border-color:rgba(145,162,182,.2);color:#d3dce6}
+    .badge-offline::before{background:currentColor;opacity:.72}
+
+    .card-body{
+      position:relative;
+      z-index:1;
+      display:grid;
+      gap:10px;
+      flex:1;
+    }
+
+    .status-line{
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      color:var(--muted);
+      font-size:.9rem;
+    }
+
+    .status-line strong{color:var(--text);font-weight:700}
+
+    .device-ring{
+      width:34px;
+      height:34px;
+      border-radius:50%;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,.24), rgba(255,255,255,0) 32%),
+        linear-gradient(135deg, rgba(108,188,255,.22), rgba(105,255,208,.18));
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.06), 0 10px 18px rgba(0,0,0,.16);
+      position:relative;
+      flex:0 0 auto;
+      margin-top:2px;
+    }
+
+    .device-ring::before,
+    .device-ring::after{
+      content:"";
+      position:absolute;
+      inset:7px;
+      border-radius:50%;
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .device-ring::after{
+      inset:13px;
+      background:linear-gradient(135deg, rgba(105,255,208,.42), rgba(108,188,255,.32));
+      border:none;
+      box-shadow:0 0 14px rgba(108,188,255,.22);
+    }
+
+    .msg{
+      min-height:18px;
+      color:var(--muted);
+      font-size:.9rem;
+      line-height:1.42;
+      transition:color var(--transition-fast), opacity var(--transition-fast);
+    }
+
+    .msg.is-success{color:#b5ffd9}
+    .msg.is-error{color:#ffc0c0}
+    .msg.is-muted{color:var(--muted)}
+    .msg.is-loading{color:#c6edff}
+
+    .card-actions{
+      position:relative;
+      z-index:1;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-top:auto;
+    }
+
+    .meta-note{color:var(--muted);font-size:.79rem;line-height:1.42}
+    .meta-note strong{color:#dcecff;font-weight:700}
+
+    .empty{
+      grid-column:1 / -1;
+      padding:28px 20px;
+      border:1px dashed rgba(255,255,255,.12);
+      border-radius:var(--radius-xl);
+      text-align:center;
+      color:var(--muted);
+      background:var(--panel);
+      box-shadow:var(--shadow-soft);
+      backdrop-filter:blur(16px);
+      -webkit-backdrop-filter:blur(16px);
+    }
+
+    .empty strong{display:block;margin-bottom:8px;color:var(--text);font-size:1rem}
+
+
+    .tracker-stack{
+      display:grid;
+      gap:10px;
+    }
+
+    .tracker-item{
+      padding:12px 13px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.04);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    }
+
+    .tracker-label{
+      font-size:.72rem;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:rgba(214,228,245,.56);
+      margin-bottom:4px;
+      font-weight:700;
+    }
+
+    .tracker-value{
+      font-size:.96rem;
+      color:#f4f9ff;
+      line-height:1.4;
+      font-weight:700;
+    }
+
+    .tracker-value.is-info{color:#c6edff}
+    .tracker-value.is-waiting{color:#ffe18f}
+    .tracker-value.is-success{color:#b5ffd9}
+    .tracker-value.is-error{color:#ffc0c0}
+
+    .footer{
+      margin-top:18px;
+      text-align:center;
+      color:var(--muted);
+      font-size:.84rem;
+      line-height:1.55;
+    }
+
+    .footer a{color:#cde7ff;text-decoration:none;border-bottom:1px solid rgba(205,231,255,.24)}
+    .footer a:hover{border-bottom-color:rgba(205,231,255,.46)}
+
+    @keyframes floatGlow{
+      0%,100%{transform:translate3d(0,0,0) scale(1)}
+      50%{transform:translate3d(0,-18px,0) scale(1.04)}
+    }
+
+    @keyframes heroSweep{
+      0%{transform:translateX(-120%)}
+      30%,100%{transform:translateX(140%)}
+    }
+
+    @keyframes pulseDot{
+      0%,100%{transform:scale(1);opacity:1}
+      50%{transform:scale(1.18);opacity:.86}
+    }
+
+    @keyframes onlinePulse{
+      0%{box-shadow:0 0 0 0 currentColor}
+      70%{box-shadow:0 0 0 8px rgba(155,255,210,0)}
+      100%{box-shadow:0 0 0 0 rgba(155,255,210,0)}
+    }
+
+    @keyframes cardIn{
+      to{opacity:1;transform:translateY(0) scale(1)}
+    }
+
+    @media (max-width: 860px){
+      .title{max-width:14ch}
+      .info-bar{grid-template-columns:1fr}
+    }
+
+    @media (max-width: 640px){
+      .wrap{padding:14px 10px 18px}
+      .hero{padding:14px 14px 16px;border-radius:22px;gap:12px;margin-bottom:10px}
+      .hero-copy{max-width:none}
+      .eyebrow{margin-bottom:8px;padding:5px 10px;font-size:.67rem}
+      .title{font-size:clamp(1.2rem, 9vw, 2.05rem);max-width:none;margin-bottom:6px}
+      .sub{font-size:.84rem;line-height:1.4}
+      .toolbar{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+      .btn-refresh,.btn-link{padding:10px 12px;min-height:40px;font-size:.94rem;justify-content:center}
+      .info-bar{gap:8px;margin-bottom:10px}
+      .info-chip{padding:10px 11px;min-height:52px;border-radius:16px;gap:10px}
+      .info-icon{width:34px;height:34px;border-radius:12px}
+      .info-icon svg{width:16px;height:16px}
+      .info-label{font-size:.74rem;margin-bottom:1px}
+      .info-value{font-size:.88rem}
+      .grid{grid-template-columns:1fr;gap:10px}
+      .card{min-height:0;padding:12px;border-radius:18px;gap:10px}
+      .card-head{gap:8px}
+      .name{font-size:1rem;margin-bottom:4px;max-width:14ch}
+      .address{padding:4px 8px;font-size:.76rem}
+      .badge{padding:6px 9px;font-size:.72rem;gap:6px}
+      .badge::before{width:7px;height:7px}
+      .card-body{gap:8px}
+      .status-line{font-size:.84rem;gap:8px}
+      .device-ring{width:28px;height:28px}
+      .device-ring::before{inset:6px}
+      .device-ring::after{inset:11px}
+      .msg{font-size:.84rem;min-height:0}
+      .card-actions{gap:8px;align-items:stretch;flex-direction:column}
+      .btn-primary{width:100%;min-height:40px;padding:10px 12px}
+      .meta-note{font-size:.74rem}
+      .footer{margin-top:12px;font-size:.76rem;line-height:1.45}
+    }
+
+    @media (max-width: 420px){
+      .wrap{padding:10px 8px 14px}
+      .hero{padding:12px 12px 14px}
+      .title{font-size:clamp(1.1rem, 8.2vw, 1.85rem)}
+      .sub{font-size:.81rem}
+      .toolbar{grid-template-columns:1fr}
+      .info-chip{padding:9px 10px}
+      .card{padding:11px}
+      .name{font-size:.98rem;max-width:none}
+      .badge{font-size:.69rem;padding:5px 8px}
+      .status-line{font-size:.8rem}
+      .meta-note{font-size:.72rem}
+      .footer{font-size:.72rem}
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      *, *::before, *::after{
+        animation:none !important;
+        transition:none !important;
+        scroll-behavior:auto !important;
+      }
+
+      .card,
+      .empty{
+        opacity:1 !important;
+        transform:none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+
+  <div class="wrap">
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">Acceso público controlado</div>
+        <h1 class="title">Wake-on-LAN público, limpio y directo</h1>
+        <p class="sub">
+          Solo se muestran los equipos expresamente autorizados. Puedes comprobar su estado y enviar la señal de encendido sin exponer el resto de la aplicación.
+        </p>
+      </div>
+
+      <div class="toolbar">
+        <button type="button" class="btn btn-refresh" id="btnRefresh" aria-label="Actualizar estado">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+            <path d="M21 3v6h-6" />
+          </svg>
+          <span>Actualizar estado</span>
+        </button>
+        <a class="btn-link" href="/login" aria-label="Acceder a la aplicación completa">
+          <span>Acceder</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:16px;height:16px;opacity:.9;">
+            <path d="M5 12h14" />
+            <path d="m12 5 7 7-7 7" />
+          </svg>
+        </a>
+      </div>
+    </section>
+
+    <section class="info-bar" aria-label="Información rápida de la página">
+      <div class="info-chip">
+        <div class="info-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="14" rx="3" />
+            <path d="M8 20h8" />
+            <path d="M10 17v3" />
+            <path d="M14 17v3" />
+          </svg>
+        </div>
+        <div>
+          <div class="info-label">Superficie pública</div>
+          <div class="info-value">Solo hosts autorizados</div>
+        </div>
+      </div>
+
+      <div class="info-chip">
+        <div class="info-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v18" />
+            <path d="M17 8c0-2.76-2.24-5-5-5S7 5.24 7 8" />
+            <path d="M17 16c0 2.76-2.24 5-5 5s-5-2.24-5-5" />
+          </svg>
+        </div>
+        <div>
+          <div class="info-label">Acceso privado</div>
+          <div class="info-value">Entrada completa en /login</div>
+        </div>
+      </div>
+    </section>
+
+    <main id="wolGrid" class="grid" aria-live="polite"></main>
+
+    <div class="footer">
+      Esta vista pública está limitada al envío de WoL sobre equipos autorizados. Para gestionar configuración, usuarios y el resto del sistema, entra desde <a href="/login">la aplicación privada</a>.
+    </div>
+  </div>
+
+  <script id="wolHostsInitial" type="application/json">{{ wol_hosts | tojson }}</script>
+  <script>
+    const initialHosts = JSON.parse(document.getElementById('wolHostsInitial').textContent || '[]');
+    const grid = document.getElementById('wolGrid');
+    const refreshBtn = document.getElementById('btnRefresh');
+    let refreshTimer = null;
+    const lastHostSnapshots = new Map();
+
+    function esc(s) {
+      return String(s ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    
+function statusBadge(status) {
+      const st = String(status || 'offline').toLowerCase();
+      return st === 'online'
+        ? '<span class="badge badge-online">online</span>'
+        : '<span class="badge badge-offline">offline</span>';
+    }
+
+    function hostSnapshot(host) {
+      return JSON.stringify({
+        ip: String(host?.ip || ''),
+        name: String(host?.name || host?.ip || ''),
+        status: String(host?.status || 'offline').toLowerCase(),
+        wol_ready: !!host?.wol_ready,
+      });
+    }
+
+
+    function getPublicCard(ip) {
+      return Array.from(grid?.querySelectorAll('.card[data-ip]') || [])
+        .find((el) => String(el.dataset.ip || '') === String(ip));
+    }
+
+    function markPublicHostOnline(ip) {
+      const card = getPublicCard(ip);
+      if (!card) return;
+
+      const badge = card.querySelector('.badge');
+      if (badge) {
+        badge.className = 'badge badge-online';
+        badge.textContent = 'online';
+      }
+
+      const strong = card.querySelector('.status-line strong');
+      if (strong) strong.textContent = 'online';
+
+      const msgEl = card.querySelector('.msg');
+      if (msgEl) {
+        msgEl.className = 'msg is-success';
+        msgEl.textContent = `✓ ${ip} online`;
+      }
+
+      lastHostSnapshots.set(String(ip), JSON.stringify({
+        ip: String(ip || ''),
+        name: card.querySelector('.name')?.textContent || String(ip || ''),
+        status: 'online',
+        wol_ready: !card.querySelector('.btn-wake')?.disabled,
+      }));
+    }
+
+    function buildEmpty(message, isError = false) {
+      const safeMessage = esc(message || 'No hay equipos autorizados para WoL público.');
+      return `
+        <div class="empty" style="animation-delay: 0ms;">
+          <strong>${isError ? 'No se ha podido cargar la lista' : 'Sin equipos disponibles'}</strong>
+          <div>${safeMessage}</div>
+        </div>
+      `;
+    }
+
+    function hostCardHtml(h, idx = 0) {
+      const disabled = h.wol_ready ? '' : 'disabled';
+      const message = h.wol_ready ? 'Listo para enviar la señal WoL.' : 'WoL no disponible: falta una MAC válida.';
+      const helper = h.wol_ready ? 'Puedes iniciar el encendido remoto cuando lo necesites.' : 'Revisa la MAC del equipo desde la configuración privada.';
+      const online = String(h.status || 'offline').toLowerCase() === 'online';
+      const delay = Math.min(idx * 90, 450);
+
+      return `
+        <article class="card" data-ip="${esc(h.ip)}" style="animation-delay:${delay}ms;">
+          <div class="card-head">
+            <div class="name-wrap">
+              <div class="name">${esc(h.name || h.ip)}</div>
+              <div class="address">IP ${esc(h.ip || '-')}</div>
+            </div>
+            ${statusBadge(h.status)}
+          </div>
+
+          <div class="card-body">
+            <div class="status-line">
+              <div class="device-ring" aria-hidden="true"></div>
+              <div>
+                Estado actual: <strong>${online ? 'online' : 'offline'}</strong><br>
+                <span class="meta-note">${esc(helper)}</span>
+              </div>
+            </div>
+            <div class="msg ${h.wol_ready ? 'is-muted' : 'is-error'}">${esc(message)}</div>
+          </div>
+
+          <div class="card-actions">
+            <button class="btn btn-primary btn-wake" ${disabled}>
+              Encender equipo
+            </button>
+            <div class="meta-note">
+              <strong>WoL</strong> ${h.wol_ready ? 'preparado' : 'no disponible'}
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function updatePublicCard(card, h) {
+      if (!card) return;
+
+      const online = String(h.status || 'offline').toLowerCase() === 'online';
+      const helper = h.wol_ready
+        ? 'Puedes iniciar el encendido remoto cuando lo necesites.'
+        : 'Revisa la MAC del equipo desde la configuración privada.';
+      const message = h.wol_ready
+        ? 'Listo para enviar la señal WoL.'
+        : 'WoL no disponible: falta una MAC válida.';
+
+      card.dataset.ip = h.ip || '';
+
+      const nameEl = card.querySelector('.name');
+      if (nameEl) nameEl.textContent = h.name || h.ip || '';
+
+      const addrEl = card.querySelector('.address');
+      if (addrEl) addrEl.textContent = `IP ${h.ip || '-'}`;
+
+      const badgeEl = card.querySelector('.badge');
+      if (badgeEl) {
+        badgeEl.className = online ? 'badge badge-online' : 'badge badge-offline';
+        badgeEl.textContent = online ? 'online' : 'offline';
+      }
+
+      const statusStrong = card.querySelector('.status-line strong');
+      if (statusStrong) statusStrong.textContent = online ? 'online' : 'offline';
+
+      const helperEl = card.querySelector('.status-line .meta-note');
+      if (helperEl) helperEl.textContent = helper;
+
+      const btn = card.querySelector('.btn-wake');
+      if (btn) btn.disabled = !h.wol_ready;
+
+      const wolMeta = card.querySelector('.card-actions .meta-note');
+      if (wolMeta) {
+        wolMeta.innerHTML = `<strong>WoL</strong> ${h.wol_ready ? 'preparado' : 'no disponible'}`;
+      }
+
+      const msgEl = card.querySelector('.msg');
+      if (
+        msgEl &&
+        !msgEl.classList.contains('is-loading') &&
+        !msgEl.classList.contains('is-success')
+      ) {
+        msgEl.className = `msg ${h.wol_ready ? 'is-muted' : 'is-error'}`;
+        msgEl.textContent = message;
+      }
+
+    }
+
+    function syncHosts(hosts) {
+      if (!Array.isArray(hosts) || !hosts.length) {
+        grid.innerHTML = buildEmpty('No hay equipos autorizados para WoL público.');
+        lastHostSnapshots.clear();
+        return;
+      }
+
+      const existingCards = Array.from(grid.querySelectorAll('.card[data-ip]'));
+      const existing = new Map(
+        existingCards.map((card) => [String(card.dataset.ip || ''), card])
+      );
+
+      const seen = new Set();
+
+      hosts.forEach((h, idx) => {
+        const ip = String(h.ip || '');
+        const snapshot = hostSnapshot(h);
+        let card = existing.get(ip);
+        let isNewCard = false;
+
+        if (!card) {
+          const tpl = document.createElement('template');
+          tpl.innerHTML = hostCardHtml(h, idx).trim();
+          card = tpl.content.firstElementChild;
+          isNewCard = true;
+        } else if (lastHostSnapshots.get(ip) !== snapshot) {
+          updatePublicCard(card, h);
+        }
+
+        const currentAtIndex = grid.children[idx];
+        if (currentAtIndex !== card) {
+          grid.insertBefore(card, currentAtIndex || null);
+        }
+
+        lastHostSnapshots.set(ip, snapshot);
+        seen.add(ip);
+      });
+
+      existing.forEach((card, ip) => {
+        if (!seen.has(ip)) {
+          lastHostSnapshots.delete(ip);
+          card.remove();
+        }
+      });
+    }
+
+    async function refreshHosts(options = {}) {
+      const silent = !!options.silent;
+      const keepCurrentOnError = !!options.keepCurrentOnError;
+      const originalLabel = refreshBtn?.querySelector('span')?.textContent || 'Actualizar estado';
+
+      try {
+        if (refreshBtn && !silent) {
+          refreshBtn.disabled = true;
+          refreshBtn.classList.add('is-spinning');
+          const label = refreshBtn.querySelector('span');
+          if (label) label.textContent = 'Actualizando…';
+        }
+
+        const response = await fetch('/api/public/wol/hosts', { cache: 'no-store' });
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error(data.error || 'Error cargando equipos');
+        syncHosts(data.hosts || []);
+      } catch (e) {
+        if (!keepCurrentOnError) {
+          grid.innerHTML = buildEmpty(`Error cargando equipos: ${e.message || 'Error'}`, true);
+        }
+      } finally {
+        if (refreshBtn && !silent) {
+          refreshBtn.disabled = false;
+          refreshBtn.classList.remove('is-spinning');
+          const label = refreshBtn.querySelector('span');
+          if (label) label.textContent = originalLabel;
+        }
+      }
+    }
+
+    let wolTrackerTimer = null;
+    let wolTrackerDeadline = 0;
+    let wolTrackerIp = '';
+
+    function trackerStamp() {
+      return new Intl.DateTimeFormat(document.documentElement?.getAttribute('lang') || navigator.language || undefined, {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }).format(new Date());
+    }
+
+    function setTrackerValue(id, value, tone = '') {
+      ensureTracker();
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.className = `tracker-value${tone ? ` ${tone}` : ''}`;
+      el.textContent = value;
+    }
+
+    async function fetchPublicProbe(ip) {
+      const response = await fetch(`/api/public/wol/hosts?probe_ip=${encodeURIComponent(ip)}`, { cache: 'no-store' });
+      const data = await response.json();
+      if (!response.ok || !data.ok) throw new Error(data.error || 'Error comprobando estado');
+      if (data.probe && data.probe.ok === false) throw new Error(data.probe.error || 'Error comprobando estado');
+      return data.probe || { ok: true, ip, alive: false };
+    }
+
+    function ensureTracker() {
+      if (document.getElementById('wolTrackerPublic')) return;
+      document.body.insertAdjacentHTML('beforeend', `
+        <div id="wolTrackerPublic" style="display:none;position:fixed;right:16px;bottom:16px;z-index:2055;width:min(440px,calc(100vw - 24px));">
+          <div style="background:linear-gradient(180deg, rgba(12,18,30,.96), rgba(9,14,24,.94));border:1px solid rgba(255,255,255,.12);border-radius:22px;box-shadow:0 22px 48px rgba(0,0,0,.52);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);overflow:hidden;">
+            <div style="display:flex;align-items:center;gap:10px;padding:14px 14px 12px;border-bottom:1px solid rgba(255,255,255,.08);">
+              <div style="font-weight:700;font-size:1rem;color:#f4f9ff" id="wolTrackerPublicTitle">Seguimiento WoL</div>
+              <span id="wolTrackerPublicBadge" class="badge badge-offline" style="margin-left:auto;">esperando</span>
+              <button type="button" id="wolTrackerPublicMin" aria-label="Minimizar" style="border:none;background:rgba(255,255,255,.06);color:#dcecff;width:34px;height:34px;border-radius:10px;cursor:pointer;">_</button>
+              <button type="button" id="wolTrackerPublicClose" aria-label="Cerrar" style="border:none;background:rgba(255,255,255,.06);color:#dcecff;width:34px;height:34px;border-radius:10px;cursor:pointer;">×</button>
+            </div>
+            <div id="wolTrackerPublicBody" style="padding:14px;">
+              <div id="wolTrackerPublicStatus" style="color:var(--muted);font-size:.92rem;margin-bottom:12px;"></div>
+              <div class="tracker-stack">
+                <div class="tracker-item">
+                  <div class="tracker-label">Señal WoL</div>
+                  <div id="wolTrackerPublicWake" class="tracker-value">—</div>
+                </div>
+                <div class="tracker-item">
+                  <div class="tracker-label">Última comprobación</div>
+                  <div id="wolTrackerPublicProbe" class="tracker-value">—</div>
+                </div>
+                <div class="tracker-item">
+                  <div class="tracker-label">Resultado</div>
+                  <div id="wolTrackerPublicResult" class="tracker-value">—</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `);
+      document.getElementById('wolTrackerPublicMin')?.addEventListener('click', function () {
+        const body = document.getElementById('wolTrackerPublicBody');
+        const hidden = body.style.display === 'none';
+        body.style.display = hidden ? '' : 'none';
+        this.textContent = hidden ? '_' : '▢';
+      });
+      document.getElementById('wolTrackerPublicClose')?.addEventListener('click', function () {
+        if (wolTrackerTimer) clearInterval(wolTrackerTimer);
+        wolTrackerTimer = null;
+        wolTrackerIp = '';
+        document.getElementById('wolTrackerPublic').style.display = 'none';
+      });
+    }
+
+    function startTracker(ip, onOnline) {
+      ensureTracker();
+      if (wolTrackerTimer) clearInterval(wolTrackerTimer);
+      wolTrackerIp = ip;
+      wolTrackerDeadline = Date.now() + 180000;
+      let attempts = 0;
+      document.getElementById('wolTrackerPublic').style.display = '';
+      document.getElementById('wolTrackerPublicBody').style.display = '';
+      document.getElementById('wolTrackerPublicMin').textContent = '_';
+      document.getElementById('wolTrackerPublicTitle').textContent = `Seguimiento WoL · ${ip}`;
+      document.getElementById('wolTrackerPublicBadge').className = 'badge badge-offline';
+      document.getElementById('wolTrackerPublicBadge').textContent = 'arrancando';
+      document.getElementById('wolTrackerPublicStatus').textContent = 'Comprobando el encendido durante hasta 3 minutos.';
+      setTrackerValue('wolTrackerPublicWake', `Señal enviada a las ${trackerStamp()}`, 'is-info');
+      setTrackerValue('wolTrackerPublicProbe', 'Pendiente de primera comprobación');
+      setTrackerValue('wolTrackerPublicResult', 'Esperando respuesta del equipo…', 'is-waiting');
+
+      const tick = async () => {
+        if (!wolTrackerIp || wolTrackerIp !== ip) return;
+        if (Date.now() > wolTrackerDeadline) {
+          clearInterval(wolTrackerTimer);
+          wolTrackerTimer = null;
+          document.getElementById('wolTrackerPublicBadge').className = 'badge badge-offline';
+          document.getElementById('wolTrackerPublicBadge').textContent = 'fallido';
+          document.getElementById('wolTrackerPublicStatus').textContent = 'No hubo respuesta dentro de la ventana de 3 minutos.';
+          setTrackerValue('wolTrackerPublicResult', 'Sin respuesta tras 3 minutos.', 'is-error');
+          return;
+        }
+
+        attempts += 1;
+        setTrackerValue('wolTrackerPublicProbe', `${trackerStamp()} · intento ${attempts}`, 'is-info');
+
+        try {
+          const data = await fetchPublicProbe(ip);
+          if (data.alive) {
+            clearInterval(wolTrackerTimer);
+            wolTrackerTimer = null;
+            document.getElementById('wolTrackerPublicBadge').className = 'badge badge-online';
+            document.getElementById('wolTrackerPublicBadge').textContent = 'online';
+            const latency = data.avg_ms != null ? ` · ${Math.round(data.avg_ms)}ms` : '';
+            document.getElementById('wolTrackerPublicStatus').textContent = `Equipo online${latency}`;
+            setTrackerValue('wolTrackerPublicResult', `Responde a ping${latency}.`, 'is-success');
+            await onOnline?.(data);
+            return;
+          }
+          document.getElementById('wolTrackerPublicBadge').className = 'badge badge-offline';
+          document.getElementById('wolTrackerPublicBadge').textContent = 'esperando';
+          document.getElementById('wolTrackerPublicStatus').textContent = 'El equipo todavía no responde al ping.';
+          setTrackerValue('wolTrackerPublicResult', 'Aún sin respuesta. Seguimos comprobando…', 'is-waiting');
+        } catch (e) {
+          const msg = e?.message || 'Error comprobando estado';
+          const softAuth = /autenticaci[oó]n requerida/i.test(msg);
+          document.getElementById('wolTrackerPublicBadge').className = 'badge badge-offline';
+          document.getElementById('wolTrackerPublicBadge').textContent = softAuth ? 'esperando' : 'error';
+          document.getElementById('wolTrackerPublicStatus').textContent = softAuth
+            ? 'Usando la comprobación pública disponible sin pedir login.'
+            : msg;
+          setTrackerValue('wolTrackerPublicResult', softAuth ? 'Seguimos comprobando desde la ruta pública…' : msg, softAuth ? 'is-waiting' : 'is-error');
+        }
+      };
+
+      setTimeout(tick, 2500);
+      wolTrackerTimer = setInterval(tick, 3000);
+    }
+
+    async function wakeHost(ip, btn, msgEl) {
+      if (!btn || !msgEl) return;
+
+      btn.disabled = true;
+      msgEl.className = 'msg is-loading';
+      msgEl.textContent = 'Enviando señal WoL…';
+
+      try {
+        const response = await fetch(`/api/public/wol/${encodeURIComponent(ip)}/wake`, { method: 'POST' });
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error(data.error || 'Error enviando WoL');
+        msgEl.className = 'msg is-success';
+        msgEl.textContent = `✓ WoL enviado a ${ip}`;
+        startTracker(ip, async () => {
+          msgEl.className = 'msg is-success';
+          msgEl.textContent = `✓ ${ip} online`;
+          markPublicHostOnline(ip);
+          await refreshHosts({ silent: true, keepCurrentOnError: true });
+        });
+      } catch (e) {
+        msgEl.className = 'msg is-error';
+        msgEl.textContent = `✗ ${e.message || 'Error'}`;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function startAutoRefresh() {
+      if (refreshTimer) clearInterval(refreshTimer);
+      refreshTimer = setInterval(() => refreshHosts({ silent: true, keepCurrentOnError: true }), 15000);
+    }
+
+    document.addEventListener('click', function (e) {
+      const btn = e.target.closest('.btn-wake');
+      if (!btn) return;
+      const card = btn.closest('.card');
+      const ip = card?.dataset?.ip || '';
+      const msgEl = card?.querySelector('.msg');
+      if (!ip || !msgEl) return;
+      wakeHost(ip, btn, msgEl);
+    });
+
+    refreshBtn?.addEventListener('click', () => refreshHosts());
+
+    syncHosts(initialHosts);
+    refreshHosts({ silent: true, keepCurrentOnError: true });
+    startAutoRefresh();
+  </script>
+</body>
+</html>

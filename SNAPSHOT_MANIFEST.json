@@ -1,0 +1,2025 @@
+{
+  "repo_name": "auditor-ips",
+  "generated_at": "2026-05-19T07:47:55.823881+00:00",
+  "source_root": "<internal-source-redacted>",
+  "snapshot_dir": "auditor-ips-20260519-094755",
+  "files_count": 79,
+  "high_findings_count": 0,
+  "warn_findings_count": 231,
+  "files": [
+    {
+      "path": "app/scan_scheduler.py",
+      "size": 4328,
+      "sha256": "2b981d09f399da93f9c3e521e66af964c877afa323cf759f4fc3590d3397c1a8"
+    },
+    {
+      "path": "app/check_startup.py",
+      "size": 12478,
+      "sha256": "052e19ff70cccb72ef037f60c45ae6c1c5081278ee1d79f4c967ecaae60c7069"
+    },
+    {
+      "path": "app/host_classification.py",
+      "size": 10539,
+      "sha256": "a9aeb95dc8c0435d3886c38358973458d33695daef0e13811bbff1c21e01a989"
+    },
+    {
+      "path": "app/scan_enrichment_runners.py",
+      "size": 8963,
+      "sha256": "519ea4eb4a1c0024b5aa997df7d582ad7c084148fd9efae99f3f09058f1f0b9d"
+    },
+    {
+      "path": "app/config.py",
+      "size": 15671,
+      "sha256": "372aecacf4b350596f44dad5c96fe9aef8bcaa7d9d79f2edd028bd23a06f7e00"
+    },
+    {
+      "path": "app/requirements.txt",
+      "size": 156,
+      "sha256": "e25ae95e46f764783ff38b8c3f09537532eacd212a6d80b0fb0611523d6b2e3a"
+    },
+    {
+      "path": "app/auditor-ips.jail.conf",
+      "size": 582,
+      "sha256": "df3f53ba74c3f3ee08e8f25bf1c1c72e9a3af20f34db61d2e0908380013aad57"
+    },
+    {
+      "path": "app/device_enrichment.py",
+      "size": 8427,
+      "sha256": "085451ce04b761eb63fdf8be22a23e6b30778b86ec7af983d8966dee63e213e6"
+    },
+    {
+      "path": "app/main.py",
+      "size": 13678,
+      "sha256": "ca64dbd89ef1df2854ec625f7293b240211f031b13c3d0ab44efdf99fea91bbc"
+    },
+    {
+      "path": "app/auditor-ips.filter.conf",
+      "size": 336,
+      "sha256": "5c41ca057d639ac3977ff635bb0f1da933f23ca2ff432b2a835c90709c0d06a5"
+    },
+    {
+      "path": "app/fingerprint_utils.py",
+      "size": 5851,
+      "sha256": "b20777bc6ca8a35b9029766e7f23fc528a2006261ac9e084dd085178f2778d16"
+    },
+    {
+      "path": "app/scan_discovery.py",
+      "size": 17307,
+      "sha256": "a21855814ac641f38762c924b63a8c82d0172ac6f026456e71eb4071c22ebf87"
+    },
+    {
+      "path": "app/test_endpoints.py",
+      "size": 13838,
+      "sha256": "d997ced16bb5030ff077d35152888e2327e848a8d285af020518a7a0dabbb97e"
+    },
+    {
+      "path": "app/sw.js",
+      "size": 2252,
+      "sha256": "3e62264a76d4bce072e76d84d4163424559ed2b5dc6275dbb566f8737706a740"
+    },
+    {
+      "path": "app/entrypoint.sh",
+      "size": 4768,
+      "sha256": "ee0f31d3a9ef28872da9c5ba94cf8177443ce5d84058bfb4cf3e3452fdb63927"
+    },
+    {
+      "path": "app/dockerfile",
+      "size": 854,
+      "sha256": "fe36fef8b314fbce0ae4efbeeb53613d21a2690078e4886d96cb31ed7db6658d"
+    },
+    {
+      "path": "app/auth_middleware.py",
+      "size": 11819,
+      "sha256": "86bfb386baa4013e4a2488f1c55e0d24cc354dca59ca8bc3259ff1bd5a6a2bb5"
+    },
+    {
+      "path": "app/utils.py",
+      "size": 7192,
+      "sha256": "647e4273164f7ce19472dd10e3311fb375a62d8b4c79306863b23689865b66e9"
+    },
+    {
+      "path": "app/database.py",
+      "size": 34377,
+      "sha256": "b471a297e9025903709ccdb0c08bfc028702436da22a380f52d7dbacb642b42d"
+    },
+    {
+      "path": "app/CHANGELOG_sesion9.md",
+      "size": 4285,
+      "sha256": "f8e636b6b335ab1140a0fd240b9fabd6d2d4eac6180da21710c211d65e09c700"
+    },
+    {
+      "path": "app/manifest.json",
+      "size": 966,
+      "sha256": "cabf14376bf221f7d174b9312b9a7a93014455b5206c4cd3ed647bf64b116493"
+    },
+    {
+      "path": "app/templates/index.html",
+      "size": 465834,
+      "sha256": "b3ad142293d3f0bb83cf732e5c4a3e03456fbcd5fb965ecbd7c1e197d88b82a7"
+    },
+    {
+      "path": "app/templates/wol_public.html",
+      "size": 43267,
+      "sha256": "a6ebfc1bc58ef4ff14cc441569638c28afd00aebcc48091b62f99e1b08a1f953"
+    },
+    {
+      "path": "app/templates/login.html",
+      "size": 22456,
+      "sha256": "9e6acc42d9af7d1b9f21cf59b37ea79278a20c9d31cbb3146ecf227bbf4f02da"
+    },
+    {
+      "path": "app/static/icon-192.png",
+      "size": 2971156,
+      "sha256": "42d4d653a46944275c683e92fdfd82532c5272fdb288cecd48b00b7abd5a2db4"
+    },
+    {
+      "path": "app/static/icon-512.png",
+      "size": 2971156,
+      "sha256": "42d4d653a46944275c683e92fdfd82532c5272fdb288cecd48b00b7abd5a2db4"
+    },
+    {
+      "path": "app/static/vendor/datatables/1.13.8/css/dataTables.bootstrap5.min.css",
+      "size": 12163,
+      "sha256": "f34c8a0861b8143557d6a3fb835fedfa8896c896b645af8da700ed8827d8b114"
+    },
+    {
+      "path": "app/static/vendor/datatables/1.13.8/js/jquery.dataTables.min.js",
+      "size": 87276,
+      "sha256": "a59463219152c6bcf853b9f9592733616c84e618d8f84f5066e170458b252014"
+    },
+    {
+      "path": "app/static/vendor/datatables/1.13.8/js/dataTables.bootstrap5.min.js",
+      "size": 2358,
+      "sha256": "de25c7adf49de31cc8d58caba281748c6e0e5701a2480a14d7e59d6301306199"
+    },
+    {
+      "path": "app/static/vendor/datatables-rowgroup/1.4.1/css/rowGroup.bootstrap5.min.css",
+      "size": 1969,
+      "sha256": "79601aefcefad3e63fa6d63a233d398b876f551a57efd1227217c035c818366d"
+    },
+    {
+      "path": "app/static/vendor/datatables-rowgroup/1.4.1/js/dataTables.rowGroup.min.js",
+      "size": 4105,
+      "sha256": "ef5df8beaf80188aa93e8402203b3a8eefdb4ff5419c7cd048c579c301793b08"
+    },
+    {
+      "path": "app/static/vendor/datatables-fixedcolumns/4.3.0/css/fixedColumns.bootstrap5.min.css",
+      "size": 2374,
+      "sha256": "66fb083d348be0d369bd0a064a2b0f981eb562f5df1747f38cd4d7ab8991c986"
+    },
+    {
+      "path": "app/static/vendor/datatables-fixedcolumns/4.3.0/js/dataTables.fixedColumns.min.js",
+      "size": 8620,
+      "sha256": "87c999ebc00c9b6d46de96698a28c48ec1d6eee41a33d697c51a8c4dc6844bc9"
+    },
+    {
+      "path": "app/static/vendor/datatables-fixedheader/3.4.0/css/fixedHeader.bootstrap5.min.css",
+      "size": 422,
+      "sha256": "3332845e93e73a2a2f22a144726bf7c409a06666cf24c1a0495ed5eefd917ddf"
+    },
+    {
+      "path": "app/static/vendor/datatables-fixedheader/3.4.0/js/dataTables.fixedHeader.min.js",
+      "size": 11974,
+      "sha256": "58c7074c02a733bdd0aaf601ba489e664eb9fe0012ac35e7170a5eebb76c0ee2"
+    },
+    {
+      "path": "app/static/Logos/Logo_movil.png",
+      "size": 2466021,
+      "sha256": "4a4d67a20fa9b46c738c4ef0e4254bacf85a086dfa3193f738c7e237c0e24df3"
+    },
+    {
+      "path": "app/static/Logos/Logo.png",
+      "size": 1978906,
+      "sha256": "72ab7589391f386c78a5d425013b46cbab0f4dd57ac710135b1f3ae17eeb1ae3"
+    },
+    {
+      "path": "app/static/js/services.js",
+      "size": 46544,
+      "sha256": "dcdf57eeb25a18912cdc2d4636e459f8738780f0fef3b77aace41aba6b877876"
+    },
+    {
+      "path": "app/static/js/dashboard.js",
+      "size": 66663,
+      "sha256": "11cbd735c8b051c192170fd1ea5dacc30c72147c72b519114e87f7f70899cbad"
+    },
+    {
+      "path": "app/static/js/quality.js",
+      "size": 60963,
+      "sha256": "4e739501e07f327e57897379c2987e9f69836b4b90abb543d418370243c409b2"
+    },
+    {
+      "path": "app/static/js/export_config_ui.js",
+      "size": 5705,
+      "sha256": "c10a4623d162ab91d3c2dab0700d21fc3bb93b943ab817aef04044fe8c4f5f4f"
+    },
+    {
+      "path": "app/static/js/i18n.js",
+      "size": 70240,
+      "sha256": "4b3b57a689649d72994cca39cb0042d36349b77c50fd45142432a04195dbdc2b"
+    },
+    {
+      "path": "app/static/js/scans.js",
+      "size": 15354,
+      "sha256": "b82d5cfac222b41cd2896995b9f8bfdc49cc4dde37cf243556e1caff3ee612cd"
+    },
+    {
+      "path": "app/static/js/app.js",
+      "size": 238595,
+      "sha256": "664587e4a58a0cf72eb4b0b0f710bc6b97b1d7401c0db7d5d08a21339a06a957"
+    },
+    {
+      "path": "app/static/js/hosts.js",
+      "size": 910,
+      "sha256": "183331b7b605dfbbcaa56bab7e1260f570c409bc44c4c869705a3489b06ea0eb"
+    },
+    {
+      "path": "app/static/js/syncthing_control.js",
+      "size": 104146,
+      "sha256": "418adb4a250568e2272e866d9da89b9a60fff189d0472e553c8f6f3e48554a3c"
+    },
+    {
+      "path": "app/static/js/auth.js",
+      "size": 18526,
+      "sha256": "e4521ce532c9c0854285954539550602a16d8ab7e6130e7e11dee900b76858de"
+    },
+    {
+      "path": "app/static/js/alerts.js",
+      "size": 14726,
+      "sha256": "49f97d9b957d72e849c51bef78c77bbea74e15031db36bd27dcc38f58731a250"
+    },
+    {
+      "path": "app/static/js/active_processes_topbar.js",
+      "size": 7535,
+      "sha256": "79c97910b2d4a66f177cd89cc92aecd0b7bc46000207fa28f02b0780fb9a48d2"
+    },
+    {
+      "path": "app/static/js/config.js",
+      "size": 290250,
+      "sha256": "e8af61abf710ede7e53fefc872c8f45d6af74d08f47e9eb30a2415bb6d92d1ae"
+    },
+    {
+      "path": "app/static/js/scripts.js",
+      "size": 44795,
+      "sha256": "a1e20078a4b13f6107d5b3f0208249a4048e516224ff47e9bdd86f4138c37b66"
+    },
+    {
+      "path": "app/routers/alerts.py",
+      "size": 5579,
+      "sha256": "6d03680dac3857f61d9a429179904bbe854ac5a28d959db80646c79e2483306d"
+    },
+    {
+      "path": "app/routers/router_ssh.py",
+      "size": 22757,
+      "sha256": "42acc1447ab4983ee2e13e6e422855eb93672859b2c042f32f4e70d9fdcb3690"
+    },
+    {
+      "path": "app/routers/export_scheduler.py",
+      "size": 15523,
+      "sha256": "3ea99a55e1fc64a2e883d97b063912decc901520e39d2156249f00fd4b6531d3"
+    },
+    {
+      "path": "app/routers/__init__.py",
+      "size": 238,
+      "sha256": "75f4c18cb5e098f24f44a0247846a82285cbe7d063b725c330d0f82073b24ce9"
+    },
+    {
+      "path": "app/routers/services.py",
+      "size": 18128,
+      "sha256": "3109c4978bf2a6a055bd1506f203f304217a69aa5e15efd936f5dc20501183af"
+    },
+    {
+      "path": "app/routers/daily_report.py",
+      "size": 25655,
+      "sha256": "53d27f718a89a53cecbc221b0b163ba8f85c934ad583775a076dc5a9f1220593"
+    },
+    {
+      "path": "app/routers/syncthing_control.py",
+      "size": 103789,
+      "sha256": "d1d500c02a90c11eaf66dad8f114481890a00a7117f98fabaeacc221238e06d1"
+    },
+    {
+      "path": "app/routers/system_health.py",
+      "size": 35415,
+      "sha256": "59aaa1dfcba56225f14d8e7823e843082a07a9019cb6fb27254a5ee2daa3e3a0"
+    },
+    {
+      "path": "app/routers/hosts.py",
+      "size": 92289,
+      "sha256": "07534aac241d262296e2bec84d50de23e440ab9cfe55047a3bf90f895a0bf0cf"
+    },
+    {
+      "path": "app/routers/discovery.py",
+      "size": 33174,
+      "sha256": "e1fd61c10a1b5085d19ca415f971ea7da89116cc2d25736121d22a107ff0c56f"
+    },
+    {
+      "path": "app/routers/scans.py",
+      "size": 109582,
+      "sha256": "a0c3f3aeef7297e4690b12609cae62391596b164c0558d7e9c44bda76a6d6944"
+    },
+    {
+      "path": "app/routers/config_api.py",
+      "size": 148206,
+      "sha256": "e169bd46bdc86d3686184e6f67ecf724ef16cc30246b5818b8bdec95d0016199"
+    },
+    {
+      "path": "app/routers/scripts_status.py",
+      "size": 76776,
+      "sha256": "b3455bab70cad1da48cdf2aaf738b30a1c2e9f6648c0d0d0536fe1ad93d8f506"
+    },
+    {
+      "path": "app/routers/quality.py",
+      "size": 37187,
+      "sha256": "705f853cfafa4ca220d2ef28d5076ea88cab262a959c926047fd9cfb8c442854"
+    },
+    {
+      "path": "app/routers/auth.py",
+      "size": 14490,
+      "sha256": "44d8ca050670f8ac4fc4821a024a3d917aaa5a14ff8b289ee6d2c3b8a874cdda"
+    },
+    {
+      "path": ".env.example",
+      "size": 1166,
+      "sha256": "a7323bd0cd878a062068e5678604073c0777523c522d75d8a94aeb4259dda572"
+    },
+    {
+      "path": "docker-compose.yml.example",
+      "size": 820,
+      "sha256": "e61fed1a5b2acf5993cd3223767f2ddd59cacb55113bb244445adb875035162b"
+    },
+    {
+      "path": ".gitignore",
+      "size": 450,
+      "sha256": "365c4ac5e1625981692019e22175551a6ff347c59b311aaa4b9df9e8e1dc24e1"
+    },
+    {
+      "path": "README.md",
+      "size": 1778,
+      "sha256": "cc01263697b49e3ad8b119264f5a7753a2e08aa58d66ec2808be08c0127466fe"
+    },
+    {
+      "path": "LICENSE",
+      "size": 1065,
+      "sha256": "2113ed97490a1fbbf8f3716beda03d2c464a00c59a1a39bef2dc5235391661f8"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "size": 283,
+      "sha256": "2d0dbeb4fe554f7b7ac7d11671db94ccce2c815bca1a96b3e4b36f8a4ec5b57c"
+    },
+    {
+      "path": "docs/BACKUP_RESTORE.md",
+      "size": 796,
+      "sha256": "4e193217ec760eca461bbffd385ce6e1fef5270bb92e8b792eb7d1bcc9e60d1d"
+    },
+    {
+      "path": "docs/CONFIGURATION.md",
+      "size": 846,
+      "sha256": "02c059c3cda788da4c02dc41ff6a8fc8de84d16f6bac9e4e26ba62d89a9eaf4a"
+    },
+    {
+      "path": "docs/INSTALL.md",
+      "size": 1130,
+      "sha256": "9ba2c65cdf31da3f258fde4f43d5572ada9daf356bb711df53f11edfd15a4581"
+    },
+    {
+      "path": "docs/SECURITY.md",
+      "size": 722,
+      "sha256": "8dad406632c4efcf5851dbdbae72875345fb574f7751a024cf38fa97cb1944ee"
+    },
+    {
+      "path": "docs/TROUBLESHOOTING.md",
+      "size": 833,
+      "sha256": "abab19361a558dedb1d37b566ee545152063b8fa299d43a1220ac47475a5feb9"
+    },
+    {
+      "path": "docs/UPGRADE.md",
+      "size": 576,
+      "sha256": "6da4feda9e4aed70e927e744bfd160461e8677478046f7dfc887a7065e65a569"
+    },
+    {
+      "path": "scripts/smoke_system_health.sh",
+      "size": 5253,
+      "sha256": "c79e6a6bf60c56c1717aafec8ba391d8f3628f49c7fc802cca1feb55a4f3387a"
+    }
+  ],
+  "findings": [
+    {
+      "severity": "WARN",
+      "path": "README.md",
+      "line": 46,
+      "pattern": "localhost_url",
+      "sample": "curl -k https://127.0.0.1:9909/api/system/healthz"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/host_classification.py",
+      "line": 175,
+      "pattern": "secret_word",
+      "sample": "for token in tokens:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/host_classification.py",
+      "line": 176,
+      "pattern": "secret_word",
+      "sample": "token_norm = _norm_text(token)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/host_classification.py",
+      "line": 177,
+      "pattern": "secret_word",
+      "sample": "token_compact = _compact_text(token)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/host_classification.py",
+      "line": 179,
+      "pattern": "secret_word",
+      "sample": "return token"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/host_classification.py",
+      "line": 181,
+      "pattern": "secret_word",
+      "sample": "return token"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/config.py",
+      "line": 155,
+      "pattern": "localhost_url",
+      "sample": "\"ai_ollama_url\":       os.getenv(\"OLLAMA_URL\",     \"http://localhost:11434\"),"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/device_enrichment.py",
+      "line": 92,
+      "pattern": "secret_word",
+      "sample": "elif any(token in os_text for token in [\"windows 11\", \"windows 10\", \"windows 8\", \"windows 7\", \"microsoft windows\"]):"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/main.py",
+      "line": 163,
+      "pattern": "secret_word",
+      "sample": "token = request.cookies.get(SESSION_COOKIE)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/main.py",
+      "line": 165,
+      "pattern": "secret_word",
+      "sample": "username = validate_session(DB_PATH, token) if auth_enabled(DB_PATH) else None"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/main.py",
+      "line": 200,
+      "pattern": "secret_word",
+      "sample": "session_token=token,"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/scan_discovery.py",
+      "line": 217,
+      "pattern": "secret_word",
+      "sample": "for token in reversed(parts):"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/scan_discovery.py",
+      "line": 218,
+      "pattern": "secret_word",
+      "sample": "token_up = token.strip().upper()"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/test_endpoints.py",
+      "line": 8,
+      "pattern": "localhost_url",
+      "sample": "python test_endpoints.py --base https://localhost:8088"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/test_endpoints.py",
+      "line": 22,
+      "pattern": "localhost_url",
+      "sample": "parser.add_argument(\"--base\",           default=\"https://localhost:8088\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/test_endpoints.py",
+      "line": 110,
+      "pattern": "secret_word",
+      "sample": "request(\"POST\", \"/api/auth/login\",   body={\"username\":\"x\",\"password\":\"x\"},"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 17,
+      "pattern": "secret_word",
+      "sample": "def hash_password(password: str, salt: Optional[bytes] = None) -> str:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 20,
+      "pattern": "secret_word",
+      "sample": "dk = hashlib.pbkdf2_hmac(\"sha256\", password.encode(), salt, 310_000)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 24,
+      "pattern": "secret_word",
+      "sample": "def verify_password(password: str, stored: str) -> bool:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 27,
+      "pattern": "secret_word",
+      "sample": "return secrets.compare_digest(stored, hash_password(password, bytes.fromhex(salt_hex)))"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 51,
+      "pattern": "secret_word",
+      "sample": "token      TEXT PRIMARY KEY,"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 96,
+      "pattern": "secret_word",
+      "sample": "def create_user(db_path: str, username: str, password: str) -> dict:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 100,
+      "pattern": "secret_word",
+      "sample": "if not password or len(password) < 8:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 106,
+      "pattern": "secret_word",
+      "sample": "(username, hash_password(password), datetime.now(timezone.utc).isoformat())"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 138,
+      "pattern": "secret_word",
+      "sample": "token = secrets.token_urlsafe(32)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 143,
+      "pattern": "secret_word",
+      "sample": "(token,user_id,username,created_at,expires_at,ip,user_agent) VALUES(?,?,?,?,?,?,?)\"\"\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 144,
+      "pattern": "secret_word",
+      "sample": "(token, user_id, username, now.isoformat(), exp.isoformat(), ip, ua[:200]))"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 146,
+      "pattern": "secret_word",
+      "sample": "return token"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 149,
+      "pattern": "secret_word",
+      "sample": "def validate_session(db_path: str, token: Optional[str]) -> Optional[str]:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 151,
+      "pattern": "secret_word",
+      "sample": "if not token:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 157,
+      "pattern": "secret_word",
+      "sample": "\"SELECT username FROM auth_sessions WHERE token=? AND expires_at>?\", (token, now)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 164,
+      "pattern": "secret_word",
+      "sample": "def destroy_session(db_path: str, token: str) -> None:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 166,
+      "pattern": "secret_word",
+      "sample": "c.execute(\"DELETE FROM auth_sessions WHERE token=?\", (token,))"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 184,
+      "pattern": "secret_word",
+      "sample": "rows = c.execute(\"\"\"SELECT token,username,created_at,expires_at,ip,user_agent"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/database.py",
+      "line": 277,
+      "pattern": "secret_word",
+      "sample": "api_key TEXT NOT NULL DEFAULT '',"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/smoke_system_health.sh",
+      "line": 15,
+      "pattern": "localhost_url",
+      "sample": "#   AUDITOR_BASE_URL=https://127.0.0.1:9909 ./LOCAL/scripts/smoke_system_health.sh"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/smoke_system_health.sh",
+      "line": 18,
+      "pattern": "localhost_url",
+      "sample": "BASE_URL=\"${AUDITOR_BASE_URL:-${1:-https://127.0.0.1:9909}}\""
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/smoke_system_health.sh",
+      "line": 153,
+      "pattern": "secret_word",
+      "sample": "\"password\": os.environ.get(\"AUDITOR_SMOKE_PASS\", \"\"),"
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/INSTALL.md",
+      "line": 29,
+      "pattern": "localhost_url",
+      "sample": "curl -k https://127.0.0.1:9909/api/system/healthz"
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/INSTALL.md",
+      "line": 47,
+      "pattern": "localhost_url",
+      "sample": "curl -k https://127.0.0.1:9909/api/system/healthz"
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/INSTALL.md",
+      "line": 53,
+      "pattern": "localhost_url",
+      "sample": "AUDITOR_BASE_URL=https://127.0.0.1:9909 scripts/smoke_system_health.sh"
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/TROUBLESHOOTING.md",
+      "line": 21,
+      "pattern": "localhost_url",
+      "sample": "curl -k https://127.0.0.1:9909/api/system/healthz"
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/BACKUP_RESTORE.md",
+      "line": 30,
+      "pattern": "localhost_url",
+      "sample": "curl -k https://127.0.0.1:9909/api/system/healthz"
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/CONFIGURATION.md",
+      "line": 18,
+      "pattern": "secret_word",
+      "sample": "- `DISCORD_WEBHOOK_URL`: webhook opcional de Discord."
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/UPGRADE.md",
+      "line": 19,
+      "pattern": "localhost_url",
+      "sample": "curl -k https://127.0.0.1:9909/api/system/healthz"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/index.html",
+      "line": 4894,
+      "pattern": "secret_word",
+      "sample": "Las alertas se evalúan tras cada escaneo. Acción: Discord webhook (si configurado)."
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/index.html",
+      "line": 6442,
+      "pattern": "secret_word",
+      "sample": "<input type=\"password\" id=\"loginModalPass\" class=\"form-control form-control-sm\""
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/index.html",
+      "line": 6443,
+      "pattern": "secret_word",
+      "sample": "placeholder=\"Contraseña\" autocomplete=\"current-password\">"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/index.html",
+      "line": 7194,
+      "pattern": "secret_word",
+      "sample": "Si no configuras webhook de alertas, se conserva el webhook legacy anterior como fallback."
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/index.html",
+      "line": 7200,
+      "pattern": "secret_word",
+      "sample": "<input id=\"cfgDiscordInfo\" type=\"password\" class=\"form-control form-control-sm\" placeholder=\"https://discord.com/api/webhooks/...\">"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/index.html",
+      "line": 7206,
+      "pattern": "secret_word",
+      "sample": "Si no hay webhook informativo, usar el canal de alertas como fallback"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/index.html",
+      "line": 7217,
+      "pattern": "secret_word",
+      "sample": "<input id=\"cfgDiscordAlerts\" type=\"password\" class=\"form-control form-control-sm\" placeholder=\"https://discord.com/api/webhooks/...\">"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/index.html",
+      "line": 7278,
+      "pattern": "secret_word",
+      "sample": "<input id=\"cfgSmtpPass\" type=\"password\" class=\"form-control form-control-sm\" placeholder=\"contraseña o app password\">"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/index.html",
+      "line": 7841,
+      "pattern": "secret_word",
+      "sample": "<input id=\"cfgAiGeminiKey\" type=\"password\" class=\"form-control form-control-sm\" placeholder=\"AIzaSy…\">"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/index.html",
+      "line": 7856,
+      "pattern": "secret_word",
+      "sample": "<input id=\"cfgAiMistralKey\" type=\"password\" class=\"form-control form-control-sm\" placeholder=\"…\">"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/index.html",
+      "line": 8533,
+      "pattern": "secret_word",
+      "sample": "<input id=\"newUserPw\" type=\"password\" class=\"form-control form-control-sm\" placeholder=\"mín. 8 caracteres\" style=\"max-width:180px\">"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/index.html",
+      "line": 8544,
+      "pattern": "secret_word",
+      "sample": "<input id=\"cpCurrentPw\" type=\"password\" class=\"form-control form-control-sm\" placeholder=\"Actual\" style=\"max-width:170px\">"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/index.html",
+      "line": 8548,
+      "pattern": "secret_word",
+      "sample": "<input id=\"cpNewPw\" type=\"password\" class=\"form-control form-control-sm\" placeholder=\"Nueva\" style=\"max-width:170px\">"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/index.html",
+      "line": 8552,
+      "pattern": "secret_word",
+      "sample": "<input id=\"cpNewPw2\" type=\"password\" class=\"form-control form-control-sm\" placeholder=\"Repetir\" style=\"max-width:170px\">"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/index.html",
+      "line": 9032,
+      "pattern": "secret_word",
+      "sample": "El token se muestra solo al crearlo o rotarlo. Auditor IPs no ejecuta comandos remotos."
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/index.html",
+      "line": 9062,
+      "pattern": "secret_word",
+      "sample": "Copia este token ahora. No se volverá a mostrar."
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/index.html",
+      "line": 9078,
+      "pattern": "secret_word",
+      "sample": "<th>Token</th>"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/login.html",
+      "line": 455,
+      "pattern": "secret_word",
+      "sample": "<input type=\"password\" id=\"setupPassword\" class=\"form-control\" placeholder=\"••••••••\" autocomplete=\"new-password\">"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/login.html",
+      "line": 463,
+      "pattern": "secret_word",
+      "sample": "<input type=\"password\" id=\"setupPassword2\" class=\"form-control\" placeholder=\"••••••••\" autocomplete=\"new-password\">"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/login.html",
+      "line": 490,
+      "pattern": "secret_word",
+      "sample": "<input type=\"password\" id=\"loginPassword\" class=\"form-control\" placeholder=\"••••••••\""
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/login.html",
+      "line": 491,
+      "pattern": "secret_word",
+      "sample": "autocomplete=\"current-password\" tabindex=\"2\">"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/login.html",
+      "line": 519,
+      "pattern": "secret_word",
+      "sample": "inp.type = vis ? 'password' : 'text';"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/login.html",
+      "line": 543,
+      "pattern": "secret_word",
+      "sample": "body: JSON.stringify({username, password: pw})"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/login.html",
+      "line": 552,
+      "pattern": "secret_word",
+      "sample": "body: JSON.stringify({username, password: pw})"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/login.html",
+      "line": 573,
+      "pattern": "secret_word",
+      "sample": "inp.type = vis ? 'password' : 'text';"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/login.html",
+      "line": 579,
+      "pattern": "secret_word",
+      "sample": "const password = document.getElementById('loginPassword').value;"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/login.html",
+      "line": 584,
+      "pattern": "secret_word",
+      "sample": "if (!username || !password) {"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/templates/login.html",
+      "line": 597,
+      "pattern": "secret_word",
+      "sample": "body: JSON.stringify({username, password})"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/syncthing_control.py",
+      "line": 47,
+      "pattern": "secret_word",
+      "sample": "api_key TEXT NOT NULL DEFAULT '',"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/syncthing_control.py",
+      "line": 398,
+      "pattern": "secret_word",
+      "sample": "api_key = item.pop(\"api_key\", \"\") or \"\""
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/syncthing_control.py",
+      "line": 399,
+      "pattern": "secret_word",
+      "sample": "item[\"api_key_configured\"] = bool(api_key)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/syncthing_control.py",
+      "line": 400,
+      "pattern": "secret_word",
+      "sample": "item[\"api_key_masked\"] = _mask_secret(api_key)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/syncthing_control.py",
+      "line": 1472,
+      "pattern": "secret_word",
+      "sample": "api_key = str(node.get(\"api_key\") or \"\").strip()"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/syncthing_control.py",
+      "line": 1473,
+      "pattern": "secret_word",
+      "sample": "if api_key:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/syncthing_control.py",
+      "line": 1474,
+      "pattern": "secret_word",
+      "sample": "headers[\"X-API-Key\"] = api_key"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/syncthing_control.py",
+      "line": 2272,
+      "pattern": "secret_word",
+      "sample": "api_key = _clean_text(payload.get(\"api_key\"), 500)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/syncthing_control.py",
+      "line": 2281,
+      "pattern": "secret_word",
+      "sample": "if not api_key:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/syncthing_control.py",
+      "line": 2305,
+      "pattern": "secret_word",
+      "sample": "(name, api_base_url, gui_url, api_key, verify_tls, enabled, timeout_s, notes, created_at, updated_at)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/syncthing_control.py",
+      "line": 2307,
+      "pattern": "secret_word",
+      "sample": "\"\"\", (name, api_base_url, gui_url, api_key, verify_tls, enabled, timeout_s, notes, now, now))"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/syncthing_control.py",
+      "line": 2328,
+      "pattern": "secret_word",
+      "sample": "incoming_key = payload.get(\"api_key\", None)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/syncthing_control.py",
+      "line": 2329,
+      "pattern": "secret_word",
+      "sample": "api_key = current.get(\"api_key\", \"\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/syncthing_control.py",
+      "line": 2331,
+      "pattern": "secret_word",
+      "sample": "api_key = _clean_text(incoming_key, 500)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/syncthing_control.py",
+      "line": 2361,
+      "pattern": "secret_word",
+      "sample": "SET name=?, api_base_url=?, gui_url=?, api_key=?, verify_tls=?,"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/syncthing_control.py",
+      "line": 2364,
+      "pattern": "secret_word",
+      "sample": "\"\"\", (name, api_base_url, gui_url, api_key, verify_tls, enabled, timeout_s, notes, utc_now_iso(), node_id))"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/hosts.py",
+      "line": 575,
+      "pattern": "secret_word",
+      "sample": "token    = request.cookies.get(SESSION_COOKIE)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/hosts.py",
+      "line": 577,
+      "pattern": "secret_word",
+      "sample": "username = validate_session(DB_PATH, token) if enabled else None"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scans.py",
+      "line": 135,
+      "pattern": "secret_word",
+      "sample": "Devuelve el webhook Discord efectivo para un canal lógico."
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scans.py",
+      "line": 159,
+      "pattern": "secret_word",
+      "sample": "webhook = discord_webhook_for_channel(channel)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scans.py",
+      "line": 160,
+      "pattern": "secret_word",
+      "sample": "if not webhook:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scans.py",
+      "line": 161,
+      "pattern": "secret_word",
+      "sample": "return False, f\"No hay discord webhook configurado para canal {channel or 'alerts'}\""
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scans.py",
+      "line": 165,
+      "pattern": "secret_word",
+      "sample": "webhook, data=data,"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scans.py",
+      "line": 232,
+      "pattern": "secret_word",
+      "sample": "token = _vapid_jwt(sub[\"endpoint\"], vapid_pub, vapid_priv)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scans.py",
+      "line": 233,
+      "pattern": "secret_word",
+      "sample": "if token:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scans.py",
+      "line": 234,
+      "pattern": "secret_word",
+      "sample": "headers[\"Authorization\"] = f\"vapid t={token},k={vapid_pub}\""
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scans.py",
+      "line": 1031,
+      "pattern": "localhost_url",
+      "sample": "ollama_url = _cfg(\"ollama_url\", \"http://localhost:11434\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/config_api.py",
+      "line": 311,
+      "pattern": "secret_word",
+      "sample": "\"discord_webhook\": \"Webhook Discord legacy\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/config_api.py",
+      "line": 312,
+      "pattern": "secret_word",
+      "sample": "\"discord_webhook_info\": \"Webhook Discord informativo\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/config_api.py",
+      "line": 313,
+      "pattern": "secret_word",
+      "sample": "\"discord_webhook_alerts\": \"Webhook Discord alertas\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/config_api.py",
+      "line": 639,
+      "pattern": "secret_word",
+      "sample": "api_key = cfg(\"ai_gemini_key\", \"\").strip()"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/config_api.py",
+      "line": 641,
+      "pattern": "secret_word",
+      "sample": "if not api_key:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/config_api.py",
+      "line": 643,
+      "pattern": "secret_word",
+      "sample": "url = f\"https://generativelanguage.googleapis.com/v1beta/models/{urllib.parse.quote(model)}:generateContent?key={urllib.parse.quote(api_key)}\""
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/config_api.py",
+      "line": 651,
+      "pattern": "secret_word",
+      "sample": "api_key = cfg(\"ai_mistral_key\", \"\").strip()"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/config_api.py",
+      "line": 653,
+      "pattern": "secret_word",
+      "sample": "if not api_key:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/config_api.py",
+      "line": 657,
+      "pattern": "secret_word",
+      "sample": "req = urllib.request.Request(url, data=payload, headers={\"Content-Type\": \"application/json\", \"Authorization\": f\"Bearer {api_key}\"}, method=\"POST\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/config_api.py",
+      "line": 663,
+      "pattern": "localhost_url",
+      "sample": "base_url = (cfg(\"ai_ollama_url\", \"http://localhost:11434\") or \"http://localhost:11434\").rstrip(\"/\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/config_api.py",
+      "line": 691,
+      "pattern": "secret_word",
+      "sample": "webhook = discord_webhook_for_channel(channel)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/config_api.py",
+      "line": 692,
+      "pattern": "secret_word",
+      "sample": "if not webhook:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/config_api.py",
+      "line": 694,
+      "pattern": "secret_word",
+      "sample": "return JSONResponse({\"ok\": False, \"error\": f\"No hay webhook Discord {label} configurado\"}, status_code=400)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/config_api.py",
+      "line": 721,
+      "pattern": "secret_word",
+      "sample": "password = cfg(\"smtp_pass\",  \"\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/config_api.py",
+      "line": 738,
+      "pattern": "secret_word",
+      "sample": "if user and password:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/config_api.py",
+      "line": 739,
+      "pattern": "secret_word",
+      "sample": "s.login(user, password)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/config_api.py",
+      "line": 746,
+      "pattern": "secret_word",
+      "sample": "if user and password:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/config_api.py",
+      "line": 747,
+      "pattern": "secret_word",
+      "sample": "s.login(user, password)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/config_api.py",
+      "line": 751,
+      "pattern": "secret_word",
+      "sample": "if user and password:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/config_api.py",
+      "line": 752,
+      "pattern": "secret_word",
+      "sample": "s.login(user, password)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 78,
+      "pattern": "localhost_url",
+      "sample": "_ENV_OLLAMA_URL    = os.getenv(\"OLLAMA_URL\",      \"http://localhost:11434\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 909,
+      "pattern": "secret_word",
+      "sample": "def _automation_agent_token_hash(token: str) -> str:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 910,
+      "pattern": "secret_word",
+      "sample": "return hashlib.sha256(str(token or \"\").encode(\"utf-8\")).hexdigest()"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 917,
+      "pattern": "secret_word",
+      "sample": "def _automation_agent_token_prefix(token: str) -> str:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 918,
+      "pattern": "secret_word",
+      "sample": "return str(token or \"\")[:10]"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 932,
+      "pattern": "secret_word",
+      "sample": "return str(request.headers.get(\"x-automation-agent-token\") or \"\").strip()"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 994,
+      "pattern": "secret_word",
+      "sample": "token = _automation_agent_extract_token(request)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 995,
+      "pattern": "secret_word",
+      "sample": "if not token:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 996,
+      "pattern": "secret_word",
+      "sample": "_automation_agent_audit(host_name, request, \"auth_failed\", False, \"token ausente\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 997,
+      "pattern": "secret_word",
+      "sample": "raise HTTPException(status_code=403, detail=\"Token de agente inválido\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1006,
+      "pattern": "secret_word",
+      "sample": "incoming_hash = _automation_agent_token_hash(token)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1010,
+      "pattern": "secret_word",
+      "sample": "_automation_agent_audit(host_name, request, \"auth_failed\", False, \"token de host inválido\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1011,
+      "pattern": "secret_word",
+      "sample": "raise HTTPException(status_code=403, detail=\"Token de agente inválido\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1013,
+      "pattern": "secret_word",
+      "sample": "# Compatibilidad con bloque anterior: token global."
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1016,
+      "pattern": "secret_word",
+      "sample": "_automation_agent_audit(host_name, request, \"auth_failed\", False, \"sin token global ni agente registrado\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1019,
+      "pattern": "secret_word",
+      "sample": "if not secrets.compare_digest(token, expected):"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1020,
+      "pattern": "secret_word",
+      "sample": "_automation_agent_audit(host_name, request, \"auth_failed\", False, \"token global inválido\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1021,
+      "pattern": "secret_word",
+      "sample": "raise HTTPException(status_code=403, detail=\"Token de agente inválido\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1098,
+      "pattern": "secret_word",
+      "sample": "\"\"\"Crea un agente y devuelve el token una sola vez.\"\"\""
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1110,
+      "pattern": "secret_word",
+      "sample": "token = _automation_agent_new_token()"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1121,
+      "pattern": "secret_word",
+      "sample": "_automation_agent_token_hash(token),"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1122,
+      "pattern": "secret_word",
+      "sample": "_automation_agent_token_prefix(token),"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1135,
+      "pattern": "secret_word",
+      "sample": "\"token\": token,"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1136,
+      "pattern": "secret_word",
+      "sample": "\"token_prefix\": _automation_agent_token_prefix(token),"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1137,
+      "pattern": "secret_word",
+      "sample": "\"warning\": \"Guarda este token ahora; no se volverá a mostrar.\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1184,
+      "pattern": "secret_word",
+      "sample": "\"\"\"Rota el token del agente y devuelve el nuevo token una sola vez.\"\"\""
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1186,
+      "pattern": "secret_word",
+      "sample": "token = _automation_agent_new_token()"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1195,
+      "pattern": "secret_word",
+      "sample": "_automation_agent_token_hash(token),"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1196,
+      "pattern": "secret_word",
+      "sample": "_automation_agent_token_prefix(token),"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1203,
+      "pattern": "secret_word",
+      "sample": "_automation_agent_audit(host_name, request, \"agent_token_rotated\", True, {\"token_prefix\": _automation_agent_token_prefix(token)})"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1207,
+      "pattern": "secret_word",
+      "sample": "\"token\": token,"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1208,
+      "pattern": "secret_word",
+      "sample": "\"token_prefix\": _automation_agent_token_prefix(token),"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1209,
+      "pattern": "secret_word",
+      "sample": "\"warning\": \"Guarda este token ahora; no se volverá a mostrar.\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1264,
+      "pattern": "secret_word",
+      "sample": "- protegida por token global legado o token específico por host;"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 61,
+      "pattern": "secret_word",
+      "sample": "token = request.cookies.get(SESSION_COOKIE)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 62,
+      "pattern": "secret_word",
+      "sample": "if validate_session(DB_PATH, token):"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 84,
+      "pattern": "secret_word",
+      "sample": "token = request.cookies.get(SESSION_COOKIE)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 85,
+      "pattern": "secret_word",
+      "sample": "username = validate_session(DB_PATH, token) if enabled else None"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 108,
+      "pattern": "secret_word",
+      "sample": "password = (payload.get(\"password\") or \"\").strip()"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 132,
+      "pattern": "secret_word",
+      "sample": "if not user or not _am.verify_password(password, user[\"password_hash\"]):"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 163,
+      "pattern": "secret_word",
+      "sample": "token = create_session(DB_PATH, user[\"id\"], username, ip, ua)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 170,
+      "pattern": "secret_word",
+      "sample": "session_token=token,"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 176,
+      "pattern": "secret_word",
+      "sample": "token,"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 187,
+      "pattern": "secret_word",
+      "sample": "token = request.cookies.get(SESSION_COOKIE)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 189,
+      "pattern": "secret_word",
+      "sample": "username = validate_session(DB_PATH, token)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 191,
+      "pattern": "secret_word",
+      "sample": "if token:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 192,
+      "pattern": "secret_word",
+      "sample": "destroy_session(DB_PATH, token)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 199,
+      "pattern": "secret_word",
+      "sample": "session_token=token,"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 220,
+      "pattern": "secret_word",
+      "sample": "password = (payload.get(\"password\") or \"\").strip()"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 225,
+      "pattern": "secret_word",
+      "sample": "result = create_user(DB_PATH, username, password)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 256,
+      "pattern": "secret_word",
+      "sample": "@router.post(\"/api/auth/change-password\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 297,
+      "pattern": "secret_word",
+      "sample": "\"SELECT token FROM auth_sessions WHERE token LIKE ?\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/auth.py",
+      "line": 302,
+      "pattern": "secret_word",
+      "sample": "destroy_session(DB_PATH, row[\"token\"])"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/i18n.js",
+      "line": 367,
+      "pattern": "secret_word",
+      "sample": "\"cfg.agent.rotate\":\"Rotar token\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/i18n.js",
+      "line": 373,
+      "pattern": "secret_word",
+      "sample": "\"cfg.agent.token_copied\":\"Token copiado\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/i18n.js",
+      "line": 374,
+      "pattern": "secret_word",
+      "sample": "\"cfg.agent.token_copy_manual\":\"Copia manualmente el token seleccionado\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/i18n.js",
+      "line": 377,
+      "pattern": "secret_word",
+      "sample": "\"cfg.agent.created\":\"✓ Agente creado. Copia el token antes de cerrar.\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/i18n.js",
+      "line": 382,
+      "pattern": "secret_word",
+      "sample": "\"cfg.agent.rotated\":\"✓ Token rotado para {host}. Copia el nuevo token.\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/i18n.js",
+      "line": 453,
+      "pattern": "secret_word",
+      "sample": "\"auth.password_changed\":\"✓ Password changed successfully\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/i18n.js",
+      "line": 538,
+      "pattern": "secret_word",
+      "sample": "\"cfg.agent.rotate\":\"Rotate token\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/i18n.js",
+      "line": 544,
+      "pattern": "secret_word",
+      "sample": "\"cfg.agent.token_copied\":\"Token copied\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/i18n.js",
+      "line": 545,
+      "pattern": "secret_word",
+      "sample": "\"cfg.agent.token_copy_manual\":\"Copy the selected token manually\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/i18n.js",
+      "line": 548,
+      "pattern": "secret_word",
+      "sample": "\"cfg.agent.created\":\"✓ Agent created. Copy the token before closing.\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/i18n.js",
+      "line": 553,
+      "pattern": "secret_word",
+      "sample": "\"cfg.agent.rotated\":\"✓ Token rotated for {host}. Copy the new token.\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/i18n.js",
+      "line": 709,
+      "pattern": "secret_word",
+      "sample": "\"cfg.agent.rotate\":\"Rotar token\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/i18n.js",
+      "line": 715,
+      "pattern": "secret_word",
+      "sample": "\"cfg.agent.token_copied\":\"Token copiat\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/i18n.js",
+      "line": 716,
+      "pattern": "secret_word",
+      "sample": "\"cfg.agent.token_copy_manual\":\"Copia manualment el token seleccionat\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/i18n.js",
+      "line": 719,
+      "pattern": "secret_word",
+      "sample": "\"cfg.agent.created\":\"✓ Agent creat. Copia el token abans de tancar.\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/i18n.js",
+      "line": 724,
+      "pattern": "secret_word",
+      "sample": "\"cfg.agent.rotated\":\"✓ Token rotat per a {host}. Copia el nou token.\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/app.js",
+      "line": 1583,
+      "pattern": "secret_word",
+      "sample": "return cleanTokens.some(token => text.includes(token));"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/syncthing_control.js",
+      "line": 662,
+      "pattern": "secret_word",
+      "sample": "<input id=\"st-node-api-key\" type=\"password\" class=\"form-control form-control-sm\" placeholder=\"Nueva clave o vacío al editar\" autocomplete=\"new-password\">"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/syncthing_control.js",
+      "line": 1971,
+      "pattern": "secret_word",
+      "sample": "document.getElementById('st-node-api-key').value = '';"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/syncthing_control.js",
+      "line": 2050,
+      "pattern": "secret_word",
+      "sample": "api_key: document.getElementById('st-node-api-key')?.value || '',"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/auth.js",
+      "line": 63,
+      "pattern": "secret_word",
+      "sample": "body: JSON.stringify({username: user, password: pass})"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/auth.js",
+      "line": 172,
+      "pattern": "secret_word",
+      "sample": "const password = document.getElementById('newUserPw').value;"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/auth.js",
+      "line": 175,
+      "pattern": "secret_word",
+      "sample": "const r    = await fetch('/api/auth/users', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username, password})});"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/auth.js",
+      "line": 196,
+      "pattern": "secret_word",
+      "sample": "const r    = await fetch('/api/auth/change-password', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({current_password:cur, new_password:np})});"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/auth.js",
+      "line": 228,
+      "pattern": "secret_word",
+      "sample": "<td><button class=\"btn btn-outline-danger btn-sm\" onclick=\"killSession('${s.token.substring(0,8)}')\"><i class=\"bi bi-x-lg\"></i></button></td>"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 1024,
+      "pattern": "secret_word",
+      "sample": "const show = $inp.attr('type') === 'password';"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 1025,
+      "pattern": "secret_word",
+      "sample": "$inp.attr('type', show ? 'text' : 'password');"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 2612,
+      "pattern": "secret_word",
+      "sample": "function _cfgAgentShowToken(token) {"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 2616,
+      "pattern": "secret_word",
+      "sample": "inp.value = token || '';"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 2617,
+      "pattern": "secret_word",
+      "sample": "wrap.classList.toggle('d-none', !token);"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 2618,
+      "pattern": "secret_word",
+      "sample": "if (token) {"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 2672,
+      "pattern": "secret_word",
+      "sample": "<button class=\"btn btn-outline-warning btn-sm py-0 px-2 cfg-agent-rotate\" title=\"${esc(window.t?.('cfg.agent.rotate', 'Rotar token') || 'Rotar token')}\">"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 2730,
+      "pattern": "secret_word",
+      "sample": "const token = $('#cfgAgentCreatedToken').val() || '';"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 2731,
+      "pattern": "secret_word",
+      "sample": "if (!token) return;"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 2733,
+      "pattern": "secret_word",
+      "sample": "await navigator.clipboard.writeText(token);"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 2734,
+      "pattern": "secret_word",
+      "sample": "window.showToast?.(window.t?.('cfg.agent.token_copied', 'Token copiado') || 'Token copiado', 'success');"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 2737,
+      "pattern": "secret_word",
+      "sample": "window.showToast?.(window.t?.('cfg.agent.token_copy_manual', 'Copia manualmente el token seleccionado') || 'Copia manualmente el token seleccionado', 'warning');"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 2765,
+      "pattern": "secret_word",
+      "sample": "_cfgAgentShowMsg(window.t?.('cfg.agent.created', '✓ Agente creado. Copia el token antes de cerrar.') || '✓ Agente creado. Copia el token antes de cerrar.', true);"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 2766,
+      "pattern": "secret_word",
+      "sample": "_cfgAgentShowToken(data.token || '');"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 2843,
+      "pattern": "secret_word",
+      "sample": "_cfgAgentShowMsg(window.t?.('cfg.agent.rotated', '✓ Token rotado para {host}. Copia el nuevo token.', { host }) || `✓ Token rotado para ${host}. Copia el nuevo token.`, true);"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 2844,
+      "pattern": "secret_word",
+      "sample": "_cfgAgentShowToken(data.token || '');"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 2898,
+      "pattern": "secret_word",
+      "sample": "$inp.attr('type', $inp.attr('type') === 'password' ? 'text' : 'password');"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 2902,
+      "pattern": "secret_word",
+      "sample": "$inp.attr('type', $inp.attr('type') === 'password' ? 'text' : 'password');"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 2915,
+      "pattern": "localhost_url",
+      "sample": "ai_ollama_url:    $('#cfgAiOllamaUrl').val()  || 'http://localhost:11434',"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 3280,
+      "pattern": "localhost_url",
+      "sample": "if (get('cfgAiOllamaUrl'))   get('cfgAiOllamaUrl').value  = s.ai_ollama_url   || 'http://localhost:11434';"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 4259,
+      "pattern": "secret_word",
+      "sample": "'Webhook informativo guardado (oculto). Escribe uno nuevo solo si quieres reemplazarlo.',"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 4261,
+      "pattern": "secret_word",
+      "sample": "'Ya hay un webhook informativo guardado. El valor real se oculta por seguridad.'"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 4268,
+      "pattern": "secret_word",
+      "sample": "? 'Webhook de alertas guardado (oculto). Escribe uno nuevo solo si quieres reemplazarlo.'"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 4269,
+      "pattern": "secret_word",
+      "sample": ": 'Webhook legacy guardado: se usará para alertas. Escribe uno nuevo si quieres separarlo.',"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 4272,
+      "pattern": "secret_word",
+      "sample": "? 'Ya hay un webhook de alertas guardado. El valor real se oculta por seguridad.'"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 4273,
+      "pattern": "secret_word",
+      "sample": ": (discordLegacyConfigured ? 'Existe un webhook legacy que se conserva como fallback de alertas.' : '')"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 4312,
+      "pattern": "secret_word",
+      "sample": ": 'contraseña o app password';"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 4330,
+      "pattern": "localhost_url",
+      "sample": "if (_cfgGet('cfgAiOllamaUrl')) _cfgGet('cfgAiOllamaUrl').value = s.ai_ollama_url || 'http://localhost:11434';"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 4694,
+      "pattern": "secret_word",
+      "sample": "const show = el.type === 'password';"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 4695,
+      "pattern": "secret_word",
+      "sample": "el.type = show ? 'text' : 'password';"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 4808,
+      "pattern": "localhost_url",
+      "sample": "ai_ollama_url: $('#cfgAiOllamaUrl').val() || 'http://localhost:11434',"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 4981,
+      "pattern": "secret_word",
+      "sample": "const show = $inp.attr('type') === 'password';"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/static/js/config.js",
+      "line": 4982,
+      "pattern": "secret_word",
+      "sample": "$inp.attr('type', show ? 'text' : 'password');"
+    }
+  ]
+}
