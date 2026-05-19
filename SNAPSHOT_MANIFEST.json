@@ -1,8 +1,8 @@
 {
   "repo_name": "auditor-ips",
-  "generated_at": "2026-05-19T09:22:26.686993+00:00",
+  "generated_at": "2026-05-19T09:40:10.569130+00:00",
   "source_root": "<internal-source-redacted>",
-  "snapshot_dir": "auditor-ips-20260519-112226",
+  "snapshot_dir": "auditor-ips-20260519-114009",
   "files_count": 80,
   "high_findings_count": 0,
   "warn_findings_count": 235,
@@ -404,8 +404,8 @@
     },
     {
       "path": "scripts/install_auditor.py",
-      "size": 22780,
-      "sha256": "e06f1f405362a9ede9e7bbb78a29ee2cf8fdd35bdb5741f3ec83077690f58eec"
+      "size": 23753,
+      "sha256": "af8821692c4edc29a02f8fc767a08950a2a766f1f649106ad8e576593629ae04"
     }
   ],
   "findings": [
@@ -671,14 +671,14 @@
     {
       "severity": "WARN",
       "path": "scripts/install_auditor.py",
-      "line": 500,
+      "line": 507,
       "pattern": "localhost_url",
       "sample": "f\"curl -k https://127.0.0.1:{effective_port}/api/system/healthz\","
     },
     {
       "severity": "WARN",
       "path": "scripts/install_auditor.py",
-      "line": 530,
+      "line": 545,
       "pattern": "localhost_url",
       "sample": "result = run_cmd([\"bash\", \"-lc\", \"curl -kfsS https://127.0.0.1:${PORT:-9909}/api/system/healthz >/dev/null\"], cwd=target_dir, capture=True)"
     },

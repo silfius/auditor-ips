@@ -494,11 +494,26 @@ def write_install_state(target_dir: Path, args: argparse.Namespace, dry_run: boo
         "",
         "## Siguientes pasos",
         "",
+        "1. Arranca el servicio si no lo has hecho durante el instalador:",
+        "",
         "```bash",
         f"cd {target_dir}",
         "docker compose up -d",
+        "```",
+        "",
+        "2. Valida salud del servicio:",
+        "",
+        "```bash",
         f"curl -k https://127.0.0.1:{effective_port}/api/system/healthz",
         "```",
+        "",
+        "3. Abre la aplicacion en el navegador:",
+        "",
+        f"- https://{effective_config.get('SERVER_IP', '127.0.0.1')}:{effective_port}/login",
+        "",
+        "4. Si no hay usuarios admin, la pantalla de primera configuracion te pedira crear el primero.",
+        "",
+        "Por seguridad, el instalador no pide ni guarda contrasenas de administrador.",
         "",
     ]
 
@@ -636,7 +651,12 @@ def main() -> int:
         else:
             log("Omitido build por --no-build o decision interactiva")
 
-        log("Instalacion/validacion completada.")
+        final_url = f"https://{effective_config.get('SERVER_IP', '127.0.0.1')}:{effective_config.get('PORT', args.port)}/login"
+        log("")
+        log(color("Instalacion/validacion completada.", "ok"))
+        log(color(f"Abre {final_url}", "ok"))
+        log("Si no hay usuarios admin, la pantalla de primera configuracion te pedira crear el primero.")
+        log("Por seguridad, el instalador no pide ni guarda contrasenas de administrador.")
         return 0
 
     except Exception as exc:
