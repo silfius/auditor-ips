@@ -5,7 +5,7 @@ Este snapshot ha sido generado de forma local y no ha sido publicado.
 ## Resultado del escaneo ligero
 
 - Hallazgos HIGH: 0
-- Hallazgos WARN: 231
+- Hallazgos WARN: 235
 
 Los hallazgos WARN pueden corresponder a documentación o nombres de variables.
 Los hallazgos HIGH deben bloquear la publicación hasta revisión.
@@ -22,7 +22,7 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 
 ## Hallazgos
 
-- `WARN` `README.md:46` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
+- `WARN` `README.md:58` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
 - `WARN` `app/host_classification.py:175` `secret_word` — for token in tokens:
 - `WARN` `app/host_classification.py:176` `secret_word` — token_norm = _norm_text(token)
 - `WARN` `app/host_classification.py:177` `secret_word` — token_compact = _compact_text(token)
@@ -57,12 +57,16 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/auth_middleware.py:166` `secret_word` — c.execute("DELETE FROM auth_sessions WHERE token=?", (token,))
 - `WARN` `app/auth_middleware.py:184` `secret_word` — rows = c.execute("""SELECT token,username,created_at,expires_at,ip,user_agent
 - `WARN` `app/database.py:277` `secret_word` — api_key TEXT NOT NULL DEFAULT '',
+- `WARN` `scripts/install_auditor.py:85` `secret_word` — if any(token in raw for token in ["debian", "ubuntu", "linuxmint", "raspbian"]):
+- `WARN` `scripts/install_auditor.py:87` `secret_word` — if any(token in raw for token in ["arch", "manjaro", "endeavouros"]):
+- `WARN` `scripts/install_auditor.py:325` `localhost_url` — "curl -k https://127.0.0.1:${PORT:-9909}/api/system/healthz",
+- `WARN` `scripts/install_auditor.py:355` `localhost_url` — result = run_cmd(["bash", "-lc", "curl -kfsS https://127.0.0.1:${PORT:-9909}/api/system/healthz >/dev/null"], cwd=target_dir, capture=True)
 - `WARN` `scripts/smoke_system_health.sh:15` `localhost_url` — #   AUDITOR_BASE_URL=https://127.0.0.1:9909 ./LOCAL/scripts/smoke_system_health.sh
 - `WARN` `scripts/smoke_system_health.sh:18` `localhost_url` — BASE_URL="${AUDITOR_BASE_URL:-${1:-https://127.0.0.1:9909}}"
 - `WARN` `scripts/smoke_system_health.sh:153` `secret_word` — "password": os.environ.get("AUDITOR_SMOKE_PASS", ""),
-- `WARN` `docs/INSTALL.md:29` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
-- `WARN` `docs/INSTALL.md:47` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
-- `WARN` `docs/INSTALL.md:53` `localhost_url` — AUDITOR_BASE_URL=https://127.0.0.1:9909 scripts/smoke_system_health.sh
+- `WARN` `docs/INSTALL.md:42` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
+- `WARN` `docs/INSTALL.md:60` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
+- `WARN` `docs/INSTALL.md:66` `localhost_url` — AUDITOR_BASE_URL=https://127.0.0.1:9909 scripts/smoke_system_health.sh
 - `WARN` `docs/TROUBLESHOOTING.md:21` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
 - `WARN` `docs/BACKUP_RESTORE.md:30` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
 - `WARN` `docs/CONFIGURATION.md:18` `secret_word` — - `DISCORD_WEBHOOK_URL`: webhook opcional de Discord.
@@ -218,9 +222,5 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/static/js/auth.js:63` `secret_word` — body: JSON.stringify({username: user, password: pass})
 - `WARN` `app/static/js/auth.js:172` `secret_word` — const password = document.getElementById('newUserPw').value;
 - `WARN` `app/static/js/auth.js:175` `secret_word` — const r    = await fetch('/api/auth/users', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username, password})});
-- `WARN` `app/static/js/auth.js:196` `secret_word` — const r    = await fetch('/api/auth/change-password', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({current_password:cur, new_password:np})});
-- `WARN` `app/static/js/auth.js:228` `secret_word` — <td><button class="btn btn-outline-danger btn-sm" onclick="killSession('${s.token.substring(0,8)}')"><i class="bi bi-x-lg"></i></button></td>
-- `WARN` `app/static/js/config.js:1024` `secret_word` — const show = $inp.attr('type') === 'password';
-- `WARN` `app/static/js/config.js:1025` `secret_word` — $inp.attr('type', show ? 'text' : 'password');
-- ... 31 hallazgos adicionales no listados.
+- ... 35 hallazgos adicionales no listados.
 

@@ -4,8 +4,9 @@
 
 Instalación manual inicial de Auditor IPs V4 desde repositorio público.
 
-El instalador guiado definitivo se añadirá en una fase posterior. Mientras tanto,
-este procedimiento permite validar el despliegue con Docker Compose.
+Se incluye una base inicial de instalador guiado. Mientras se completa el
+instalador definitivo, tambien se mantiene el procedimiento manual con Docker
+Compose.
 
 ## Requisitos
 
@@ -16,7 +17,19 @@ este procedimiento permite validar el despliegue con Docker Compose.
 - Puerto web libre, por defecto `9909`.
 - Ruta persistente para `data/`.
 
-## Pasos
+## Instalador guiado
+
+```bash
+python3 scripts/install_auditor.py --target-dir /opt/auditor-ips
+```
+
+Validacion sin arranque:
+
+```bash
+python3 scripts/install_auditor.py --target-dir /tmp/auditor-ips-test --yes --no-start
+```
+
+## Pasos manuales
 
 ```bash
 git clone <URL_PUBLICA_DEL_REPOSITORIO> auditor-ips
