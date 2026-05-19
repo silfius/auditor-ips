@@ -20,6 +20,7 @@ Toda la lógica de negocio vive en los módulos bajo routers/:
 """
 
 import os
+import sqlite3
 import struct
 import threading
 import zlib
@@ -69,11 +70,86 @@ from routers import (
 #  App y static files
 # ═══════════════════════════════════════════════════════════════
 
+
+def _ensure_hosts_device_columns(db_path: str) -> None:
+    """Asegura columnas device_* esperadas por hosts.py en BDs limpias/antiguas."""
+    conn = sqlite3.connect(db_path)
+    try:
+        exists = conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='hosts'"
+        ).fetchone()
+        if not exists:
+            return
+
+        cols = {r[1] for r in conn.execute("PRAGMA table_info(hosts)").fetchall()}
+        needed = {
+            "device_type": "TEXT DEFAULT 'unknown'",
+            "device_confidence": "INTEGER DEFAULT 0",
+            "device_source": "TEXT DEFAULT ''",
+            "device_label": "TEXT DEFAULT ''",
+            "device_evidence": "TEXT DEFAULT ''",
+            "device_updated_at": "TEXT DEFAULT ''",
+        }
+        for col, ddl in needed.items():
+            if col not in cols:
+                conn.execute(f"ALTER TABLE hosts ADD COLUMN {col} {ddl}")
+        conn.commit()
+    finally:
+        conn.close()
+
 app = FastAPI(
     title="Auditor IPs",
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+# BEGIN initial setup access gate v2
+@app.middleware("http")
+async def initial_setup_access_gate(request, call_next):
+    """Bloquea la app hasta completar el asistente inicial transaccional."""
+    try:
+        from starlette.responses import RedirectResponse, JSONResponse
+        from config import DB_PATH as _setup_db_path
+        import sqlite3 as _setup_sqlite3
+
+        path = request.url.path or "/"
+        allowed_exact = {
+            "/login",
+            "/favicon.ico",
+            "/manifest.json",
+            "/sw.js",
+            "/api/system/healthz",
+            "/api/auth/initial-setup/confirm",
+        }
+        allowed_prefixes = ("/static/",)
+        allowed = path in allowed_exact or any(path.startswith(prefix) for prefix in allowed_prefixes)
+
+        if not allowed:
+            has_admin = False
+            try:
+                conn = _setup_sqlite3.connect(_setup_db_path)
+                try:
+                    row = conn.execute("SELECT COUNT(*) FROM auth_users").fetchone()
+                    has_admin = bool(row and int(row[0]) > 0)
+                finally:
+                    conn.close()
+            except Exception:
+                has_admin = False
+
+            if not has_admin:
+                if path.startswith("/api/"):
+                    return JSONResponse(
+                        {"ok": False, "error": "Configuración inicial pendiente."},
+                        status_code=403,
+                    )
+                return RedirectResponse("/login", status_code=302)
+    except Exception:
+        pass
+
+    return await call_next(request)
+# END initial setup access gate v2
+
+
 app.mount("/static", StaticFiles(directory="static", html=False), name="static")
 
 
@@ -284,6 +360,7 @@ def startup() -> None:
     init_db()
     load_settings()
     init_auth_tables(DB_PATH)
+    _ensure_hosts_device_columns(DB_PATH)
     _generate_pwa_icons()
 
     from routers.scans import oui_lookup

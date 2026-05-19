@@ -55,6 +55,168 @@ def _current_username(request: Request) -> str | None:
 #  Login page
 # ══════════════════════════════════════════════════════════════
 
+
+@router.post("/api/auth/initial-setup/confirm")
+async def api_initial_setup_confirm(request: Request):
+    """Aplica asistente inicial en una sola transacción: admin + settings + sesión."""
+    import json
+    import os
+    import secrets
+    import sqlite3
+    from datetime import datetime, timezone, timedelta
+    from fastapi.responses import JSONResponse
+    from auth_middleware import hash_password
+    from config import cfg
+
+    def as_bool(value, default=False):
+        raw = str(value if value is not None else "").strip().lower()
+        if raw in {"1", "true", "yes", "on", "si", "sí"}:
+            return True
+        if raw in {"0", "false", "no", "off"}:
+            return False
+        return default
+
+    def as_int(value, default, min_value, max_value):
+        try:
+            parsed = int(str(value).strip())
+        except Exception:
+            parsed = default
+        return max(min_value, min(max_value, parsed))
+
+    def normalize_modules(value):
+        allowed = {
+            "services", "automation", "agents", "syncthing",
+            "quality", "notifications", "ai", "exports",
+        }
+        incoming = value if isinstance(value, dict) else {}
+        return json.dumps({k: as_bool(incoming.get(k), True) for k in sorted(allowed)}, sort_keys=True)
+
+    conn_check = sqlite3.connect(DB_PATH)
+    try:
+        exists = conn_check.execute("SELECT COUNT(*) FROM auth_users").fetchone()[0]
+    finally:
+        conn_check.close()
+
+    if exists:
+        return JSONResponse(
+            {"ok": False, "error": "La configuración inicial ya no está disponible porque ya existe un admin."},
+            status_code=409,
+        )
+
+    payload = await request.json()
+
+    username = str(payload.get("username") or "").strip().lower()
+    password = str(payload.get("password") or "")
+    password2 = str(payload.get("password2") or "")
+
+    if len(username) < 2:
+        return JSONResponse({"ok": False, "error": "El usuario debe tener al menos 2 caracteres."}, status_code=400)
+    if len(password) < 8:
+        return JSONResponse({"ok": False, "error": "La contraseña debe tener al menos 8 caracteres."}, status_code=400)
+    if password != password2:
+        return JSONResponse({"ok": False, "error": "Las contraseñas no coinciden."}, status_code=400)
+
+    scan_cidr = str(payload.get("scan_cidr") or cfg("scan_cidr", "192.168.1.0/24")).strip()
+    if not scan_cidr:
+        return JSONResponse({"ok": False, "error": "La red principal es obligatoria."}, status_code=400)
+
+    scan_interval = as_int(payload.get("scan_interval"), 900, 30, 86400)
+    retention_days = as_int(payload.get("retention_days"), 14, 1, 365)
+
+    ui_lang = str(payload.get("ui_lang") or "es").strip().lower()
+    if ui_lang not in {"es", "en", "ca"}:
+        ui_lang = "es"
+
+    app_tz = str(payload.get("app_tz") or "Europe/Madrid").strip() or "Europe/Madrid"
+
+    now = datetime.now(timezone.utc).isoformat()
+    ttl_hours = int(os.environ.get("SESSION_TTL_HOURS", "8"))
+    token = secrets.token_urlsafe(32)
+    expires_at = (datetime.now(timezone.utc) + timedelta(hours=ttl_hours)).isoformat()
+    ip = get_client_ip(request)
+    ua = request.headers.get("user-agent", "")
+
+    settings = {
+        "scan_cidr": scan_cidr,
+        "scan_interval": str(scan_interval),
+        "retention_days": str(retention_days),
+        "app_tz": app_tz,
+        "ui_lang": ui_lang,
+        "enabled_modules": normalize_modules(payload.get("enabled_modules")),
+        "notify_new": "1" if as_bool(payload.get("notify_new"), True) else "0",
+        "notify_online": "1" if as_bool(payload.get("notify_online"), False) else "0",
+        "notify_offline": "1" if as_bool(payload.get("notify_offline"), False) else "0",
+        "notify_mac_change": "1" if as_bool(payload.get("notify_mac_change"), False) else "0",
+        "notify_service_down": "1" if as_bool(payload.get("notify_service_down"), True) else "0",
+        "notify_syncthing_stalled": "1" if as_bool(payload.get("notify_syncthing_stalled"), False) else "0",
+        "notify_quality_degraded": "1" if as_bool(payload.get("notify_quality_degraded"), True) else "0",
+        "notify_script_alerts": "1" if as_bool(payload.get("notify_script_alerts"), True) else "0",
+        "notify_email": "1" if as_bool(payload.get("notify_email"), False) else "0",
+        "initial_setup_wizard_completed": "1",
+        "initial_setup_wizard_completed_at": now,
+        "initial_setup_wizard_version": "2",
+    }
+
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        try:
+            conn.execute("BEGIN IMMEDIATE")
+
+            existing = conn.execute("SELECT COUNT(*) FROM auth_users").fetchone()[0]
+            if existing:
+                conn.rollback()
+                return JSONResponse({"ok": False, "error": "Ya existe un usuario admin. Recarga la página."}, status_code=409)
+
+            conn.execute(
+                "INSERT INTO auth_users (username, password_hash, created_at) VALUES (?,?,?)",
+                (username, hash_password(password), now),
+            )
+            user_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+
+            for key, value in settings.items():
+                conn.execute("INSERT OR REPLACE INTO settings(key,value) VALUES(?,?)", (key, value))
+
+            conn.execute(
+                """INSERT INTO auth_sessions
+                   (token,user_id,username,created_at,expires_at,ip,user_agent)
+                   VALUES(?,?,?,?,?,?,?)""",
+                (token, user_id, username, now, expires_at, ip, ua),
+            )
+            conn.execute("UPDATE auth_users SET last_login=? WHERE id=?", (now, user_id))
+
+            try:
+                conn.execute(
+                    """INSERT INTO audit_log (at,ip,username,session,action,detail,authed)
+                       VALUES(?,?,?,?,?,?,?)""",
+                    (
+                        now, ip, username, token[:10],
+                        "Asistente inicial confirmado",
+                        json.dumps({"updated_keys": sorted(settings.keys())}, ensure_ascii=False),
+                        1,
+                    ),
+                )
+            except Exception:
+                pass
+
+            conn.commit()
+        finally:
+            conn.close()
+    except Exception as exc:
+        return JSONResponse({"ok": False, "error": f"No se pudo confirmar la configuración inicial: {exc}"}, status_code=500)
+
+    response = JSONResponse({"ok": True, "next": "/"})
+    response.set_cookie(
+        globals().get("SESSION_COOKIE", "auditor_session"),
+        token,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=ttl_hours * 3600,
+        path="/",
+    )
+    return response
+
+
 @router.get("/login", response_class=HTMLResponse)
 def login_page(request: Request, next: str = "/"):
     """Página de login independiente. Redirige al panel si ya hay sesión."""
@@ -216,6 +378,11 @@ def api_list_users(request: Request):
 @router.post("/api/auth/users")
 async def api_create_user(request: Request):
     payload = await request.json()
+    if not auth_enabled(DB_PATH):
+        return JSONResponse(
+            {"ok": False, "error": "Usa el asistente inicial para completar la primera configuración."},
+            status_code=409,
+        )
     username = (payload.get("username") or "").strip().lower()
     password = (payload.get("password") or "").strip()
 

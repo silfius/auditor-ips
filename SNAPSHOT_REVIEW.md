@@ -5,7 +5,7 @@ Este snapshot ha sido generado de forma local y no ha sido publicado.
 ## Resultado del escaneo ligero
 
 - Hallazgos HIGH: 0
-- Hallazgos WARN: 265
+- Hallazgos WARN: 279
 
 Los hallazgos WARN pueden corresponder a documentación o nombres de variables.
 Los hallazgos HIGH deben bloquear la publicación hasta revisión.
@@ -30,11 +30,11 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/host_classification.py:177` `secret_word` — token_compact = _compact_text(token)
 - `WARN` `app/host_classification.py:179` `secret_word` — return token
 - `WARN` `app/host_classification.py:181` `secret_word` — return token
-- `WARN` `app/config.py:155` `localhost_url` — "ai_ollama_url":       os.getenv("OLLAMA_URL",     "http://localhost:11434"),
+- `WARN` `app/config.py:158` `localhost_url` — "ai_ollama_url":       os.getenv("OLLAMA_URL",     "http://localhost:11434"),
 - `WARN` `app/device_enrichment.py:92` `secret_word` — elif any(token in os_text for token in ["windows 11", "windows 10", "windows 8", "windows 7", "microsoft windows"]):
-- `WARN` `app/main.py:163` `secret_word` — token = request.cookies.get(SESSION_COOKIE)
-- `WARN` `app/main.py:165` `secret_word` — username = validate_session(DB_PATH, token) if auth_enabled(DB_PATH) else None
-- `WARN` `app/main.py:200` `secret_word` — session_token=token,
+- `WARN` `app/main.py:239` `secret_word` — token = request.cookies.get(SESSION_COOKIE)
+- `WARN` `app/main.py:241` `secret_word` — username = validate_session(DB_PATH, token) if auth_enabled(DB_PATH) else None
+- `WARN` `app/main.py:276` `secret_word` — session_token=token,
 - `WARN` `app/scan_discovery.py:217` `secret_word` — for token in reversed(parts):
 - `WARN` `app/scan_discovery.py:218` `secret_word` — token_up = token.strip().upper()
 - `WARN` `app/test_endpoints.py:8` `localhost_url` — python test_endpoints.py --base https://localhost:8088
@@ -122,13 +122,18 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/templates/login.html:463` `secret_word` — <input type="password" id="setupPassword2" class="form-control" placeholder="••••••••" autocomplete="new-password">
 - `WARN` `app/templates/login.html:490` `secret_word` — <input type="password" id="loginPassword" class="form-control" placeholder="••••••••"
 - `WARN` `app/templates/login.html:491` `secret_word` — autocomplete="current-password" tabindex="2">
-- `WARN` `app/templates/login.html:519` `secret_word` — inp.type = vis ? 'password' : 'text';
-- `WARN` `app/templates/login.html:543` `secret_word` — body: JSON.stringify({username, password: pw})
-- `WARN` `app/templates/login.html:552` `secret_word` — body: JSON.stringify({username, password: pw})
-- `WARN` `app/templates/login.html:573` `secret_word` — inp.type = vis ? 'password' : 'text';
-- `WARN` `app/templates/login.html:579` `secret_word` — const password = document.getElementById('loginPassword').value;
-- `WARN` `app/templates/login.html:584` `secret_word` — if (!username || !password) {
-- `WARN` `app/templates/login.html:597` `secret_word` — body: JSON.stringify({username, password})
+- `WARN` `app/templates/login.html:518` `secret_word` — inp.type = vis ? 'password' : 'text';
+- `WARN` `app/templates/login.html:542` `secret_word` — body: JSON.stringify({username, password: pw})
+- `WARN` `app/templates/login.html:551` `secret_word` — body: JSON.stringify({username, password: pw})
+- `WARN` `app/templates/login.html:572` `secret_word` — inp.type = vis ? 'password' : 'text';
+- `WARN` `app/templates/login.html:578` `secret_word` — const password = document.getElementById('loginPassword').value;
+- `WARN` `app/templates/login.html:583` `secret_word` — if (!username || !password) {
+- `WARN` `app/templates/login.html:596` `secret_word` — body: JSON.stringify({username, password})
+- `WARN` `app/templates/login.html:669` `secret_word` — password: el('setupV2Password')?.value || '',
+- `WARN` `app/templates/login.html:702` `secret_word` — if (p.password.length < 8) return 'La contraseña debe tener al menos 8 caracteres.';
+- `WARN` `app/templates/login.html:703` `secret_word` — if (p.password !== p.password2) return 'Las contraseñas no coinciden.';
+- `WARN` `app/templates/login.html:819` `secret_word` — <input id="setupV2Password" type="password" class="form-control" autocomplete="new-password">
+- `WARN` `app/templates/login.html:821` `secret_word` — <input id="setupV2Password2" type="password" class="form-control" autocomplete="new-password">
 - `WARN` `app/routers/syncthing_control.py:47` `secret_word` — api_key TEXT NOT NULL DEFAULT '',
 - `WARN` `app/routers/syncthing_control.py:398` `secret_word` — api_key = item.pop("api_key", "") or ""
 - `WARN` `app/routers/syncthing_control.py:399` `secret_word` — item["api_key_configured"] = bool(api_key)
@@ -210,17 +215,12 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/routers/scripts_status.py:1208` `secret_word` — "token_prefix": _automation_agent_token_prefix(token),
 - `WARN` `app/routers/scripts_status.py:1209` `secret_word` — "warning": "Guarda este token ahora; no se volverá a mostrar.",
 - `WARN` `app/routers/scripts_status.py:1264` `secret_word` — - protegida por token global legado o token específico por host;
-- `WARN` `app/routers/auth.py:61` `secret_word` — token = request.cookies.get(SESSION_COOKIE)
-- `WARN` `app/routers/auth.py:62` `secret_word` — if validate_session(DB_PATH, token):
-- `WARN` `app/routers/auth.py:84` `secret_word` — token = request.cookies.get(SESSION_COOKIE)
-- `WARN` `app/routers/auth.py:85` `secret_word` — username = validate_session(DB_PATH, token) if enabled else None
-- `WARN` `app/routers/auth.py:108` `secret_word` — password = (payload.get("password") or "").strip()
-- `WARN` `app/routers/auth.py:132` `secret_word` — if not user or not _am.verify_password(password, user["password_hash"]):
-- `WARN` `app/routers/auth.py:163` `secret_word` — token = create_session(DB_PATH, user["id"], username, ip, ua)
-- `WARN` `app/routers/auth.py:170` `secret_word` — session_token=token,
-- `WARN` `app/routers/auth.py:176` `secret_word` — token,
-- `WARN` `app/routers/auth.py:187` `secret_word` — token = request.cookies.get(SESSION_COOKIE)
-- `WARN` `app/routers/auth.py:189` `secret_word` — username = validate_session(DB_PATH, token)
-- `WARN` `app/routers/auth.py:191` `secret_word` — if token:
-- ... 65 hallazgos adicionales no listados.
+- `WARN` `app/routers/auth.py:109` `secret_word` — password = str(payload.get("password") or "")
+- `WARN` `app/routers/auth.py:114` `secret_word` — if len(password) < 8:
+- `WARN` `app/routers/auth.py:116` `secret_word` — if password != password2:
+- `WARN` `app/routers/auth.py:134` `secret_word` — token = secrets.token_urlsafe(32)
+- `WARN` `app/routers/auth.py:172` `secret_word` — (username, hash_password(password), now),
+- `WARN` `app/routers/auth.py:181` `secret_word` — (token,user_id,username,created_at,expires_at,ip,user_agent)
+- `WARN` `app/routers/auth.py:183` `secret_word` — (token, user_id, username, now, expires_at, ip, ua),
+- ... 79 hallazgos adicionales no listados.
 

@@ -503,8 +503,7 @@
 
   <hr class="divider">
   <div class="public-wol-entry">
-    <a class="public-wol-link" href="/wol"><i class="bi bi-broadcast-pin"></i><span>Abrir /wol</span></a>
-  </div>
+</div>
 
 </div>
 
@@ -636,5 +635,272 @@ document.addEventListener('DOMContentLoaded', () => {
 {% endif %}
 
 </script>
+
+<script>
+/* BEGIN initial setup transactional wizard v2 */
+(function(){
+  function el(id){ return document.getElementById(id); }
+  function val(id){ return (el(id)?.value || '').trim(); }
+  function checked(id){ return !!el(id)?.checked; }
+
+  function showMsg(text, danger=true){
+    const box = el('setupV2Msg');
+    if (!box) return;
+    box.textContent = text || '';
+    box.style.display = text ? 'block' : 'none';
+    box.style.borderColor = danger ? 'rgba(255,99,132,.45)' : 'rgba(77,255,181,.35)';
+    box.style.background = danger ? 'rgba(255,99,132,.12)' : 'rgba(77,255,181,.10)';
+    box.style.color = danger ? '#ffb3bf' : '#8fffd1';
+  }
+
+  function step(n){
+    showMsg('');
+    document.querySelectorAll('.setup-v2-step').forEach(x => x.style.display = 'none');
+    const current = el('setupV2Step' + n);
+    if (current) current.style.display = '';
+    document.querySelectorAll('.setup-v2-dot').forEach(x => x.classList.remove('active'));
+    const dot = el('setupV2Dot' + n);
+    if (dot) dot.classList.add('active');
+  }
+
+  function payload(){
+    return {
+      username: val('setupV2Username'),
+      password: el('setupV2Password')?.value || '',
+      password2: el('setupV2Password2')?.value || '',
+      scan_cidr: val('setupV2Cidr'),
+      scan_interval: parseInt(val('setupV2Interval') || '900', 10),
+      retention_days: parseInt(val('setupV2Retention') || '14', 10),
+      ui_lang: val('setupV2Lang') || 'es',
+      app_tz: val('setupV2Tz') || 'Europe/Madrid',
+      enabled_modules: {
+        services: checked('setupV2ModServices'),
+        automation: checked('setupV2ModAutomation'),
+        agents: checked('setupV2ModAgents'),
+        syncthing: checked('setupV2ModSyncthing'),
+        quality: checked('setupV2ModQuality'),
+        notifications: checked('setupV2ModNotifications'),
+        ai: checked('setupV2ModAi'),
+        exports: checked('setupV2ModExports')
+      },
+      notify_new: checked('setupV2NotifyNew'),
+      notify_online: checked('setupV2NotifyOnline'),
+      notify_offline: checked('setupV2NotifyOffline'),
+      notify_mac_change: checked('setupV2NotifyMac'),
+      notify_service_down: checked('setupV2NotifyService'),
+      notify_syncthing_stalled: checked('setupV2NotifySyncthing'),
+      notify_quality_degraded: checked('setupV2NotifyQuality'),
+      notify_script_alerts: checked('setupV2NotifyScripts'),
+      notify_email: checked('setupV2NotifyEmail')
+    };
+  }
+
+  function validateStep(n){
+    const p = payload();
+    if (n === 1) {
+      if (p.username.length < 2) return 'El usuario debe tener al menos 2 caracteres.';
+      if (p.password.length < 8) return 'La contraseña debe tener al menos 8 caracteres.';
+      if (p.password !== p.password2) return 'Las contraseñas no coinciden.';
+    }
+    if (n === 2) {
+      if (!p.scan_cidr) return 'La red principal es obligatoria.';
+      if (!p.scan_interval || p.scan_interval < 30) return 'El intervalo mínimo es 30 segundos.';
+      if (!p.retention_days || p.retention_days < 1) return 'La retención debe ser de al menos 1 día.';
+    }
+    if (n === 3) {
+      if (!p.app_tz) return 'La zona horaria es obligatoria.';
+    }
+    return '';
+  }
+
+  function go(n){
+    if (n > 1) {
+      const err = validateStep(n - 1);
+      if (err) { showMsg(err); return; }
+    }
+    if (n === 5) renderSummary();
+    step(n);
+  }
+
+  function renderSummary(){
+    const p = payload();
+    const labels = {
+      services:'Servicios', automation:'Automatizaciones', agents:'Agentes API',
+      syncthing:'Syncthing', quality:'Calidad', notifications:'Notificaciones',
+      ai:'IA', exports:'Exportaciones'
+    };
+    const mods = Object.entries(p.enabled_modules)
+      .filter(x => x[1]).map(x => labels[x[0]] || x[0]).join(', ') || 'ninguno';
+
+    const notifLabels = {
+      notify_new:'Host nuevo', notify_online:'Host online', notify_offline:'Host offline',
+      notify_mac_change:'Cambio MAC', notify_service_down:'Servicio caído',
+      notify_syncthing_stalled:'Syncthing atascado',
+      notify_quality_degraded:'Calidad degradada',
+      notify_script_alerts:'Procesos / scripts', notify_email:'Canal email'
+    };
+    const notifs = Object.entries(notifLabels)
+      .filter(([k]) => p[k]).map(([,v]) => v).join(', ') || 'ninguna';
+
+    el('setupV2Summary').innerHTML = `
+      <div><strong>Usuario admin:</strong> ${p.username}</div>
+      <div><strong>Red principal:</strong> ${p.scan_cidr}</div>
+      <div><strong>Intervalo:</strong> ${p.scan_interval} segundos</div>
+      <div><strong>Retención:</strong> ${p.retention_days} días</div>
+      <div><strong>Idioma:</strong> ${p.ui_lang}</div>
+      <div><strong>Zona horaria:</strong> ${p.app_tz}</div>
+      <div><strong>Módulos activos:</strong> ${mods}</div>
+      <div><strong>Notificaciones activas:</strong> ${notifs}</div>
+      <hr>
+      <div style="opacity:.78">Nada se aplicará hasta pulsar <strong>Confirmar y aplicar</strong>.</div>
+    `;
+  }
+
+  async function confirmSetup(){
+    for (let n=1; n<=3; n++) {
+      const err = validateStep(n);
+      if (err) { step(n); showMsg(err); return; }
+    }
+
+    const btn = el('setupV2Confirm');
+    const old = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = 'Aplicando…';
+
+    try {
+      const r = await fetch('/api/auth/initial-setup/confirm', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload())
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok || !data.ok) throw new Error(data.error || 'No se pudo aplicar la configuración inicial');
+      window.location.href = data.next || '/';
+    } catch(e) {
+      showMsg(e.message || 'Error aplicando configuración inicial');
+      btn.disabled = false;
+      btn.innerHTML = old;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    const setup = el('setupForm');
+    if (!setup) return;
+
+    setup.innerHTML = `
+      <style>
+        .setup-v2-dots{display:flex;gap:6px;margin:8px 0 18px}
+        .setup-v2-dot{height:6px;flex:1;border-radius:99px;background:rgba(255,255,255,.16)}
+        .setup-v2-dot.active{background:var(--accent,#4dffb5)}
+        .setup-v2-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        @media(max-width:700px){.setup-v2-grid{grid-template-columns:1fr}}
+        .setup-v2-actions{display:flex;gap:10px;justify-content:space-between;margin-top:18px;flex-wrap:wrap}
+        .setup-v2-card{border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:12px;background:rgba(255,255,255,.04)}
+        .setup-v2-check{display:flex;gap:8px;align-items:center;margin:6px 0;font-size:.88rem}
+        .setup-v2-msg{display:none;border:1px solid rgba(255,99,132,.45);background:rgba(255,99,132,.12);color:#ffb3bf;border-radius:10px;padding:10px;margin:12px 0}
+      </style>
+
+      <div class="setup-v2-dots">
+        <div class="setup-v2-dot active" id="setupV2Dot1"></div>
+        <div class="setup-v2-dot" id="setupV2Dot2"></div>
+        <div class="setup-v2-dot" id="setupV2Dot3"></div>
+        <div class="setup-v2-dot" id="setupV2Dot4"></div>
+        <div class="setup-v2-dot" id="setupV2Dot5"></div>
+      </div>
+
+      <div id="setupV2Msg" class="setup-v2-msg"></div>
+
+      <div class="setup-v2-step" id="setupV2Step1">
+        <div class="login-panel-title">1. Usuario administrador</div>
+        <div class="login-panel-subtitle">No se creará hasta confirmar el resumen final.</div>
+        <label>Nombre de usuario</label>
+        <input id="setupV2Username" class="form-control" value="admin" autocomplete="username">
+        <label>Contraseña</label>
+        <input id="setupV2Password" type="password" class="form-control" autocomplete="new-password">
+        <label>Repetir contraseña</label>
+        <input id="setupV2Password2" type="password" class="form-control" autocomplete="new-password">
+        <div class="setup-v2-actions"><span></span><button class="btn btn-primary" id="setupV2Next1" type="button">Siguiente</button></div>
+      </div>
+
+      <div class="setup-v2-step" id="setupV2Step2" style="display:none">
+        <div class="login-panel-title">2. Red y escaneo</div>
+        <label>Red principal CIDR</label>
+        <input id="setupV2Cidr" class="form-control" value="192.168.1.0/24">
+        <label>Intervalo de escaneo</label>
+        <select id="setupV2Interval" class="form-control">
+          <option value="300">5 minutos</option>
+          <option value="900" selected>15 minutos</option>
+          <option value="1800">30 minutos</option>
+          <option value="3600">1 hora</option>
+        </select>
+        <label>Retención de scans</label>
+        <input id="setupV2Retention" type="number" min="1" max="365" class="form-control" value="14">
+        <div class="setup-v2-actions"><button class="btn btn-secondary" id="setupV2Back2" type="button">Atrás</button><button class="btn btn-primary" id="setupV2Next2" type="button">Siguiente</button></div>
+      </div>
+
+      <div class="setup-v2-step" id="setupV2Step3" style="display:none">
+        <div class="login-panel-title">3. Localización</div>
+        <label>Idioma</label>
+        <select id="setupV2Lang" class="form-control">
+          <option value="es" selected>Español</option>
+          <option value="en">English</option>
+          <option value="ca">Català</option>
+        </select>
+        <label>Zona horaria</label>
+        <input id="setupV2Tz" class="form-control" value="Europe/Madrid">
+        <div class="setup-v2-actions"><button class="btn btn-secondary" id="setupV2Back3" type="button">Atrás</button><button class="btn btn-primary" id="setupV2Next3" type="button">Siguiente</button></div>
+      </div>
+
+      <div class="setup-v2-step" id="setupV2Step4" style="display:none">
+        <div class="login-panel-title">4. Módulos y avisos no críticos</div>
+        <div class="setup-v2-grid">
+          <div class="setup-v2-card">
+            <strong>Módulos</strong>
+            <label class="setup-v2-check"><input type="checkbox" id="setupV2ModServices" checked> Servicios</label>
+            <label class="setup-v2-check"><input type="checkbox" id="setupV2ModAutomation" checked> Automatizaciones</label>
+            <label class="setup-v2-check"><input type="checkbox" id="setupV2ModAgents" checked> Agentes API</label>
+            <label class="setup-v2-check"><input type="checkbox" id="setupV2ModSyncthing" checked> Syncthing</label>
+            <label class="setup-v2-check"><input type="checkbox" id="setupV2ModQuality" checked> Calidad</label>
+            <label class="setup-v2-check"><input type="checkbox" id="setupV2ModNotifications" checked> Notificaciones</label>
+            <label class="setup-v2-check"><input type="checkbox" id="setupV2ModAi" checked> IA</label>
+            <label class="setup-v2-check"><input type="checkbox" id="setupV2ModExports" checked> Exportaciones</label>
+          </div>
+          <div class="setup-v2-card">
+            <strong>Notificaciones básicas</strong>
+            <label class="setup-v2-check"><input type="checkbox" id="setupV2NotifyNew" checked> Host nuevo</label>
+            <label class="setup-v2-check"><input type="checkbox" id="setupV2NotifyOnline"> Host online</label>
+            <label class="setup-v2-check"><input type="checkbox" id="setupV2NotifyOffline"> Host offline</label>
+            <label class="setup-v2-check"><input type="checkbox" id="setupV2NotifyMac"> Cambio MAC</label>
+            <label class="setup-v2-check"><input type="checkbox" id="setupV2NotifyService" checked> Servicio caído</label>
+            <label class="setup-v2-check"><input type="checkbox" id="setupV2NotifySyncthing"> Syncthing atascado</label>
+            <label class="setup-v2-check"><input type="checkbox" id="setupV2NotifyQuality" checked> Calidad degradada</label>
+            <label class="setup-v2-check"><input type="checkbox" id="setupV2NotifyScripts" checked> Procesos / scripts</label>
+            <label class="setup-v2-check"><input type="checkbox" id="setupV2NotifyEmail"> Canal email</label>
+          </div>
+        </div>
+        <div class="setup-v2-actions"><button class="btn btn-secondary" id="setupV2Back4" type="button">Atrás</button><button class="btn btn-primary" id="setupV2Next4" type="button">Resumen</button></div>
+      </div>
+
+      <div class="setup-v2-step" id="setupV2Step5" style="display:none">
+        <div class="login-panel-title">5. Resumen final</div>
+        <div class="setup-v2-card" id="setupV2Summary"></div>
+        <div class="setup-v2-actions"><button class="btn btn-secondary" id="setupV2Back5" type="button">Modificar</button><button class="btn btn-primary" id="setupV2Confirm" type="button">Confirmar y aplicar</button></div>
+      </div>
+    `;
+
+    el('setupV2Next1').onclick = () => go(2);
+    el('setupV2Next2').onclick = () => go(3);
+    el('setupV2Next3').onclick = () => go(4);
+    el('setupV2Next4').onclick = () => go(5);
+    el('setupV2Back2').onclick = () => step(1);
+    el('setupV2Back3').onclick = () => step(2);
+    el('setupV2Back4').onclick = () => step(3);
+    el('setupV2Back5').onclick = () => step(4);
+    el('setupV2Confirm').onclick = confirmSetup;
+  });
+})();
+ /* END initial setup transactional wizard v2 */
+</script>
+
 </body>
 </html>
