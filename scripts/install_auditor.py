@@ -16,11 +16,13 @@ from __future__ import annotations
 import argparse
 import ipaddress
 import json
+import os
 import platform
 import re
 import shutil
 import socket
 import subprocess
+import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -43,6 +45,43 @@ class CommandResult:
 
 def log(message: str) -> None:
     print(message, flush=True)
+
+
+USE_COLOR = sys.stdout.isatty() and not os.environ.get("NO_COLOR")
+
+ANSI = {
+    "reset": "\033[0m",
+    "title": "\033[1;36m",
+    "muted": "\033[2m",
+    "info": "\033[36m",
+    "ok": "\033[32m",
+    "warn": "\033[33m",
+    "prompt": "\033[1m",
+}
+
+
+def color(text: str, name: str) -> str:
+    if not USE_COLOR:
+        return text
+    return f"{ANSI.get(name, '')}{text}{ANSI['reset']}"
+
+
+def line(char: str = "-", width: int = 72, color_name: str = "muted") -> None:
+    log(color(char * width, color_name))
+
+
+def section(title: str, description: str = "") -> None:
+    log("")
+    line("=", color_name="title")
+    log(color(title, "title"))
+    if description:
+        line("-", color_name="muted")
+        log(color(description, "info"))
+    line("=", color_name="title")
+
+
+def note(message: str) -> None:
+    log(color(f"  {message}", "muted"))
 
 
 def run_cmd(cmd: list[str], cwd: Path | None = None, check: bool = False, capture: bool = True) -> CommandResult:
@@ -172,12 +211,28 @@ def sanitize_container_name(value: str) -> str:
     return cleaned
 
 
-def ask(prompt: str, default: str, assume_yes: bool) -> str:
+def ask(prompt: str, default: str, assume_yes: bool, help_text: str = "") -> str:
     if assume_yes:
         return default
+    if help_text:
+        note(help_text)
     suffix = f" [{default}]" if default else ""
     value = input(f"{prompt}{suffix}: ").strip()
     return value or default
+
+
+
+def ask_bool(prompt: str, default: bool, assume_yes: bool, help_text: str = "") -> bool:
+    if assume_yes:
+        return default
+
+    if help_text:
+        note(help_text)
+    suffix = "S/n" if default else "s/N"
+    value = input(f"{prompt} [{suffix}]: ").strip().lower()
+    if not value:
+        return default
+    return value in {"s", "si", "sí", "y", "yes"}
 
 
 def confirm(prompt: str, assume_yes: bool) -> bool:
@@ -237,6 +292,31 @@ def render_env(template_text: str, overrides: dict[str, str]) -> str:
     return "\n".join(output).rstrip() + "\n"
 
 
+
+def show_effective_config_summary(target_dir: Path, repo_url: str, branch: str, effective_config: dict[str, str]) -> None:
+    section(
+        "Resumen antes de escribir",
+        "Revisa estos valores. Si algo no encaja, responde que no y vuelve a ejecutar el instalador.",
+    )
+    rows = [
+        ("Destino", str(target_dir)),
+        ("Repo", repo_url),
+        ("Rama", branch),
+        ("Puerto", effective_config.get("PORT", "")),
+        ("Contenedor", effective_config.get("AUDITOR_CONTAINER_NAME", "")),
+        ("TLS DNS", effective_config.get("TLS_CERT_DNS", "")),
+        ("TLS IP", effective_config.get("TLS_CERT_IP", "")),
+        ("SERVER_IP", effective_config.get("SERVER_IP", "")),
+        ("SCAN_CIDR", effective_config.get("SCAN_CIDR", "")),
+        ("DATA_DIR", effective_config.get("DATA_DIR", "")),
+        ("EXPORTS_HOST_DIR", effective_config.get("EXPORTS_HOST_DIR", "")),
+    ]
+    width = max(len(key) for key, _ in rows)
+    for key, value in rows:
+        log(f"  {key.ljust(width)} : {value}")
+    log("")
+
+
 def write_local_config(target_dir: Path, args: argparse.Namespace, assume_yes: bool, dry_run: bool) -> dict[str, str]:
     env_template_path = target_dir / ".env.example"
     compose_template_path = target_dir / "docker-compose.yml.example"
@@ -248,22 +328,78 @@ def write_local_config(target_dir: Path, args: argparse.Namespace, assume_yes: b
     detected_ip = default_server_ip()
     detected_cidr = default_scan_cidr()
 
-    port = ask("Puerto web", args.port, assume_yes)
-    container_name_raw = ask("Nombre del contenedor", args.container_name, assume_yes)
+    section(
+        "Configuracion basica",
+        "Define puerto, nombre del contenedor y datos TLS que usara la instalacion local.",
+    )
+    port = ask(
+        "Puerto web",
+        args.port,
+        assume_yes,
+        "Puerto HTTPS en el que escuchara Auditor IPs. Usa otro si ya tienes PRE o PROD en 9909.",
+    )
+    container_name_raw = ask(
+        "Nombre del contenedor",
+        args.container_name,
+        assume_yes,
+        "Nombre Docker local. Debe ser unico si tienes varias instalaciones en el mismo servidor.",
+    )
     container_name = sanitize_container_name(container_name_raw)
     if container_name != container_name_raw:
         log(f"WARN: nombre de contenedor normalizado a {container_name}")
-    tls_dns = ask("DNS local para certificado", args.tls_dns, assume_yes)
-    tls_ip = ask("IP para certificado TLS", args.tls_ip or detected_ip, assume_yes)
-    server_ip = ask("SERVER_IP", args.server_ip or detected_ip, assume_yes)
-    scan_cidr = ask("Red principal a auditar CIDR", args.scan_cidr or detected_cidr, assume_yes)
+    tls_dns = ask(
+        "DNS local para certificado",
+        args.tls_dns,
+        assume_yes,
+        "Nombre DNS/local que se incluira en el certificado autofirmado.",
+    )
+    tls_ip = ask(
+        "IP para certificado TLS",
+        args.tls_ip or detected_ip,
+        assume_yes,
+        "IP principal con la que accederas al panel desde la red.",
+    )
+    server_ip = ask(
+        "SERVER_IP",
+        args.server_ip or detected_ip,
+        assume_yes,
+        "IP del servidor donde corre Auditor IPs. Normalmente coincide con la IP TLS.",
+    )
+
+    section(
+        "Red a auditar",
+        "Define la red principal que Auditor IPs escaneara. Puedes ajustarla mas adelante en configuracion.",
+    )
+    scan_cidr = ask(
+        "Red principal a auditar CIDR",
+        args.scan_cidr or detected_cidr,
+        assume_yes,
+        "Ejemplo: 192.168.1.0/24.",
+    )
+
+    section(
+        "Rutas locales",
+        "Estas rutas son locales de esta instalacion y no se suben a Git.",
+    )
+    data_dir = ask(
+        "Ruta local de datos DATA_DIR",
+        args.data_dir,
+        assume_yes,
+        "Guarda base de datos y datos persistentes. Puede ser relativa al directorio de instalacion o absoluta.",
+    )
+    exports_dir = ask(
+        "Ruta local de exports EXPORTS_HOST_DIR",
+        args.exports_dir,
+        assume_yes,
+        "Guarda exportaciones generadas por la aplicacion. Puede ser relativa o absoluta.",
+    )
 
     env_overrides = {
         "AUDITOR_CONTAINER_NAME": container_name,
         "PORT": port,
         "DB_PATH": "/data/auditor.db",
-        "DATA_DIR": args.data_dir,
-        "EXPORTS_HOST_DIR": args.exports_dir,
+        "DATA_DIR": data_dir,
+        "EXPORTS_HOST_DIR": exports_dir,
         "TLS_CERT_IP": tls_ip,
         "TLS_CERT_DNS": tls_dns,
         "SERVER_IP": server_ip,
@@ -274,6 +410,11 @@ def write_local_config(target_dir: Path, args: argparse.Namespace, assume_yes: b
 
     env_path = target_dir / ".env"
     compose_path = target_dir / "docker-compose.yml"
+
+    show_effective_config_summary(target_dir, args.repo_url, args.branch, env_overrides)
+
+    if not assume_yes and not confirm("Escribir configuracion local con estos valores", assume_yes):
+        raise RuntimeError("Cancelado por el usuario antes de escribir configuracion.")
 
     if env_path.exists() and not args.force_config:
         log(".env ya existe. No se sobrescribe.")
@@ -298,8 +439,11 @@ def write_local_config(target_dir: Path, args: argparse.Namespace, assume_yes: b
             shutil.copy2(compose_template_path, compose_path)
             log(f"Escrito {compose_path}")
 
-    for rel in ["data", "exports"]:
-        target = target_dir / rel
+    for key in ["DATA_DIR", "EXPORTS_HOST_DIR"]:
+        configured = env_overrides[key]
+        target = Path(configured)
+        if not target.is_absolute():
+            target = target_dir / configured
         if dry_run:
             log(f"DRY-RUN mkdir -p {target}")
         else:
@@ -418,10 +562,13 @@ def main() -> int:
     args = parse_args()
     target_dir = Path(args.target_dir).expanduser().resolve()
 
-    log("### Auditor IPs - instalador servidor V4")
-    log(f"repo_url={args.repo_url}")
-    log(f"branch={args.branch}")
-    log(f"target_dir={target_dir}")
+    section(
+        "Auditor IPs - instalador servidor V4",
+        "Este asistente prepara una instalacion local desde el repositorio publico.",
+    )
+    note(f"Repo origen : {args.repo_url}")
+    note(f"Rama        : {args.branch}")
+    note(f"Destino     : {target_dir}")
 
     try:
         warnings = validate_platform()
@@ -431,9 +578,12 @@ def main() -> int:
 
         candidates = detect_ipv4_candidates()
         if candidates:
-            log("Redes detectadas:")
+            section(
+                "Redes detectadas",
+                "Se muestra como referencia. La primera red se usara como valor por defecto en las preguntas siguientes; podras aceptar o cambiar IP/CIDR cuando se solicite.",
+            )
             for item in candidates:
-                log(f"- {item['interface']}: {item['ip']} / {item['cidr']}")
+                log(f"  - {item['interface']}: {item['ip']} / {item['cidr']}")
         else:
             log("WARN: no se detectaron redes IPv4 globales con iproute2.")
 
@@ -456,10 +606,35 @@ def main() -> int:
         validate_compose(target_dir)
         write_install_state(target_dir, args, args.dry_run, effective_config)
 
-        if not args.no_build:
-            build_and_start(target_dir, args.no_start)
+        effective_no_build = args.no_build
+        effective_no_start = args.no_start
+
+        if not args.yes and not args.no_build:
+            section(
+                "Construccion y arranque",
+                "Puedes construir la imagen ahora. El arranque se pregunta aparte para evitar conflictos con otros servicios.",
+            )
+            do_build = ask_bool(
+                "Ejecutar docker compose build ahora",
+                True,
+                args.yes,
+                "Construye la imagen Docker. No arranca el servicio todavia.",
+            )
+            effective_no_build = not do_build
+
+        if not args.yes and not effective_no_build and not args.no_start:
+            do_start = ask_bool(
+                "Arrancar el servicio con docker compose up -d ahora",
+                False,
+                args.yes,
+                "Solo responde si cuando no haya otro Auditor IPs usando el mismo puerto/network_mode.",
+            )
+            effective_no_start = not do_start
+
+        if not effective_no_build:
+            build_and_start(target_dir, effective_no_start)
         else:
-            log("Omitido build por --no-build")
+            log("Omitido build por --no-build o decision interactiva")
 
         log("Instalacion/validacion completada.")
         return 0
