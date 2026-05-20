@@ -4,7 +4,7 @@
 // ════════════════════════════════════════════════════════
 $(function() {
   const TRIGGER_LABELS = {
-    new_host: '🆕 Nuevo host', offline: '🔴 Offline',
+    new_host: '🆕 Nuevo host', offline: '🔴 Offline', offline_for: '🔴⏱ Offline prolongado',
     online: '🟢 Online', status_change: '🔄 Cambio estado', ip_change: '🔀 Cambio IP'
   };
 
@@ -227,10 +227,32 @@ $(function() {
       `);
     }
   }
+  function _alertsPaneIsActive() {
+    const tab = document.getElementById('alerts-tab');
+    const pane = document.getElementById('alertsView');
+    return !!(
+      tab?.classList.contains('active') ||
+      pane?.classList.contains('active') ||
+      pane?.classList.contains('show')
+    );
+  }
+
+  function _refreshAlertsIfVisible() {
+    if (_alertsPaneIsActive()) {
+      window.loadAlertsWithEdit?.();
+    }
+  }
+
   // Replace the global loadAlerts
   window.loadAlerts = loadAlertsWithEdit;
-  document.getElementById('alerts-tab').removeEventListener('shown.bs.tab', loadAlerts);
-  document.getElementById('alerts-tab').addEventListener('shown.bs.tab', loadAlertsWithEdit);
+  const alertsTabEl = document.getElementById('alerts-tab');
+  if (alertsTabEl) {
+    alertsTabEl.addEventListener('shown.bs.tab', loadAlertsWithEdit);
+  }
+  document.addEventListener('shown.bs.tab', function(e) {
+    if (e.target?.id === 'alerts-tab') loadAlertsWithEdit();
+  });
+  setTimeout(_refreshAlertsIfVisible, 80);
 
   // Edit button click → open modal with data
   $(document).on('click', '.btn-alert-edit', function() {

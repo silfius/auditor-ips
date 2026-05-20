@@ -2440,6 +2440,24 @@
       body.mobile-table-view table#hosts th:nth-child(10),
       body.mobile-table-view table#hosts th:nth-child(11),
       body.mobile-table-view table#hosts th:nth-child(12) { display: none !important; }
+
+      /* RowGroup debe seguir visible en tabla móvil aunque se oculten columnas */
+      body.mobile-table-view table#hosts tr.host-group-row,
+      body.mobile-table-view table#hosts tr.dtrg-start {
+        display: table-row !important;
+        width: 100% !important;
+      }
+      body.mobile-table-view table#hosts tr.host-group-row > td,
+      body.mobile-table-view table#hosts tr.dtrg-start > td {
+        display: table-cell !important;
+        width: 100% !important;
+        padding: 7px 8px !important;
+      }
+      body.mobile-table-view table#hosts tr.host-group-row > td::before,
+      body.mobile-table-view table#hosts tr.dtrg-start > td::before {
+        display: none !important;
+      }
+
       /* Botón toggle visible solo en móvil */
       #mobileViewToggle { display: inline-flex !important; }
     }
@@ -3723,12 +3741,6 @@
             <i class="bi bi-wifi"></i> <span class="d-none d-sm-inline" data-i18n="tab.quality">Calidad</span>
           </button>
         </li>
-        <li class="nav-item" role="presentation" data-tab-id="alerts">
-          <button class="nav-link" id="alerts-tab" data-bs-toggle="pill" data-bs-target="#alertsView" type="button" role="tab">
-            <i class="bi bi-bell"></i> <span class="d-none d-sm-inline" data-i18n="tab.alerts">Alertas</span>
-            {% if alerts_count %}<span class="badge bg-warning text-dark ms-1" style="font-size:.7rem">{{ alerts_count }}</span>{% endif %}
-          </button>
-        </li>
         <li style="display:none" aria-hidden="true"><button id="scans-tab"    type="button"></button></li>
         <li style="display:none" aria-hidden="true"><button id="services-tab" type="button"></button></li>
         <li style="display:none" aria-hidden="true"><button id="map-tab"      type="button"></button></li>
@@ -3784,7 +3796,6 @@
           <li><button type="button" class="dropdown-item d-flex align-items-center gap-2 mobile-section-item" data-mobile-tab-target="tab-hosts"><i class="bi bi-hdd-network"></i><span data-i18n="tab.hosts">Hosts</span></button></li>
           <li><button type="button" class="dropdown-item d-flex align-items-center gap-2 mobile-section-item" data-mobile-tab-target="infra-tab"><i class="bi bi-server"></i><span data-i18n="tab.infrastructure">Infraestructura</span></button></li>
           <li><button type="button" class="dropdown-item d-flex align-items-center gap-2 mobile-section-item" data-mobile-tab-target="quality-tab"><i class="bi bi-wifi"></i><span data-i18n="tab.quality">Calidad</span></button></li>
-          <li><button type="button" class="dropdown-item d-flex align-items-center gap-2 mobile-section-item" data-mobile-tab-target="alerts-tab"><i class="bi bi-bell"></i><span data-i18n="tab.alerts">Alertas</span></button></li>
         </ul>
       </div>
 
@@ -4113,6 +4124,7 @@
         <li class="nav-item"><button class="nav-link active" id="hosts-tabla-tab" data-bs-toggle="tab" data-bs-target="#hostsTabla" type="button"><i class="bi bi-table me-1"></i><span class="d-none d-sm-inline">Tabla</span></button></li>
         <li class="nav-item"><button class="nav-link" id="hosts-mapa-tab"   data-bs-toggle="tab" data-bs-target="#hostsMapa"   type="button"><i class="bi bi-diagram-3 me-1"></i><span class="d-none d-sm-inline">Mapa</span></button></li>
         <li class="nav-item"><button class="nav-link" id="hosts-scans-tab"  data-bs-toggle="tab" data-bs-target="#hostsScans"  type="button"><i class="bi bi-clock-history me-1"></i><span class="d-none d-sm-inline">Ejecuciones</span></button></li>
+        <li class="nav-item"><button class="nav-link" id="alerts-tab" data-bs-toggle="tab" data-bs-target="#alertsView" type="button"><i class="bi bi-bell me-1"></i><span class="d-none d-sm-inline" data-i18n="tab.alerts">Alertas</span></button></li>
       </ul>
 
       <div class="tab-content">
@@ -4548,6 +4560,87 @@
       </div>
         </div><!-- /hostsScans -->
 
+
+
+        <div class="tab-pane fade" id="alertsView" role="tabpanel" aria-labelledby="alerts-tab">
+          <div id="alertsTab">
+
+            <!-- Formulario nueva alerta -->
+            <div class="cardish mb-3">
+              <div class="small-muted mb-2"><i class="bi bi-plus-circle"></i> Nueva alerta</div>
+              <div class="row g-2 align-items-end">
+                <div class="col-12 col-md-3">
+                  <label class="form-label form-label-sm small-muted mb-1">Nombre</label>
+                  <input id="alName" class="form-control form-control-sm" placeholder="Ej: Router offline">
+                </div>
+                <div class="col-6 col-md-2">
+                  <label class="form-label form-label-sm small-muted mb-1">Tipo de evento</label>
+                  <select id="alTrigger" class="form-select form-select-sm">
+                    <option value="new_host">🆕 Nuevo host</option>
+                    <option value="offline">🔴 Se pone offline</option>
+                    <option value="offline_for">🔴⏱ Offline más de X min</option>
+                    <option value="online">🟢 Se pone online</option>
+                    <option value="status_change">🔄 Cambia estado</option>
+                    <option value="ip_change">🔀 Cambia de IP</option>
+                  </select>
+                </div>
+                <div class="col-6 col-md-2">
+                  <label class="form-label form-label-sm small-muted mb-1">Filtro</label>
+                  <select id="alFilterMode" class="form-select form-select-sm">
+                    <option value="all">Todos los hosts</option>
+                    <option value="ip">IP específica</option>
+                    <option value="type_id">Tipo específico</option>
+                  </select>
+                </div>
+                <div class="col-6 col-md-2" id="alFilterValueWrap" style="display:none">
+                  <label class="form-label form-label-sm small-muted mb-1" id="alFilterLabel">Valor</label>
+                  <input id="alFilterValueIp" class="form-control form-control-sm" placeholder="192.168.1.x" style="display:none">
+                  <select id="alFilterValueType" class="form-select form-select-sm" style="display:none">
+                    {% for t in types %}
+                      <option value="{{ t.id }}">{{ t.icon or '' }} {{ t.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-6 col-md-1">
+                  <label class="form-label form-label-sm small-muted mb-1">Cooldown (min)</label>
+                  <input id="alCooldown" type="number" min="0" value="60" class="form-control form-control-sm">
+                </div>
+                <div class="col-6 col-md-1" id="alMinDownWrap" style="display:none">
+                  <label class="form-label form-label-sm small-muted mb-1">Mín offline (min)</label>
+                  <input id="alMinDown" type="number" min="1" value="5" class="form-control form-control-sm">
+                </div>
+                <div class="col-12 col-md-2 d-flex gap-2 align-items-end">
+                  <button id="alAdd" class="btn btn-success btn-sm w-100">
+                    <i class="bi bi-plus-circle"></i> Añadir
+                  </button>
+                  <span class="small-muted ms-2" id="alMsg"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Lista de alertas -->
+            <div class="table-responsive">
+              <table class="table table-striped table-hover table-sm align-middle" id="alertsTable">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Evento</th>
+                    <th>Filtro</th>
+                    <th>Cooldown</th>
+                    <th>Último disparo</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="alertsTbody"></tbody>
+              </table>
+            </div>
+            <div class="small-muted mt-1">
+              Las alertas se evalúan tras cada escaneo. Acción: Discord webhook (si configurado).
+            </div>
+          </div>
+        </div>
+
       </div><!-- /tab-content hosts -->
     </div><!-- /hostsView -->
 
@@ -4816,86 +4909,6 @@
 
       </div><!-- /tab-content infra -->
     </div><!-- /infraView -->
-
-    <div class="tab-pane fade" id="alertsView" role="tabpanel" aria-labelledby="alerts-tab">
-      <div id="alertsTab">
-
-        <!-- Formulario nueva alerta -->
-        <div class="cardish mb-3">
-          <div class="small-muted mb-2"><i class="bi bi-plus-circle"></i> Nueva alerta</div>
-          <div class="row g-2 align-items-end">
-            <div class="col-12 col-md-3">
-              <label class="form-label form-label-sm small-muted mb-1">Nombre</label>
-              <input id="alName" class="form-control form-control-sm" placeholder="Ej: Router offline">
-            </div>
-            <div class="col-6 col-md-2">
-              <label class="form-label form-label-sm small-muted mb-1">Tipo de evento</label>
-              <select id="alTrigger" class="form-select form-select-sm">
-                <option value="new_host">🆕 Nuevo host</option>
-                <option value="offline">🔴 Se pone offline</option>
-                <option value="offline_for">🔴⏱ Offline más de X min</option>
-                <option value="online">🟢 Se pone online</option>
-                <option value="status_change">🔄 Cambia estado</option>
-                <option value="ip_change">🔀 Cambia de IP</option>
-              </select>
-            </div>
-            <div class="col-6 col-md-2">
-              <label class="form-label form-label-sm small-muted mb-1">Filtro</label>
-              <select id="alFilterMode" class="form-select form-select-sm">
-                <option value="all">Todos los hosts</option>
-                <option value="ip">IP específica</option>
-                <option value="type_id">Tipo específico</option>
-              </select>
-            </div>
-            <div class="col-6 col-md-2" id="alFilterValueWrap" style="display:none">
-              <label class="form-label form-label-sm small-muted mb-1" id="alFilterLabel">Valor</label>
-              <input id="alFilterValueIp" class="form-control form-control-sm" placeholder="192.168.1.x" style="display:none">
-              <select id="alFilterValueType" class="form-select form-select-sm" style="display:none">
-                {% for t in types %}
-                  <option value="{{ t.id }}">{{ t.icon or '' }} {{ t.name }}</option>
-                {% endfor %}
-              </select>
-            </div>
-            <div class="col-6 col-md-1">
-              <label class="form-label form-label-sm small-muted mb-1">Cooldown (min)</label>
-              <input id="alCooldown" type="number" min="0" value="60" class="form-control form-control-sm">
-            </div>
-            <div class="col-6 col-md-1" id="alMinDownWrap" style="display:none">
-              <label class="form-label form-label-sm small-muted mb-1">Mín offline (min)</label>
-              <input id="alMinDown" type="number" min="1" value="5" class="form-control form-control-sm">
-            </div>
-            <div class="col-12 col-md-2 d-flex gap-2 align-items-end">
-              <button id="alAdd" class="btn btn-success btn-sm w-100">
-                <i class="bi bi-plus-circle"></i> Añadir
-              </button>
-              <span class="small-muted ms-2" id="alMsg"></span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Lista de alertas -->
-        <div class="table-responsive">
-          <table class="table table-striped table-hover table-sm align-middle" id="alertsTable">
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Evento</th>
-                <th>Filtro</th>
-                <th>Cooldown</th>
-                <th>Último disparo</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="alertsTbody"></tbody>
-          </table>
-        </div>
-        <div class="small-muted mt-1">
-          Las alertas se evalúan tras cada escaneo. Acción: Discord webhook (si configurado).
-        </div>
-      </div>
-    </div>
-
 
     <div class="tab-pane fade" id="qualityView" role="tabpanel" aria-labelledby="quality-tab">
 
@@ -5767,10 +5780,10 @@ window._secondaryNetworks = {{ secondary_nets | default([]) | tojson | safe }};
      Orden: app.js primero (globals + init), luego dominio
 ════════════════════════════════════════════════════ -->
 <script src="/static/js/i18n.js?v=20260518_v4_i18n_timezone_final4"></script>
-<script src="/static/js/app.js?v=20260518_v4_module_gating_foundation1"></script>
+<script src="/static/js/app.js?v=20260520_v4_host_alerts_mobile_syncthing_runtime1"></script>
 <script src="/static/js/hosts.js?v=20260325_wol2"></script>
 <script src="/static/js/services.js?v=20260518_v4_i18n_timezone_final2"></script>
-<script src="/static/js/alerts.js?v=20260518_v4_i18n_timezone_final2"></script>
+<script src="/static/js/alerts.js?v=20260520_v4_host_alerts_mobile_syncthing_runtime1"></script>
 <script src="/static/js/dashboard.js?v=20260518_v4_module_gating_foundation1"></script>
 <script src="/static/js/scans.js?v=20260518_v4_i18n_timezone_final1"></script>
 <script src="/static/js/quality.js?v=20260518_v4_i18n_timezone_final2"></script>
