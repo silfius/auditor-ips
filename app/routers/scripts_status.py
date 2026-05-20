@@ -301,7 +301,7 @@ _SCRIPT_CRON_OVERRIDES = {
     "monitor_files_disaster": {"cron_expr": "35 * * * *", "source": "user_crontab"},
     "sync_whatsapp_clean_names": {"cron_expr": "*/5 * * * *", "source": "user_crontab"},
     "monitor_watchdog": {"cron_expr": "*/15 * * * *", "source": "user_crontab"},
-    "backup_vm_linux": {"cron_expr": "0 1 * * *", "source": "root_crontab"},
+    "backup_vm_linux": {"cron_expr": "0 0 * * *", "source": "root_crontab"},
     "serverwindows_wakeonland": {"cron_expr": "0 7 * * *", "source": "user_crontab"},
     "renew_letsencrypt": {"cron_expr": "0 3 1 * *", "source": "root_crontab"},
 }
