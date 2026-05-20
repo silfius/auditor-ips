@@ -5790,7 +5790,7 @@ window._secondaryNetworks = {{ secondary_nets | default([]) | tojson | safe }};
 <script src="/static/js/dashboard.js?v=20260518_v4_module_gating_foundation1"></script>
 <script src="/static/js/scans.js?v=20260518_v4_i18n_timezone_final1"></script>
 <script src="/static/js/quality.js?v=20260518_v4_i18n_timezone_final2"></script>
-<script src="/static/js/config.js?v=20260520_v4_automation_script_wizard_alerts1"></script>
+<script src="/static/js/config.js?v=20260520_v4_automation_cron_validation1"></script>
 <script src="/static/js/auth.js?v=20260518_v4_i18n_timezone_final1"></script>
 <script src="/static/js/scripts.js?v=20260520_v4_automation_watchdog_observe2"></script>
 <script src="/static/js/active_processes_topbar.js?v=20260518_v4_i18n_timezone_final1"></script>
@@ -8958,9 +8958,10 @@ ip route get 192.168.18.1</code></pre>
                   <label class="form-label small-muted mb-1">Descripción <small>(opcional)</small></label>
                   <input type="text" id="cfgScriptDesc" class="form-control form-control-sm" placeholder="Qué hace este script…">
                 </div>
-                <div style="flex:2 1 140px">
+                <div style="flex:2 1 170px">
                   <label class="form-label small-muted mb-1">Cron real <small>(opcional)</small></label>
-                  <input type="text" id="cfgScriptCron" class="form-control form-control-sm" placeholder="Ej: 35 * * * *">
+                  <input type="text" id="cfgScriptCron" class="form-control form-control-sm font-monospace" placeholder="Ej: 35 * * * *" aria-describedby="cfgScriptCronFeedback">
+                  <div class="form-text small" id="cfgScriptCronFeedback">Formato: min hora día mes semana.</div>
                 </div>
                 <div style="flex:2 1 130px">
                   <label class="form-label small-muted mb-1">Dónde está definido <small>(opcional)</small></label>
@@ -9038,8 +9039,8 @@ ip route get 192.168.18.1</code></pre>
 
                       <div class="col-12 col-md-6">
                         <label class="form-label small-muted mb-1">Cron real</label>
-                        <input type="text" class="form-control form-control-sm font-monospace" id="cfgScriptWizardCron" placeholder="Ej: 0 2 * * *">
-                        <div class="form-text">Se usa para próxima ejecución y watchdog. No modifica el crontab real.</div>
+                        <input type="text" class="form-control form-control-sm font-monospace" id="cfgScriptWizardCron" placeholder="Ej: 0 2 * * *" aria-describedby="cfgScriptWizardCronFeedback">
+                        <div class="form-text" id="cfgScriptWizardCronFeedback">Se usa para próxima ejecución y watchdog. No modifica el crontab real.</div>
                       </div>
                       <div class="col-12 col-md-6">
                         <label class="form-label small-muted mb-1">Dónde está definido</label>
