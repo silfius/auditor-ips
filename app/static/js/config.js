@@ -2467,6 +2467,8 @@ $(function () {
         </tr>`;
       }).join(''));
 
+      $tbody.find('.cfg-script-cron').each(function () { cfgValidateTableCronInput(this); });
+
       // Pending scripts (not yet configured)
       _loadPendingScripts(scripts.map(s => s.script_name));
     } catch (e) { console.error('loadMonitoredScripts:', e); }
@@ -2494,6 +2496,9 @@ $(function () {
     $('#cfgScriptLabel').val(name);
   });
 
+  $(document).on('input change', '#cfgScriptCron', cfgValidateMainCron);
+  $(document).on('input change', '.cfg-script-cron', function () { cfgValidateTableCronInput(this); });
+
 
   // ─────────────────────────────────────────────────
   // Asistente guiado de alta de script
@@ -2513,6 +2518,186 @@ $(function () {
     return String(s?.host_name || s?.cfg_host_name || 'Local').trim() || 'Local';
   }
 
+  function cfgCronParseField(field, min, max) {
+    const raw = String(field || '').trim();
+    if (!raw) return { ok: false, error: 'campo vacío' };
+    if (raw === '*') {
+      return { ok: true, any: true, values: new Set(Array.from({ length: max - min + 1 }, (_, i) => min + i)) };
+    }
+
+    const values = new Set();
+    const parts = raw.split(',');
+    for (const partRaw of parts) {
+      const part = String(partRaw || '').trim();
+      if (!part) return { ok: false, error: `lista inválida en "${raw}"` };
+
+      const stepPieces = part.split('/');
+      if (stepPieces.length > 2) return { ok: false, error: `paso inválido en "${part}"` };
+
+      const base = stepPieces[0];
+      const step = stepPieces.length === 2 ? Number(stepPieces[1]) : 1;
+      if (!Number.isInteger(step) || step <= 0) return { ok: false, error: `paso inválido en "${part}"` };
+
+      let start;
+      let end;
+
+      if (base === '*') {
+        start = min;
+        end = max;
+      } else if (/^\d+$/.test(base)) {
+        start = end = Number(base);
+      } else {
+        const m = base.match(/^(\d+)-(\d+)$/);
+        if (!m) return { ok: false, error: `valor inválido "${part}"` };
+        start = Number(m[1]);
+        end = Number(m[2]);
+      }
+
+      if (!Number.isInteger(start) || !Number.isInteger(end) || start < min || end > max || start > end) {
+        return { ok: false, error: `rango fuera de límite "${part}"` };
+      }
+
+      for (let v = start; v <= end; v += step) values.add(v);
+    }
+
+    return { ok: true, any: raw === '*', values };
+  }
+
+  function cfgCronParse(expr) {
+    const cron = String(expr || '').trim();
+    if (!cron) {
+      return { ok: true, empty: true, message: 'Sin cron: no se calculará próxima ejecución ni watchdog missed.' };
+    }
+
+    const parts = cron.split(/\s+/);
+    if (parts.length !== 5) {
+      return { ok: false, message: 'Cron inválido: usa 5 campos: min hora día mes semana.' };
+    }
+
+    const specs = [
+      ['minuto', 0, 59],
+      ['hora', 0, 23],
+      ['día del mes', 1, 31],
+      ['mes', 1, 12],
+      ['día semana', 0, 7],
+    ];
+
+    const parsed = [];
+    for (let i = 0; i < specs.length; i++) {
+      const [label, min, max] = specs[i];
+      const r = cfgCronParseField(parts[i], min, max);
+      if (!r.ok) return { ok: false, message: `Cron inválido en ${label}: ${r.error}.` };
+      parsed.push(r);
+    }
+
+    return { ok: true, empty: false, parts, parsed };
+  }
+
+  function cfgCronMatchesDate(date, parsed) {
+    const minute = date.getMinutes();
+    const hour = date.getHours();
+    const dom = date.getDate();
+    const month = date.getMonth() + 1;
+    const dow = date.getDay();
+
+    const [m, h, d, mo, w] = parsed;
+
+    const minuteMatch = m.values.has(minute);
+    const hourMatch = h.values.has(hour);
+    const monthMatch = mo.values.has(month);
+    const domMatch = d.any ? true : d.values.has(dom);
+    const dowMatch = w.any ? true : (w.values.has(dow) || (dow === 0 && w.values.has(7)));
+    const dayMatch = (!d.any && !w.any) ? (domMatch || dowMatch) : (domMatch && dowMatch);
+
+    return minuteMatch && hourMatch && monthMatch && dayMatch;
+  }
+
+  function cfgCronNextRun(expr) {
+    const parsed = cfgCronParse(expr);
+    if (!parsed.ok || parsed.empty) return { ...parsed, next: null };
+
+    const now = new Date();
+    const candidate = new Date(now.getTime());
+    candidate.setSeconds(0, 0);
+    candidate.setMinutes(candidate.getMinutes() + 1);
+
+    const maxMinutes = 366 * 24 * 60;
+    for (let i = 0; i < maxMinutes; i++) {
+      if (cfgCronMatchesDate(candidate, parsed.parsed)) {
+        return { ...parsed, next: new Date(candidate.getTime()) };
+      }
+      candidate.setMinutes(candidate.getMinutes() + 1);
+    }
+
+    return { ok: false, message: 'Cron válido, pero no se encontró próxima ejecución en 366 días.' };
+  }
+
+  function cfgCronFormatDate(date) {
+    if (!date) return '';
+    try {
+      return new Intl.DateTimeFormat(navigator.language || 'es-ES', {
+        dateStyle: 'short',
+        timeStyle: 'short',
+      }).format(date);
+    } catch (_) {
+      return date.toLocaleString();
+    }
+  }
+
+  function cfgApplyCronValidation(inputEl, feedbackEl) {
+    if (!inputEl) return { ok: true, empty: true };
+    const result = cfgCronNextRun(inputEl.value || '');
+
+    inputEl.classList.remove('is-valid', 'is-invalid');
+    if (feedbackEl) feedbackEl.classList.remove('text-success', 'text-warning', 'text-danger', 'text-muted');
+
+    if (result.empty) {
+      if (feedbackEl) {
+        feedbackEl.classList.add('text-muted');
+        feedbackEl.textContent = 'Formato: min hora día mes semana. Sin cron no habrá próxima ejecución ni missed por watchdog.';
+      }
+      inputEl.title = 'Cron opcional. Formato: min hora día mes semana.';
+      return result;
+    }
+
+    if (!result.ok) {
+      inputEl.classList.add('is-invalid');
+      inputEl.title = result.message || 'Cron inválido';
+      if (feedbackEl) {
+        feedbackEl.classList.add('text-danger');
+        feedbackEl.textContent = result.message || 'Cron inválido.';
+      }
+      return result;
+    }
+
+    inputEl.classList.add('is-valid');
+    const msg = `Cron válido. Próxima ejecución aprox.: ${cfgCronFormatDate(result.next)}.`;
+    inputEl.title = msg;
+    if (feedbackEl) {
+      feedbackEl.classList.add('text-success');
+      feedbackEl.textContent = msg;
+    }
+    return result;
+  }
+
+  function cfgValidateMainCron() {
+    return cfgApplyCronValidation(
+      document.getElementById('cfgScriptCron'),
+      document.getElementById('cfgScriptCronFeedback')
+    );
+  }
+
+  function cfgValidateWizardCron() {
+    return cfgApplyCronValidation(
+      document.getElementById('cfgScriptWizardCron'),
+      document.getElementById('cfgScriptWizardCronFeedback')
+    );
+  }
+
+  function cfgValidateTableCronInput(inputEl) {
+    return cfgApplyCronValidation(inputEl, null);
+  }
+
   function cfgScriptWizardRefreshSummary() {
     const name = ($('#cfgScriptWizardName').val() || '').trim();
     const host = ($('#cfgScriptWizardHost').val() || 'Local').trim();
@@ -2528,16 +2713,20 @@ $(function () {
     const alertRunningHours = parseFloat($('#cfgScriptWizardAlertRunningHours').val() || 6);
     const alertCooldown = parseInt($('#cfgScriptWizardAlertCooldown').val() || 60, 10);
 
+    const cronCheck = cfgCronNextRun(cron);
     const configured = cfgScriptWizardConfigured.includes(name);
     const warnings = [];
     if (!name) warnings.push('Falta el nombre técnico.');
     if (!cron) warnings.push('Sin cron: no se calculará próxima ejecución ni watchdog missed.');
+    else if (!cronCheck.ok) warnings.push(cronCheck.message || 'Cron inválido.');
     if (configured) warnings.push('Ya existe una configuración con ese nombre.');
+
+    cfgValidateWizardCron();
 
     $('#cfgScriptWizardSummary').html(`
       <div><strong>${esc(label || 'Sin etiqueta')}</strong> <code>${esc(name || '—')}</code></div>
       <div class="text-muted">Host: <strong>${esc(host)}</strong> · Estado: ${active ? 'activo' : 'inactivo'}</div>
-      <div class="text-muted">Cron: <code>${esc(cron || 'sin cron')}</code>${source ? ` · ${esc(source)}` : ''}</div>
+      <div class="text-muted">Cron: <code>${esc(cron || 'sin cron')}</code>${source ? ` · ${esc(source)}` : ''}${cronCheck.ok && cronCheck.next ? ` · próxima aprox.: ${esc(cfgCronFormatDate(cronCheck.next))}` : ''}</div>
       <div class="text-muted">Alerta: ${createAlert ? `sin ejecutar ${esc(alertHours)}h=${alertMissed ? 'sí' : 'no'} · error=${alertError ? 'sí' : 'no'} · ejecución larga ${esc(alertRunningHours)}h=${alertRunningLong ? 'sí' : 'no'} · cooldown ${esc(alertCooldown)}min` : 'no crear regla inicial'}</div>
       ${warnings.length ? `<div class="text-warning mt-1"><i class="bi bi-exclamation-triangle me-1"></i>${esc(warnings.join(' '))}</div>` : '<div class="text-success mt-1"><i class="bi bi-check2-circle me-1"></i>Listo para crear.</div>'}
     `);
@@ -2669,6 +2858,11 @@ $(function () {
     e.preventDefault();
     e.stopPropagation();
     const name = ($('#cfgScriptWizardName').val() || '').trim();
+    const cronCheck = cfgValidateWizardCron();
+    if (!cronCheck.ok) {
+      $('#cfgScriptWizardMsg').removeClass('text-muted text-success').addClass('text-danger').text('✗ ' + (cronCheck.message || 'Cron inválido'));
+      return;
+    }
     if (!name) {
       $('#cfgScriptWizardMsg').removeClass('text-muted text-success').addClass('text-danger').text('Falta el nombre técnico.');
       return;
@@ -2729,6 +2923,8 @@ $(function () {
     const cronExpr = ($('#cfgScriptCron').val() || '').trim();
     const cronSource = ($('#cfgScriptCronSource').val() || '').trim();
     const hostName = ($('#cfgScriptHost').val() || 'Local').trim();
+    const cronCheck = cfgValidateMainCron();
+    if (!cronCheck.ok) { $('#cfgScriptAddMsg').text('✗ ' + (cronCheck.message || 'Cron inválido')); return; }
     if (!name) { $('#cfgScriptAddMsg').text(window.t?.('cfg.scripts.name_required', 'Nombre requerido') || 'Nombre requerido'); return; }
     $('#cfgScriptAddMsg').text(window.t?.('cfg.scripts.adding', 'Añadiendo…') || 'Añadiendo…');
     try {
@@ -2774,6 +2970,13 @@ $(function () {
     // Usar el id numérico del backend (data-script-id), no el nombre
     const id = tr.data('script-id');
     if (!id) { window.showToast?.(window.t?.('cfg.scripts.id_missing', 'ID de script no encontrado') || 'ID de script no encontrado', 'danger'); return; }
+    const cronInput = tr.find('.cfg-script-cron').get(0);
+    const cronCheck = cfgValidateTableCronInput(cronInput);
+    if (!cronCheck.ok) {
+      window.showToast?.('✗ ' + (cronCheck.message || 'Cron inválido'), 'danger');
+      return;
+    }
+
     const payload = {
       label:       tr.find('.cfg-script-label').val(),
       description: tr.find('.cfg-script-desc').val(),
