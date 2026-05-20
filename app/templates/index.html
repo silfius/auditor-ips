@@ -5790,7 +5790,7 @@ window._secondaryNetworks = {{ secondary_nets | default([]) | tojson | safe }};
 <script src="/static/js/dashboard.js?v=20260518_v4_module_gating_foundation1"></script>
 <script src="/static/js/scans.js?v=20260518_v4_i18n_timezone_final1"></script>
 <script src="/static/js/quality.js?v=20260518_v4_i18n_timezone_final2"></script>
-<script src="/static/js/config.js?v=20260520_v4_automation_script_wizard2"></script>
+<script src="/static/js/config.js?v=20260520_v4_automation_script_wizard_alerts1"></script>
 <script src="/static/js/auth.js?v=20260518_v4_i18n_timezone_final1"></script>
 <script src="/static/js/scripts.js?v=20260520_v4_automation_watchdog_observe2"></script>
 <script src="/static/js/active_processes_topbar.js?v=20260518_v4_i18n_timezone_final1"></script>
@@ -9050,6 +9050,62 @@ ip route get 192.168.18.1</code></pre>
                         <div class="form-check">
                           <input class="form-check-input" type="checkbox" id="cfgScriptWizardActive" checked>
                           <label class="form-check-label" for="cfgScriptWizardActive">Activo en Automatizaciones</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12">
+                        <div class="border rounded p-2">
+                          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                            <div class="fw-semibold small"><i class="bi bi-bell me-1"></i>Regla de alerta inicial</div>
+                            <label class="d-inline-flex align-items-center gap-2 small mb-0">
+                              <input class="form-check-input mt-0" type="checkbox" id="cfgScriptWizardCreateAlert" checked>
+                              Crear regla al guardar
+                            </label>
+                          </div>
+
+                          <div class="row g-2 align-items-end">
+                            <div class="col-12 col-lg-3">
+                              <label class="d-inline-flex align-items-center gap-2 small mb-1">
+                                <input class="form-check-input mt-0" type="checkbox" id="cfgScriptWizardAlertMissed" checked>
+                                Sin ejecutar
+                              </label>
+                              <div class="input-group input-group-sm">
+                                <input type="number" class="form-control" id="cfgScriptWizardAlertHours" value="25" min="1">
+                                <span class="input-group-text">h</span>
+                              </div>
+                            </div>
+
+                            <div class="col-12 col-lg-3">
+                              <label class="d-inline-flex align-items-center gap-2 small mb-1">
+                                <input class="form-check-input mt-0" type="checkbox" id="cfgScriptWizardAlertError" checked>
+                                Error / missed / stalled
+                              </label>
+                              <div class="form-text">Respeta canales globales de notificación.</div>
+                            </div>
+
+                            <div class="col-12 col-lg-3">
+                              <label class="d-inline-flex align-items-center gap-2 small mb-1">
+                                <input class="form-check-input mt-0" type="checkbox" id="cfgScriptWizardAlertRunningLong">
+                                Ejecución larga
+                              </label>
+                              <div class="input-group input-group-sm">
+                                <input type="number" class="form-control" id="cfgScriptWizardAlertRunningHours" value="6" min="0.1" step="0.1">
+                                <span class="input-group-text">h</span>
+                              </div>
+                            </div>
+
+                            <div class="col-12 col-lg-3">
+                              <label class="form-label small-muted mb-1">Cooldown</label>
+                              <div class="input-group input-group-sm">
+                                <input type="number" class="form-control" id="cfgScriptWizardAlertCooldown" value="60" min="1">
+                                <span class="input-group-text">min</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="form-text mt-2">
+                            Esta regla solo define cuándo avisar. No activa el modo de aplicación del watchdog ni ejecuta scripts.
+                          </div>
                         </div>
                       </div>
 

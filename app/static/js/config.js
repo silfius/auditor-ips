@@ -2520,6 +2520,13 @@ $(function () {
     const cron = ($('#cfgScriptWizardCron').val() || '').trim();
     const source = ($('#cfgScriptWizardCronSource').val() || '').trim();
     const active = $('#cfgScriptWizardActive').is(':checked');
+    const createAlert = $('#cfgScriptWizardCreateAlert').is(':checked');
+    const alertMissed = $('#cfgScriptWizardAlertMissed').is(':checked');
+    const alertHours = parseFloat($('#cfgScriptWizardAlertHours').val() || 25);
+    const alertError = $('#cfgScriptWizardAlertError').is(':checked');
+    const alertRunningLong = $('#cfgScriptWizardAlertRunningLong').is(':checked');
+    const alertRunningHours = parseFloat($('#cfgScriptWizardAlertRunningHours').val() || 6);
+    const alertCooldown = parseInt($('#cfgScriptWizardAlertCooldown').val() || 60, 10);
 
     const configured = cfgScriptWizardConfigured.includes(name);
     const warnings = [];
@@ -2531,6 +2538,7 @@ $(function () {
       <div><strong>${esc(label || 'Sin etiqueta')}</strong> <code>${esc(name || '—')}</code></div>
       <div class="text-muted">Host: <strong>${esc(host)}</strong> · Estado: ${active ? 'activo' : 'inactivo'}</div>
       <div class="text-muted">Cron: <code>${esc(cron || 'sin cron')}</code>${source ? ` · ${esc(source)}` : ''}</div>
+      <div class="text-muted">Alerta: ${createAlert ? `sin ejecutar ${esc(alertHours)}h=${alertMissed ? 'sí' : 'no'} · error=${alertError ? 'sí' : 'no'} · ejecución larga ${esc(alertRunningHours)}h=${alertRunningLong ? 'sí' : 'no'} · cooldown ${esc(alertCooldown)}min` : 'no crear regla inicial'}</div>
       ${warnings.length ? `<div class="text-warning mt-1"><i class="bi bi-exclamation-triangle me-1"></i>${esc(warnings.join(' '))}</div>` : '<div class="text-success mt-1"><i class="bi bi-check2-circle me-1"></i>Listo para crear.</div>'}
     `);
   }
@@ -2616,7 +2624,7 @@ $(function () {
     cfgScriptWizardFillFromStatus(this.value);
   });
 
-  $(document).on('input change', '#cfgScriptWizardName,#cfgScriptWizardHost,#cfgScriptWizardLabel,#cfgScriptWizardDesc,#cfgScriptWizardCron,#cfgScriptWizardCronSource,#cfgScriptWizardColor,#cfgScriptWizardActive', cfgScriptWizardRefreshSummary);
+  $(document).on('input change', '#cfgScriptWizardName,#cfgScriptWizardHost,#cfgScriptWizardLabel,#cfgScriptWizardDesc,#cfgScriptWizardCron,#cfgScriptWizardCronSource,#cfgScriptWizardColor,#cfgScriptWizardActive,#cfgScriptWizardCreateAlert,#cfgScriptWizardAlertMissed,#cfgScriptWizardAlertHours,#cfgScriptWizardAlertError,#cfgScriptWizardAlertRunningLong,#cfgScriptWizardAlertRunningHours,#cfgScriptWizardAlertCooldown', cfgScriptWizardRefreshSummary);
 
   $(document).on('click', '#cfgScriptWizardFillBtn', function (e) {
     e.preventDefault();
@@ -2632,6 +2640,30 @@ $(function () {
     const modalEl = document.getElementById('cfgScriptWizardModal');
     if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).hide();
   });
+
+
+  async function cfgScriptWizardSaveAlertRule(scriptName, hostName) {
+    const payload = {
+      host_name: hostName || 'Local',
+      alert_missed: $('#cfgScriptWizardAlertMissed').is(':checked'),
+      max_hours: parseFloat($('#cfgScriptWizardAlertHours').val() || 25),
+      alert_error: $('#cfgScriptWizardAlertError').is(':checked'),
+      alert_running_long: $('#cfgScriptWizardAlertRunningLong').is(':checked'),
+      max_running_hours: parseFloat($('#cfgScriptWizardAlertRunningHours').val() || 6),
+      cooldown_min: parseInt($('#cfgScriptWizardAlertCooldown').val() || 60, 10),
+    };
+
+    const res = await fetch(`/api/scripts/alert-rules/${encodeURIComponent(scriptName)}?host=${encodeURIComponent(hostName || 'Local')}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.ok === false) {
+      throw new Error(data.error || data.detail || `HTTP ${res.status}`);
+    }
+    return data;
+  }
 
   $(document).on('click', '#cfgScriptWizardCreateBtn', async function (e) {
     e.preventDefault();
@@ -2667,9 +2699,16 @@ $(function () {
 
       if (!data.ok) throw new Error(data.error || 'No se pudo crear la configuración.');
 
-      $('#cfgScriptWizardMsg').removeClass('text-muted text-danger').addClass('text-success').text('✓ Configuración creada.');
-      window.showToast?.('✓ Configuración de script creada', 'success');
+      let alertMsg = '';
+      if ($('#cfgScriptWizardCreateAlert').is(':checked')) {
+        await cfgScriptWizardSaveAlertRule(payload.script_name, payload.host_name);
+        alertMsg = ' Regla de alerta creada.';
+      }
+
+      $('#cfgScriptWizardMsg').removeClass('text-muted text-danger').addClass('text-success').text('✓ Configuración creada.' + alertMsg);
+      window.showToast?.('✓ Configuración de script creada' + alertMsg, 'success');
       await loadMonitoredScripts();
+      try { await loadScriptAlertRules(); } catch (_) {}
 
       setTimeout(() => {
         const modalEl = document.getElementById('cfgScriptWizardModal');
