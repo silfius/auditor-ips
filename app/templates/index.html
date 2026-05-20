@@ -4781,15 +4781,18 @@
             <option value="missed">Missed / Stalled</option>
             <option value="unknown">Desconocido</option>
           </select>
-          <select class="form-select form-select-sm" id="sp-sort-mode" style="width:auto;min-width:155px;max-width:100%" title="Ordenar scripts">
-            <option value="priority">Prioridad</option>
-            <option value="name">Nombre</option>
-            <option value="host">Host</option>
-            <option value="last_desc">Última ejecución</option>
-            <option value="next_asc">Próxima ejecución</option>
-            <option value="duration_desc">Duración</option>
-            <option value="progress_desc">Progreso</option>
-          </select>
+          <div class="input-group input-group-sm" style="width:auto;min-width:250px;max-width:100%" title="Ordenar scripts">
+            <span class="input-group-text"><i class="bi bi-sort-down me-1"></i>Ordenar por</span>
+            <select class="form-select form-select-sm" id="sp-sort-mode" aria-label="Ordenar scripts">
+              <option value="priority">Prioridad</option>
+              <option value="name">Nombre</option>
+              <option value="host">Host</option>
+              <option value="last_desc">Última ejecución</option>
+              <option value="next_asc">Próxima ejecución</option>
+              <option value="duration_desc">Duración</option>
+              <option value="progress_desc">Progreso</option>
+            </select>
+          </div>
 
           <button class="btn btn-sm btn-outline-secondary" id="sp-btn-clear-filters" title="Limpiar filtros y ordenación">
             <i class="bi bi-eraser me-1"></i>Limpiar
@@ -5787,9 +5790,9 @@ window._secondaryNetworks = {{ secondary_nets | default([]) | tojson | safe }};
 <script src="/static/js/dashboard.js?v=20260518_v4_module_gating_foundation1"></script>
 <script src="/static/js/scans.js?v=20260518_v4_i18n_timezone_final1"></script>
 <script src="/static/js/quality.js?v=20260518_v4_i18n_timezone_final2"></script>
-<script src="/static/js/config.js?v=20260518_notifications_matrix1"></script>
+<script src="/static/js/config.js?v=20260520_v4_automation_watchdog_settings1"></script>
 <script src="/static/js/auth.js?v=20260518_v4_i18n_timezone_final1"></script>
-<script src="/static/js/scripts.js?v=20260518_v4_i18n_timezone_final4"></script>
+<script src="/static/js/scripts.js?v=20260520_v4_automation_watchdog_observe2"></script>
 <script src="/static/js/active_processes_topbar.js?v=20260518_v4_i18n_timezone_final1"></script>
 
   <style>
@@ -9012,6 +9015,59 @@ ip route get 192.168.18.1</code></pre>
               </div>
             </div>
 
+
+            <!-- ── Watchdog interno de automatizaciones ─────────────── -->
+            <div class="cfg-section mt-3" id="cfgAutomationWatchdogSection">
+              <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+                <div class="cfg-section-title mb-0">
+                  <i class="bi bi-eye-fill"></i> Watchdog interno de automatizaciones
+                </div>
+                <span class="small text-muted">Evalúa missed/stalled desde Auditor IPs sin ejecutar scripts remotos.</span>
+              </div>
+
+              <div class="alert alert-info py-2 px-3 small mb-3">
+                <strong>Modo recomendado:</strong> observación. Auditor IPs calcula si un script no arrancó o quedó bloqueado,
+                pero no modifica su estado real ni dispara alertas hasta activar explícitamente el modo de aplicación.
+              </div>
+
+              <div class="row g-3 align-items-end">
+                <div class="col-12 col-lg-3">
+                  <label class="d-flex align-items-start gap-2 mb-0" style="cursor:pointer">
+                    <input type="checkbox" class="form-check-input mt-1" id="cfgAutomationWatchdogEnabled">
+                    <div>
+                      <div class="fw-semibold">Activar watchdog interno</div>
+                      <div class="small text-muted">Muestra observaciones en Automatizaciones.</div>
+                    </div>
+                  </label>
+                </div>
+
+                <div class="col-12 col-lg-3">
+                  <label class="d-flex align-items-start gap-2 mb-0" style="cursor:pointer">
+                    <input type="checkbox" class="form-check-input mt-1" id="cfgAutomationWatchdogEnforceState">
+                    <div>
+                      <div class="fw-semibold">Aplicar estado calculado</div>
+                      <div class="small text-muted">Si se activa, missed/stalled puede reemplazar el estado real mostrado.</div>
+                    </div>
+                  </label>
+                </div>
+
+                <div class="col-6 col-lg-3">
+                  <label class="form-label small-muted mb-1" for="cfgAutomationWatchdogMissedGrace">Margen missed</label>
+                  <div class="input-group input-group-sm">
+                    <input type="number" class="form-control" id="cfgAutomationWatchdogMissedGrace" min="1" max="1440" value="30">
+                    <span class="input-group-text">min</span>
+                  </div>
+                </div>
+
+                <div class="col-6 col-lg-3">
+                  <label class="form-label small-muted mb-1" for="cfgAutomationWatchdogStalledMinutes">Heartbeat stalled</label>
+                  <div class="input-group input-group-sm">
+                    <input type="number" class="form-control" id="cfgAutomationWatchdogStalledMinutes" min="5" max="10080" value="60">
+                    <span class="input-group-text">min</span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <!-- ── Alertas por script ──────────────────────────────── -->
             <div class="cfg-section mt-3">

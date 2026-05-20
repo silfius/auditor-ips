@@ -110,6 +110,10 @@ def cfg_defaults() -> Dict[str, Any]:
         "script_ai_frontend_timeout_seconds": "135",
         "script_report_timeout_seconds": "120",
         "script_alert_check_interval_seconds": "60",
+        "automation_watchdog_enabled": "1",
+        "automation_watchdog_enforce_state": "0",
+        "automation_watchdog_missed_grace_minutes": "30",
+        "automation_watchdog_stalled_minutes": "60",
         "wol_tracker_timeout_seconds": "120",
         # Syncthing Control
         "syncthing_refresh_interval_seconds": "60",
