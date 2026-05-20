@@ -3,6 +3,11 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/icon-512.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/static/icon-512.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/static/icon-512.png">
+  <link rel="shortcut icon" href="/static/icon-512.png">
+  <link rel="apple-touch-icon" href="/static/icon-512.png"/>
   <title>{{ page_title }} — Acceso</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/darkly/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -185,26 +190,6 @@
       margin: 0;
       line-height: 1.5;
       max-width: 46ch;
-    }
-    .login-hero-line {
-      display: flex;
-      flex-wrap: wrap;
-      gap: .5rem;
-      margin: 0 0 1.45rem;
-    }
-    .login-hero-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: .38rem;
-      padding: .42rem .72rem;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
-      color: rgba(255,255,255,0.78);
-      font-size: .74rem;
-      font-weight: 700;
-      letter-spacing: .02em;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
     }
     .login-kicker {
       display: inline-flex;
@@ -424,12 +409,6 @@
     </div>
   </div>
 
-  <div class="login-hero-line" aria-label="Capacidades principales">
-    <div class="login-hero-chip"><i class="bi bi-speedometer2"></i><span>Dashboard</span></div>
-    <div class="login-hero-chip"><i class="bi bi-diagram-3"></i><span>Hosts y red</span></div>
-    <div class="login-hero-chip"><i class="bi bi-robot"></i><span>Automatización e IA</span></div>
-  </div>
-
   {% if no_users %}
   <!-- ── PRIMER ARRANQUE: crear primer usuario ── -->
   <div class="login-panel-intro">
@@ -498,12 +477,15 @@
   <button class="btn-login" id="loginBtn" type="button" tabindex="3">
     <i class="bi bi-box-arrow-in-right"></i> Entrar
   </button>
-  {% endif %}
-
 
   <hr class="divider">
   <div class="public-wol-entry">
-</div>
+    <a class="public-wol-link" href="/wol" target="_blank" rel="noopener">
+      <i class="bi bi-power"></i>
+      <span>Abrir WoL público</span>
+    </a>
+  </div>
+  {% endif %}
 
 </div>
 

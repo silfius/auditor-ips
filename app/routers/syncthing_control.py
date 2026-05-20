@@ -1260,6 +1260,11 @@ def _notify_syncthing_stalled_alerts(folders: List[Dict[str, Any]], observed_at:
             if not node_id or not folder_id:
                 continue
 
+            remote_devices_offline = bool(folder.get("remoteDevicesOffline"))
+            if remote_devices_offline:
+                result["remote_offline_skipped"] = _to_int(result.get("remote_offline_skipped")) + 1
+                continue
+
             is_error = _folder_has_syncthing_error(folder)
             is_stalled = bool(folder.get("stalled_candidate"))
             issue_state = "error" if is_error else ("stalled" if is_stalled else "ok")
@@ -1505,7 +1510,12 @@ def _device_name_map(devices: Any) -> Dict[str, str]:
     return out
 
 
-def _folder_status(folder: Dict[str, Any], db_status: Dict[str, Any], devices_by_id: Dict[str, str]) -> Dict[str, Any]:
+def _folder_status(
+    folder: Dict[str, Any],
+    db_status: Dict[str, Any],
+    devices_by_id: Dict[str, str],
+    connected_device_ids: Optional[set] = None,
+) -> Dict[str, Any]:
     folder_id = str(folder.get("id") or "").strip()
     state = str(db_status.get("state") or "").strip() or "unknown"
     paused = bool(folder.get("paused"))
@@ -1545,11 +1555,24 @@ def _folder_status(folder: Dict[str, Any], db_status: Dict[str, Any], devices_by
     else:
         status = "standby"
 
-    folder_devices: List[Dict[str, str]] = []
+    connected_device_ids = connected_device_ids or set()
+    folder_devices: List[Dict[str, Any]] = []
+    remote_devices_total = 0
+    remote_devices_connected = 0
     for dev in folder.get("devices") or []:
         dev_id = str((dev or {}).get("deviceID") or "").strip()
         if dev_id:
-            folder_devices.append({"device_id": dev_id, "name": devices_by_id.get(dev_id, dev_id[:12])})
+            is_connected = dev_id in connected_device_ids
+            remote_devices_total += 1
+            if is_connected:
+                remote_devices_connected += 1
+            folder_devices.append({
+                "device_id": dev_id,
+                "name": devices_by_id.get(dev_id, dev_id[:12]),
+                "connected": is_connected,
+            })
+
+    remote_devices_offline = remote_devices_total > 0 and remote_devices_connected == 0
 
     return {
         "node_id": None,
@@ -1572,6 +1595,9 @@ def _folder_status(folder: Dict[str, Any], db_status: Dict[str, Any], devices_by
         "rescanIntervalS": _to_int(folder.get("rescanIntervalS")),
         "fsWatcherEnabled": bool(folder.get("fsWatcherEnabled")),
         "devices": folder_devices,
+        "remoteDevicesTotal": remote_devices_total,
+        "remoteDevicesConnected": remote_devices_connected,
+        "remoteDevicesOffline": remote_devices_offline,
     }
 
 
@@ -1637,6 +1663,13 @@ def _probe_node(node: Dict[str, Any]) -> Dict[str, Any]:
         disk_events = []
 
     devices_by_id = _device_name_map(devices_cfg)
+    conns = connections if isinstance(connections, dict) else {}
+    raw_conns = conns.get("connections") if isinstance(conns.get("connections"), dict) else {}
+    connected_device_ids = {
+        str(dev_id or "").strip()
+        for dev_id, conn in raw_conns.items()
+        if str(dev_id or "").strip() and isinstance(conn, dict) and bool(conn.get("connected"))
+    }
     folders: List[Dict[str, Any]] = []
 
     for folder in folders_cfg if isinstance(folders_cfg, list) else []:
@@ -1652,7 +1685,7 @@ def _probe_node(node: Dict[str, Any]) -> Dict[str, Any]:
             elif isinstance(raw_status, dict):
                 db_status = raw_status
 
-        item = _folder_status(folder, db_status, devices_by_id)
+        item = _folder_status(folder, db_status, devices_by_id, connected_device_ids)
         item["node_id"] = node_id
         item["node_name"] = public["name"]
         folders.append(item)
@@ -1678,12 +1711,10 @@ def _probe_node(node: Dict[str, Any]) -> Dict[str, Any]:
     else:
         status = "standby"
 
-    conns = connections if isinstance(connections, dict) else {}
     connected_devices = 0
     disconnected_devices = 0
     total_in_bytes = 0
     total_out_bytes = 0
-    raw_conns = conns.get("connections") if isinstance(conns.get("connections"), dict) else {}
     remote_transfer_devices: List[Dict[str, Any]] = []
     for dev_id, conn in raw_conns.items():
         if not isinstance(conn, dict):

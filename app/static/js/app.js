@@ -2729,12 +2729,12 @@ $(function () {
 
     const activeTop = document.querySelector('#viewTabs .nav-link.active');
     if (activeTop && !_cfgNavVisible(activeTop)) {
-      _cfgActivateVisibleTab(_cfgFirstVisible([dashboardBtn, hostsBtn, infraBtn, qualityBtn, alertsBtn]));
+      _cfgActivateVisibleTab(_cfgFirstVisible([dashboardBtn, hostsBtn, infraBtn, qualityBtn]));
     }
 
     const activeHostsSub = document.querySelector('#hostsSubTabs .nav-link.active');
     if (activeHostsSub && !_cfgNavVisible(activeHostsSub)) {
-      _cfgActivateVisibleTab(_cfgFirstVisible([hostsTableBtn, hostsMapBtn, hostsScansBtn]));
+      _cfgActivateVisibleTab(_cfgFirstVisible([hostsTableBtn, hostsMapBtn, hostsScansBtn, alertsBtn]));
     }
 
     const activeInfraSub = document.querySelector('#infraSubTabs .nav-link.active');
@@ -2743,7 +2743,7 @@ $(function () {
       if (fallbackInfra) {
         _cfgActivateVisibleTab(fallbackInfra);
       } else if (document.getElementById('infraView')?.classList.contains('active')) {
-        _cfgActivateVisibleTab(_cfgFirstVisible([dashboardBtn, hostsBtn, qualityBtn, alertsBtn]));
+        _cfgActivateVisibleTab(_cfgFirstVisible([dashboardBtn, hostsBtn, qualityBtn]));
       }
     }
 
@@ -2857,6 +2857,7 @@ $(function () {
       'hosts-tabla-tab':  'tab-hosts',
       'hosts-mapa-tab':   'tab-hosts',
       'hosts-scans-tab':  'tab-hosts',
+      'alerts-tab':       'tab-hosts',
       'infra-apps-tab':   'infra-tab',
       'infra-auto-tab':   'infra-tab',
       'infra-syncthing-tab': 'infra-tab',
@@ -2888,6 +2889,13 @@ $(function () {
 
   // Tab persistence
   (function restoreLastTab() {
+    try {
+      if (localStorage.getItem('auditor-last-tab') === 'alerts-tab') {
+        localStorage.setItem('auditor-last-tab', 'tab-hosts');
+        localStorage.setItem('auditor-last-subtab-tab-hosts', 'alerts-tab');
+        localStorage.setItem('auditor-last-subtab-hosts-tab', 'alerts-tab');
+      }
+    } catch (_) {}
     const dashTab = document.getElementById('dashboard-tab');
     const forceDashboardOnce = (() => {
 	  try {
@@ -2984,11 +2992,36 @@ $(function () {
     if (!btn) return;
     const STORAGE_KEY = 'auditor-mobile-view';
 
+    function isHostsTableActive() {
+      const hostsMainActive = document.getElementById('hostsView')?.classList.contains('active')
+        || document.getElementById('tab-hosts')?.classList.contains('active');
+      const hostsTableActive = document.getElementById('hostsTabla')?.classList.contains('active')
+        || document.getElementById('hosts-tabla-tab')?.classList.contains('active');
+      return !!(hostsMainActive && hostsTableActive);
+    }
+
+    function setElementVisible(el, visible) {
+      if (!el) return;
+      el.hidden = !visible;
+      if (visible) el.style.removeProperty('display');
+      else el.style.setProperty('display', 'none', 'important');
+    }
+
+    function updateToggleVisibility() {
+      const visible = isHostsTableActive();
+      setElementVisible(btn, visible);
+      setElementVisible(proxyBtn, visible);
+    }
+
     function syncProxy() {
-      if (!proxyBtn || !proxyIcon || !proxyLabel || !icon || !label) return;
+      if (!proxyBtn || !proxyIcon || !proxyLabel || !icon || !label) {
+        updateToggleVisibility();
+        return;
+      }
       proxyIcon.className = icon.className || 'bi bi-table';
       proxyLabel.textContent = label.textContent || 'Tabla';
       proxyBtn.classList.toggle('btn-info', btn.classList.contains('btn-info'));
+      updateToggleVisibility();
     }
 
     function applyMobileView(mode, animate) {
@@ -3020,6 +3053,13 @@ $(function () {
     proxyBtn?.addEventListener('click', function () {
       btn.click();
     });
+
+    document.addEventListener('shown.bs.tab', function () {
+      updateToggleVisibility();
+    });
+
+    window.addEventListener('resize', updateToggleVisibility);
+    updateToggleVisibility();
   })();
 
 
@@ -3091,7 +3131,6 @@ $(function () {
       'tab-hosts':     { icon: 'bi-hdd-network',  labelKey: 'tab.hosts', fallback: 'Hosts' },
       'infra-tab':     { icon: 'bi-server',       labelKey: 'tab.infrastructure', fallback: 'Infraestructura' },
       'quality-tab':   { icon: 'bi-wifi',         labelKey: 'tab.quality', fallback: 'Calidad' },
-      'alerts-tab':    { icon: 'bi-bell',         labelKey: 'tab.alerts', fallback: 'Alertas' },
     };
 
     function syncMobilePrimaryNav() {
