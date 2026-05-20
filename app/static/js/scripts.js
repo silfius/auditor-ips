@@ -169,7 +169,7 @@ $(function () {
       duration_desc: 'Duración',
       progress_desc: 'Progreso',
     };
-    if (spSortMode && spSortMode !== 'priority') {
+    if (spSortMode) {
       parts.push(`Orden: ${sortLabels[spSortMode] || spSortMode}`);
     }
 
@@ -182,6 +182,13 @@ $(function () {
     spRenderActiveFilters();
     spRenderKPIs(data);
     spViewMode === 'cards' ? spRenderCards(data) : spRenderTable(data);
+    setTimeout(function () {
+      try {
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+          bootstrap.Tooltip.getOrCreateInstance(el);
+        });
+      } catch (_) {}
+    }, 0);
   }
 
   function spRenderHostFilter() {
@@ -216,6 +223,62 @@ $(function () {
       missed:  '<span class="badge bg-warning text-dark"><i class="bi bi-clock-history me-1"></i>Missed</span>',
     };
     return map[state] || '<span class="badge bg-secondary">Desconocido</span>';
+  }
+
+  function spWatchdogHint(s, compact) {
+    const enabled = s?.watchdog_enabled === true || s?.watchdog_enabled === 1 || s?.watchdog_enabled === '1';
+    const wd = String(s?.watchdog_state || '').trim();
+    const mode = String(s?.watchdog_mode || '').trim();
+    const reason = String(s?.watchdog_reason || '').trim();
+    const expected = String(s?.watchdog_expected_at || '').trim();
+
+    if (!enabled && !wd) return '';
+
+    const baseTitle = 'Watchdog interno: Auditor IPs revisa si el script arranca cuando toca y si queda bloqueado sin actualizar heartbeat. Ahora está en modo observación, por lo que no modifica el estado real ni dispara alertas por sí solo.';
+
+    if (!wd) {
+      return `<span class="badge bg-info text-dark px-2 py-1"
+                    title="${esc(baseTitle)}"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top">
+        <i class="bi bi-eye me-1"></i>${compact ? 'Watchdog: obs.' : 'Watchdog observado'}
+      </span>`;
+    }
+
+    const detail = [
+      baseTitle,
+      `Observación detectada: ${wd}`,
+      reason,
+      expected ? `Última ejecución esperada: ${expected}` : '',
+    ].filter(Boolean).join(' · ');
+
+    const cls = wd === 'stalled' || wd === 'missed' ? 'bg-warning text-dark' : 'bg-info text-dark';
+    const label = compact ? `Watchdog: ${wd}` : `Watchdog observa: ${wd}`;
+
+    return `<span class="badge ${cls} px-2 py-1"
+                  title="${esc(detail)}"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top">
+      <i class="bi bi-eye me-1"></i>${esc(label)}
+    </span>`;
+  }
+
+  function spWatchdogDetail(s) {
+    const wd = String(s?.watchdog_state || '').trim();
+    if (!wd) return '';
+
+    const reason = String(s?.watchdog_reason || '').trim();
+    const expected = String(s?.watchdog_expected_at || '').trim();
+    const mode = String(s?.watchdog_mode || '').trim();
+    const modeText = mode === 'observe'
+      ? 'Modo observación: no modifica el estado ni dispara alertas.'
+      : 'Modo activo: puede modificar el estado calculado.';
+
+    return `<div class="alert alert-warning py-1 px-2 small mb-0 mt-1">
+      <div><strong>Watchdog interno:</strong> ${esc(wd)} · ${esc(modeText)}</div>
+      ${reason ? `<div>${esc(reason)}</div>` : ''}
+      ${expected ? `<div>Última ejecución esperada: <strong>${esc(fmtDate(expected))}</strong></div>` : ''}
+    </div>`;
   }
 
   function spAIBtn(scriptOrName, stateOrTableMode, maybeTableMode) {
@@ -488,6 +551,7 @@ $(function () {
       const errors   = (s.state === 'error') ? (s.errors || s.error_messages || []) : [];
       const errHtml  = errors.length
         ? `<div class="alert alert-danger py-1 px-2 small mb-0 mt-1">${errors.join('<br>')}</div>` : '';
+      const watchdogHtml = spWatchdogDetail(s);
 
       // Color y etiqueta desde Config → Procesos
       const cfgColor  = s.cfg_color  || '';
@@ -523,7 +587,10 @@ $(function () {
               <h6 class="card-title mb-0 text-truncate font-monospace d-flex align-items-center" title="${s.name}">
                 ${dotHtml}<i class="bi bi-terminal me-1"></i>${cfgLabel !== s.name ? cfgLabel : s.name}
               </h6>
-              ${spStateBadge(s.state)}
+              <div class="d-flex gap-1 flex-wrap justify-content-end">
+                ${spStateBadge(s.state)}
+                ${spWatchdogHint(s, false)}
+              </div>
             </div>
             <div class="small text-muted lh-lg">
               <div><i class="bi bi-hdd-network me-1"></i>Host: <strong>${esc(hostName)}</strong></div>
@@ -534,6 +601,7 @@ $(function () {
             </div>
             ${progressHtml}
             ${errHtml}
+            ${watchdogHtml}
             <div class="d-flex gap-2 mt-auto flex-wrap">
               <button class="btn btn-sm btn-outline-secondary sp-btn-log" data-name="${esc(s.name)}" data-host="${esc(hostName)}" data-key="${esc(spScriptKey(s))}">
                 <i class="bi bi-file-text me-1"></i>Log
@@ -569,11 +637,12 @@ $(function () {
       const dotHtml  = cfgColor
         ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${cfgColor};margin-right:5px;flex-shrink:0;vertical-align:middle"></span>` : '';
       const rowStyle = cfgColor ? `style="border-left:3px solid ${cfgColor}"` : '';
+      const watchdogHint = spWatchdogHint(s, true);
 
       rows += `<tr ${rowStyle}>
         <td class="font-monospace small">${dotHtml}${cfgLabel !== s.name ? `<span title="${s.name}">${cfgLabel}</span>` : s.name}</td>
         <td class="small">${esc(hostName)}</td>
-        <td>${spStateBadge(s.state)} ${step}${pct}</td>
+        <td>${spStateBadge(s.state)} ${watchdogHint} ${step}${pct}</td>
         <td class="small">${lastRun}</td>
         <td class="small">${endTime}</td>
         <td class="small fw-semibold">${duration}</td>

@@ -301,7 +301,7 @@ _SCRIPT_CRON_OVERRIDES = {
     "monitor_files_disaster": {"cron_expr": "35 * * * *", "source": "user_crontab"},
     "sync_whatsapp_clean_names": {"cron_expr": "*/5 * * * *", "source": "user_crontab"},
     "monitor_watchdog": {"cron_expr": "*/15 * * * *", "source": "user_crontab"},
-    "backup_vm_linux": {"cron_expr": "0 0 * * *", "source": "root_crontab"},
+    "backup_vm_linux": {"cron_expr": "0 1 * * *", "source": "root_crontab"},
     "serverwindows_wakeonland": {"cron_expr": "0 7 * * *", "source": "user_crontab"},
     "renew_letsencrypt": {"cron_expr": "0 3 1 * *", "source": "root_crontab"},
 }
@@ -428,6 +428,152 @@ def _compute_next_run_from_cron(cron_expr: str, now_local: datetime | None = Non
         candidate += timedelta(minutes=1)
 
     return None
+
+
+def _compute_previous_run_from_cron(cron_expr: str, now_local: datetime | None = None) -> datetime | None:
+    """
+    Calcula la ejecución esperada anterior para un cron de 5 campos.
+    Se usa para derivar missed sin depender de monitor_watchdog.sh.
+    """
+    if not cron_expr:
+        return None
+
+    tzinfo = _local_tzinfo()
+    if now_local is None:
+        now_local = datetime.now(tzinfo)
+    else:
+        if now_local.tzinfo is None:
+            now_local = now_local.replace(tzinfo=tzinfo)
+        else:
+            now_local = now_local.astimezone(tzinfo)
+
+    candidate = now_local.replace(second=0, microsecond=0) - timedelta(minutes=1)
+    limit = candidate - timedelta(days=370)
+
+    while candidate >= limit:
+        if _cron_matches(candidate, cron_expr):
+            return candidate
+        candidate -= timedelta(minutes=1)
+
+    return None
+
+
+def _cfg_int_safe(key: str, default: int, min_value: int, max_value: int) -> int:
+    try:
+        from config import cfg
+        value = int(str(cfg(key, str(default)) or default))
+    except Exception:
+        value = default
+    return max(min_value, min(max_value, value))
+
+
+def _cfg_bool_safe(key: str, default: bool = False) -> bool:
+    try:
+        from config import cfg
+        raw = str(cfg(key, "1" if default else "0") or "").strip().lower()
+        return raw in {"1", "true", "yes", "y", "si", "sí", "on"}
+    except Exception:
+        return default
+
+
+def _parse_dt_safe(value) -> datetime | None:
+    if not value:
+        return None
+    raw = str(value).strip()
+    if not raw:
+        return None
+    for candidate in (raw, raw.replace(" ", "T")):
+        try:
+            dt = datetime.fromisoformat(candidate)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=_local_tzinfo())
+            return dt
+        except Exception:
+            pass
+    return None
+
+
+def _status_file_mtime_dt(item: dict) -> datetime | None:
+    try:
+        p = Path(str(item.get("_status_path") or ""))
+        if not p.exists():
+            return None
+        return datetime.fromtimestamp(p.stat().st_mtime, _local_tzinfo())
+    except Exception:
+        return None
+
+
+def _apply_internal_watchdog_state(item: dict) -> None:
+    """
+    Deriva missed/stalled dentro de Auditor IPs sin ejecutar scripts.
+
+    Modo seguro por defecto:
+    - calcula watchdog_state/watchdog_reason;
+    - no pisa item["state"] salvo que automation_watchdog_enforce_state=1.
+
+    Esto permite comparar contra monitor_watchdog.sh antes de sustituirlo.
+    """
+    if not _cfg_bool_safe("automation_watchdog_enabled", True):
+        item["watchdog_enabled"] = False
+        return
+
+    enforce_state = _cfg_bool_safe("automation_watchdog_enforce_state", False)
+    item["watchdog_enabled"] = True
+    item["watchdog_enforce_state"] = enforce_state
+
+    state = str(item.get("state") or "").strip().lower()
+    if state in {"error", "failed", "missed", "stalled"}:
+        item["watchdog_observed_existing_state"] = state
+        return
+
+    def mark_watchdog_state(watchdog_state: str, reason: str, **extra) -> None:
+        item["watchdog_state"] = watchdog_state
+        item["watchdog_reason"] = reason
+        item["watchdog_mode"] = "enforce" if enforce_state else "observe"
+        for key, value in extra.items():
+            item[key] = value
+        if enforce_state:
+            item["raw_state"] = state or item.get("status") or "unknown"
+            item["state"] = watchdog_state
+            item["status"] = watchdog_state
+
+    now_local = datetime.now(_local_tzinfo())
+    missed_grace = _cfg_int_safe("automation_watchdog_missed_grace_minutes", 30, 1, 1440)
+    stalled_minutes = _cfg_int_safe("automation_watchdog_stalled_minutes", 60, 5, 10080)
+
+    last_run = _parse_dt_safe(item.get("last_run") or item.get("start_time"))
+    heartbeat = _status_file_mtime_dt(item)
+    cron_expr = str(item.get("cron_expr") or item.get("cfg_cron_expr") or "").strip()
+
+    if state == "running":
+        ref = heartbeat or last_run
+        if ref:
+            stale_minutes = (now_local - ref.astimezone(_local_tzinfo())).total_seconds() / 60.0
+            if stale_minutes >= stalled_minutes:
+                mark_watchdog_state(
+                    "stalled",
+                    f"Sin heartbeat durante {int(stale_minutes)} min",
+                    watchdog_threshold_minutes=stalled_minutes,
+                )
+        return
+
+    if not cron_expr:
+        return
+
+    previous_run = _compute_previous_run_from_cron(cron_expr, now_local)
+    if not previous_run:
+        return
+
+    deadline = previous_run + timedelta(minutes=missed_grace)
+    last_run_local = last_run.astimezone(_local_tzinfo()) if last_run else None
+
+    if now_local >= deadline and (not last_run_local or last_run_local < previous_run):
+        mark_watchdog_state(
+            "missed",
+            "No consta ejecución posterior a la hora esperada",
+            watchdog_expected_at=previous_run.strftime("%Y-%m-%d %H:%M:%S"),
+            watchdog_grace_minutes=missed_grace,
+        )
 
 
 def _resolve_next_run(item: dict) -> tuple[str | None, str | None, str | None]:
@@ -1388,6 +1534,8 @@ def get_scripts_status():
                 item["cron_expr"] = cron_expr
             if cron_source:
                 item["cron_source"] = cron_source
+
+        _apply_internal_watchdog_state(item)
 
         # errors — usar error_messages, pero filtrar avisos internos del monitor
         # que no son errores reales (aparecen aunque exit_code=0)

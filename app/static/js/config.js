@@ -396,6 +396,10 @@ $(function () {
       email_syncthing_stalled: _cfgSaveChecked('cfgEmailSyncthingStalled') ? 1 : 0,
       email_quality_degraded: _cfgSaveChecked('cfgEmailQualityDegraded') ? 1 : 0,
       email_script_alerts: _cfgSaveChecked('cfgEmailScriptAlerts') ? 1 : 0,
+      automation_watchdog_enabled: _cfgSaveChecked('cfgAutomationWatchdogEnabled') ? 1 : 0,
+      automation_watchdog_enforce_state: _cfgSaveChecked('cfgAutomationWatchdogEnforceState') ? 1 : 0,
+      automation_watchdog_missed_grace_minutes: parseInt(_cfgSaveVal('cfgAutomationWatchdogMissedGrace') || 30, 10),
+      automation_watchdog_stalled_minutes: parseInt(_cfgSaveVal('cfgAutomationWatchdogStalledMinutes') || 60, 10),
       smtp_enabled:       _cfgSaveChecked('cfgSmtpEnabled', 'cfg_smtp_enabled') ? '1' : '0',
       smtp_host:          _cfgSaveVal('cfgSmtpHost', 'cfg_smtp_host'),
       smtp_port:          parseInt(_cfgSaveVal('cfgSmtpPort', 'cfg_smtp_port') || 587, 10),
@@ -4297,6 +4301,20 @@ $(function () {
       cfgEmailScriptAlerts:'email_script_alerts'
     };
     Object.entries(notifyMap).forEach(([id, key]) => { const el = _cfgGet(id); if (el) el.checked = _cfgBool(s[key]); });
+
+    if (_cfgGet('cfgAutomationWatchdogEnabled')) {
+      _cfgGet('cfgAutomationWatchdogEnabled').checked = _cfgBool(s.automation_watchdog_enabled);
+    }
+    if (_cfgGet('cfgAutomationWatchdogEnforceState')) {
+      _cfgGet('cfgAutomationWatchdogEnforceState').checked = _cfgBool(s.automation_watchdog_enforce_state);
+    }
+    if (_cfgGet('cfgAutomationWatchdogMissedGrace')) {
+      _cfgGet('cfgAutomationWatchdogMissedGrace').value = s.automation_watchdog_missed_grace_minutes || 30;
+    }
+    if (_cfgGet('cfgAutomationWatchdogStalledMinutes')) {
+      _cfgGet('cfgAutomationWatchdogStalledMinutes').value = s.automation_watchdog_stalled_minutes || 60;
+    }
+
     if (_cfgGet('cfgSmtpEnabled')) _cfgGet('cfgSmtpEnabled').checked = _cfgBool(s.smtp_enabled);
     if (_cfgGet('cfgSmtpHost')) _cfgGet('cfgSmtpHost').value = s.smtp_host || '';
     if (_cfgGet('cfgSmtpPort')) _cfgGet('cfgSmtpPort').value = s.smtp_port || 587;
@@ -4769,6 +4787,10 @@ $(function () {
       email_syncthing_stalled: $('#cfgEmailSyncthingStalled').is(':checked') ? 1 : 0,
       email_quality_degraded: $('#cfgEmailQualityDegraded').is(':checked') ? 1 : 0,
       email_script_alerts: $('#cfgEmailScriptAlerts').is(':checked') ? 1 : 0,
+      automation_watchdog_enabled: $('#cfgAutomationWatchdogEnabled').is(':checked') ? 1 : 0,
+      automation_watchdog_enforce_state: $('#cfgAutomationWatchdogEnforceState').is(':checked') ? 1 : 0,
+      automation_watchdog_missed_grace_minutes: parseInt($('#cfgAutomationWatchdogMissedGrace').val() || 30, 10),
+      automation_watchdog_stalled_minutes: parseInt($('#cfgAutomationWatchdogStalledMinutes').val() || 60, 10),
       push_online: $('#cfgPushOnline').is(':checked') ? 1 : 0,
       push_offline: $('#cfgPushOffline').is(':checked') ? 1 : 0,
       push_mac_change: $('#cfgPushMac').is(':checked') ? 1 : 0,
