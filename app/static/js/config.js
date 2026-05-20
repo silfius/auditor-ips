@@ -2494,6 +2494,194 @@ $(function () {
     $('#cfgScriptLabel').val(name);
   });
 
+
+  // ─────────────────────────────────────────────────
+  // Asistente guiado de alta de script
+  // ─────────────────────────────────────────────────
+  let cfgScriptWizardStatus = [];
+  let cfgScriptWizardConfigured = [];
+
+  function cfgScriptWizardLabelFromName(name) {
+    return String(name || '')
+      .replace(/[_-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  function cfgScriptWizardHost(s) {
+    return String(s?.host_name || s?.cfg_host_name || 'Local').trim() || 'Local';
+  }
+
+  function cfgScriptWizardRefreshSummary() {
+    const name = ($('#cfgScriptWizardName').val() || '').trim();
+    const host = ($('#cfgScriptWizardHost').val() || 'Local').trim();
+    const label = ($('#cfgScriptWizardLabel').val() || name).trim();
+    const cron = ($('#cfgScriptWizardCron').val() || '').trim();
+    const source = ($('#cfgScriptWizardCronSource').val() || '').trim();
+    const active = $('#cfgScriptWizardActive').is(':checked');
+
+    const configured = cfgScriptWizardConfigured.includes(name);
+    const warnings = [];
+    if (!name) warnings.push('Falta el nombre técnico.');
+    if (!cron) warnings.push('Sin cron: no se calculará próxima ejecución ni watchdog missed.');
+    if (configured) warnings.push('Ya existe una configuración con ese nombre.');
+
+    $('#cfgScriptWizardSummary').html(`
+      <div><strong>${esc(label || 'Sin etiqueta')}</strong> <code>${esc(name || '—')}</code></div>
+      <div class="text-muted">Host: <strong>${esc(host)}</strong> · Estado: ${active ? 'activo' : 'inactivo'}</div>
+      <div class="text-muted">Cron: <code>${esc(cron || 'sin cron')}</code>${source ? ` · ${esc(source)}` : ''}</div>
+      ${warnings.length ? `<div class="text-warning mt-1"><i class="bi bi-exclamation-triangle me-1"></i>${esc(warnings.join(' '))}</div>` : '<div class="text-success mt-1"><i class="bi bi-check2-circle me-1"></i>Listo para crear.</div>'}
+    `);
+  }
+
+  function cfgScriptWizardFillFromStatus(indexValue) {
+    if (indexValue === '' || indexValue === null || indexValue === undefined) {
+      cfgScriptWizardRefreshSummary();
+      return;
+    }
+
+    const idx = Number(indexValue);
+    const s = Number.isInteger(idx) ? cfgScriptWizardStatus[idx] : null;
+    if (!s) {
+      cfgScriptWizardRefreshSummary();
+      return;
+    }
+
+    const scriptName = String(s.name || '').trim();
+
+    $('#cfgScriptWizardName').val(scriptName);
+    $('#cfgScriptWizardHost').val(cfgScriptWizardHost(s));
+    $('#cfgScriptWizardLabel').val(s?.cfg_label || cfgScriptWizardLabelFromName(scriptName));
+    $('#cfgScriptWizardDesc').val(s?.description || '');
+    $('#cfgScriptWizardCron').val(s?.cron_expr || s?.cfg_cron_expr || '');
+    $('#cfgScriptWizardCronSource').val(s?.cron_source || s?.cfg_cron_source || '');
+    $('#cfgScriptWizardColor').val(s?.cfg_color || '#4dffb5');
+    $('#cfgScriptWizardActive').prop('checked', true);
+    cfgScriptWizardRefreshSummary();
+  }
+
+  async function cfgScriptWizardLoad() {
+    $('#cfgScriptWizardMsg').removeClass('text-danger text-success').addClass('text-muted').text('Cargando scripts detectados…');
+
+    const [cfgData, statusData] = await Promise.all([
+      fetch('/api/config/scripts', { cache: 'no-store' }).then(r => r.ok ? r.json() : { scripts: [] }).catch(() => ({ scripts: [] })),
+      fetch('/api/scripts/status', { cache: 'no-store' }).then(r => r.ok ? r.json() : []).catch(() => []),
+    ]);
+
+    cfgScriptWizardConfigured = (cfgData.scripts || []).map(s => String(s.script_name || ''));
+    cfgScriptWizardStatus = (Array.isArray(statusData) ? statusData : [])
+      .slice()
+      .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), navigator.language || 'es', { numeric: true, sensitivity: 'base' }));
+
+    const $sel = $('#cfgScriptWizardSource');
+    const opts = ['<option value="">Manual / escribir nuevo nombre</option>'];
+    cfgScriptWizardStatus.forEach((s, idx) => {
+      const name = String(s.name || '');
+      const configured = cfgScriptWizardConfigured.includes(name);
+      const host = cfgScriptWizardHost(s);
+      opts.push(`<option value="${idx}">${esc(name)} · ${esc(host)}${configured ? ' · ya configurado' : ''}</option>`);
+    });
+    $sel.html(opts.join(''));
+
+    $('#cfgScriptWizardMsg').removeClass('text-danger').addClass('text-muted').text('Selecciona un script detectado o completa los datos manualmente.');
+    cfgScriptWizardRefreshSummary();
+  }
+
+  $(document).on('click', '#cfgScriptWizardBtn', async function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    $('#cfgScriptWizardMsg').removeClass('text-danger text-success').addClass('text-muted').text('');
+    $('#cfgScriptWizardSource').val('');
+    $('#cfgScriptWizardName').val($('#cfgScriptName').val() || '');
+    $('#cfgScriptWizardHost').val($('#cfgScriptHost').val() || 'Local');
+    $('#cfgScriptWizardLabel').val($('#cfgScriptLabel').val() || '');
+    $('#cfgScriptWizardDesc').val($('#cfgScriptDesc').val() || '');
+    $('#cfgScriptWizardCron').val($('#cfgScriptCron').val() || '');
+    $('#cfgScriptWizardCronSource').val($('#cfgScriptCronSource').val() || '');
+    $('#cfgScriptWizardColor').val($('#cfgScriptColor').val() || '#4dffb5');
+    $('#cfgScriptWizardActive').prop('checked', true);
+    cfgScriptWizardRefreshSummary();
+
+    const modalEl = document.getElementById('cfgScriptWizardModal');
+    if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
+
+    try { await cfgScriptWizardLoad(); }
+    catch (e) { $('#cfgScriptWizardMsg').removeClass('text-muted').addClass('text-danger').text('Error cargando datos: ' + (e.message || e)); }
+  });
+
+  $(document).on('change', '#cfgScriptWizardSource', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    cfgScriptWizardFillFromStatus(this.value);
+  });
+
+  $(document).on('input change', '#cfgScriptWizardName,#cfgScriptWizardHost,#cfgScriptWizardLabel,#cfgScriptWizardDesc,#cfgScriptWizardCron,#cfgScriptWizardCronSource,#cfgScriptWizardColor,#cfgScriptWizardActive', cfgScriptWizardRefreshSummary);
+
+  $(document).on('click', '#cfgScriptWizardFillBtn', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    $('#cfgScriptName').val(($('#cfgScriptWizardName').val() || '').trim());
+    $('#cfgScriptHost').val(($('#cfgScriptWizardHost').val() || 'Local').trim());
+    $('#cfgScriptLabel').val(($('#cfgScriptWizardLabel').val() || '').trim());
+    $('#cfgScriptDesc').val(($('#cfgScriptWizardDesc').val() || '').trim());
+    $('#cfgScriptCron').val(($('#cfgScriptWizardCron').val() || '').trim());
+    $('#cfgScriptCronSource').val(($('#cfgScriptWizardCronSource').val() || '').trim());
+    $('#cfgScriptColor').val($('#cfgScriptWizardColor').val() || '#4dffb5');
+    $('#cfgScriptAddMsg').text('Datos pasados desde el asistente. Revisa y pulsa Añadir.');
+    const modalEl = document.getElementById('cfgScriptWizardModal');
+    if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+  });
+
+  $(document).on('click', '#cfgScriptWizardCreateBtn', async function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const name = ($('#cfgScriptWizardName').val() || '').trim();
+    if (!name) {
+      $('#cfgScriptWizardMsg').removeClass('text-muted text-success').addClass('text-danger').text('Falta el nombre técnico.');
+      return;
+    }
+
+    const payload = {
+      script_name: name,
+      host_name: ($('#cfgScriptWizardHost').val() || 'Local').trim(),
+      label: ($('#cfgScriptWizardLabel').val() || name).trim(),
+      description: ($('#cfgScriptWizardDesc').val() || '').trim(),
+      color: $('#cfgScriptWizardColor').val() || '#4dffb5',
+      active: $('#cfgScriptWizardActive').is(':checked'),
+      cron_expr: ($('#cfgScriptWizardCron').val() || '').trim(),
+      cron_source: ($('#cfgScriptWizardCronSource').val() || '').trim(),
+      host_source: 'config_ui',
+    };
+
+    const $btn = $('#cfgScriptWizardCreateBtn');
+    $btn.prop('disabled', true);
+    $('#cfgScriptWizardMsg').removeClass('text-danger text-success').addClass('text-muted').text('Creando configuración…');
+
+    try {
+      const data = await fetch('/api/config/scripts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).then(r => r.json());
+
+      if (!data.ok) throw new Error(data.error || 'No se pudo crear la configuración.');
+
+      $('#cfgScriptWizardMsg').removeClass('text-muted text-danger').addClass('text-success').text('✓ Configuración creada.');
+      window.showToast?.('✓ Configuración de script creada', 'success');
+      await loadMonitoredScripts();
+
+      setTimeout(() => {
+        const modalEl = document.getElementById('cfgScriptWizardModal');
+        if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+      }, 500);
+    } catch (e) {
+      $('#cfgScriptWizardMsg').removeClass('text-muted text-success').addClass('text-danger').text('✗ ' + (e.message || e));
+    } finally {
+      $btn.prop('disabled', false);
+    }
+  });
+
   $(document).on('click', '#cfgScriptAddBtn', async function () {
     const name  = ($('#cfgScriptName').val()  || '').trim();
     const label = ($('#cfgScriptLabel').val() || '').trim();
