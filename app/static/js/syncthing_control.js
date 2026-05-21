@@ -837,8 +837,8 @@
                 <th><button type="button" class="btn btn-sm btn-link link-secondary p-0 text-decoration-none st-sort" data-sort-scope="nodes" data-sort-key="name">Servidor <span class="st-sort-icon"></span></button></th>
                 <th><button type="button" class="btn btn-sm btn-link link-secondary p-0 text-decoration-none st-sort" data-sort-scope="nodes" data-sort-key="version">Versión <span class="st-sort-icon"></span></button></th>
                 <th><button type="button" class="btn btn-sm btn-link link-secondary p-0 text-decoration-none st-sort" data-sort-scope="nodes" data-sort-key="connected_devices">Conectados <span class="st-sort-icon"></span></button></th>
-                <th><button type="button" class="btn btn-sm btn-link link-secondary p-0 text-decoration-none st-sort" data-sort-scope="nodes" data-sort-key="inBytesTotal">Entrada <span class="st-sort-icon"></span></button></th>
-                <th><button type="button" class="btn btn-sm btn-link link-secondary p-0 text-decoration-none st-sort" data-sort-scope="nodes" data-sort-key="outBytesTotal">Salida <span class="st-sort-icon"></span></button></th>
+                <th><button type="button" class="btn btn-sm btn-link link-secondary p-0 text-decoration-none st-sort" data-sort-scope="nodes" data-sort-key="inBytesTotal" title="Contador acumulado reportado por Syncthing; puede reiniciarse si se reinicia el nodo o la conexión.">Entrada contador <span class="st-sort-icon"></span></button></th>
+                <th><button type="button" class="btn btn-sm btn-link link-secondary p-0 text-decoration-none st-sort" data-sort-scope="nodes" data-sort-key="outBytesTotal" title="Contador acumulado reportado por Syncthing; puede reiniciarse si se reinicia el nodo o la conexión.">Salida contador <span class="st-sort-icon"></span></button></th>
                 <th><button type="button" class="btn btn-sm btn-link link-secondary p-0 text-decoration-none st-sort" data-sort-scope="nodes" data-sort-key="totalBytesPerSecond">Velocidad <span class="st-sort-icon"></span></button></th>
                 <th>Seguridad</th>
                 <th>Acciones</th>
@@ -1418,8 +1418,8 @@
           </td>
           <td>${esc(n.version || '—')}</td>
           <td>${Number(n.connected_devices || 0)}</td>
-          <td>${esc(fmtBytes(n.inBytesTotal || 0))}</td>
-          <td>${esc(fmtBytes(n.outBytesTotal || 0))}</td>
+          <td title="Contador acumulado reportado por Syncthing; no es histórico por rango.">${esc(fmtBytes(n.inBytesTotal || 0))}</td>
+          <td title="Contador acumulado reportado por Syncthing; no es histórico por rango.">${esc(fmtBytes(n.outBytesTotal || 0))}</td>
           <td>
             <div class="small">↓ ${esc(fmtRate(n.rxBytesPerSecond || 0))}</div>
             <div class="small text-muted">↑ ${esc(fmtRate(n.txBytesPerSecond || 0))}</div>
@@ -1824,13 +1824,54 @@
       const data = await apiJson(`/api/syncthing/transfer-chart?node_id=0&hours=${encodeURIComponent(rangeHours)}`);
       const points = data.points || [];
       const summary = data.summary || {};
-      const maxRxKey = chartMeta.mode === 'bytes' ? 'max_rx_delta_bytes' : 'max_rx_bps';
-      const maxTxKey = chartMeta.mode === 'bytes' ? 'max_tx_delta_bytes' : 'max_tx_bps';
-      const maxTotalKey = chartMeta.mode === 'bytes' ? 'max_total_delta_bytes' : 'max_total_bps';
+      const maxRxKey = 'max_rx_bps';
+      const maxTxKey = 'max_tx_bps';
+      const maxTotalKey = 'max_total_bps';
 
-      const maxRx = Number(summary[maxRxKey] ?? Math.max(0, ...points.map(p => Number(p[chartMeta.rxKey] || 0))));
-      const maxTx = Number(summary[maxTxKey] ?? Math.max(0, ...points.map(p => Number(p[chartMeta.txKey] || 0))));
-      const maxTotal = Number(summary[maxTotalKey] ?? Math.max(0, ...points.map(p => Number(p[chartMeta.rxKey] || 0) + Number(p[chartMeta.txKey] || 0))));
+      const labelMode = chartMeta.mode === 'bytes'
+        ? ['Total entrada: ', 'Total salida: ', 'Total rango: ']
+        : ['Máx entrada: ', 'Máx salida: ', 'Máx total: '];
+
+      [
+        ['st-dashboard-chart-max-rx', labelMode[0]],
+        ['st-dashboard-chart-max-tx', labelMode[1]],
+        ['st-dashboard-chart-max-total', labelMode[2]],
+      ].forEach(([id, label]) => {
+        const strong = document.getElementById(id);
+        if (strong?.parentElement?.firstChild) strong.parentElement.firstChild.textContent = label;
+      });
+
+      let chartPoints = points;
+      let maxRx;
+      let maxTx;
+      let maxTotal;
+
+      if (chartMeta.mode === 'bytes') {
+        // Datos transferidos se muestra como acumulado del rango para que 24h/7d/30d sean comparables.
+        let rxAccum = 0;
+        let txAccum = 0;
+        chartPoints = points.map(p => {
+          rxAccum += Number(p.rx_delta_bytes || 0);
+          txAccum += Number(p.tx_delta_bytes || 0);
+          return {
+            ...p,
+            rx_delta_bytes: rxAccum,
+            tx_delta_bytes: txAccum,
+            total_delta_bytes: rxAccum + txAccum,
+          };
+        });
+
+        const lastPoint = chartPoints.length ? chartPoints[chartPoints.length - 1] : {};
+        maxRx = Number(summary.total_rx_delta_bytes ?? lastPoint.rx_delta_bytes ?? 0);
+        maxTx = Number(summary.total_tx_delta_bytes ?? lastPoint.tx_delta_bytes ?? 0);
+        maxTotal = Number(summary.total_delta_bytes ?? ((lastPoint.rx_delta_bytes || 0) + (lastPoint.tx_delta_bytes || 0)));
+      } else {
+        // En modo Velocidad, los máximos salen de muestras reales del rango.
+        maxRx = Number(summary[maxRxKey] ?? Math.max(0, ...points.map(p => Number(p[chartMeta.rxKey] || 0))));
+        maxTx = Number(summary[maxTxKey] ?? Math.max(0, ...points.map(p => Number(p[chartMeta.txKey] || 0))));
+        maxTotal = Number(summary[maxTotalKey] ?? Math.max(0, ...points.map(p => Number(p[chartMeta.rxKey] || 0) + Number(p[chartMeta.txKey] || 0))));
+      }
+
       const sampleCount = Number(summary.raw_samples ?? summary.samples ?? points.length);
 
       setText('st-dashboard-chart-samples', String(sampleCount));

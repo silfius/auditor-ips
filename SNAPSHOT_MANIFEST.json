@@ -1,8 +1,8 @@
 {
   "repo_name": "auditor-ips",
-  "generated_at": "2026-05-21T16:46:04.760443+00:00",
+  "generated_at": "2026-05-21T17:04:15.061640+00:00",
   "source_root": "<internal-source-redacted>",
-  "snapshot_dir": "auditor-ips-20260521-184604",
+  "snapshot_dir": "auditor-ips-20260521-190414",
   "files_count": 85,
   "high_findings_count": 0,
   "warn_findings_count": 279,
@@ -115,7 +115,7 @@
     {
       "path": "app/templates/index.html",
       "size": 487342,
-      "sha256": "cbc59973e858b08d225b658bab823efb8f770af6fde866233bbba7f3b1cf72e2"
+      "sha256": "b79d9e235e917e7fcae5db0eae5c38ddb2765788e8cc182d1cee8fab1b3135d7"
     },
     {
       "path": "app/templates/wol_public.html",
@@ -234,8 +234,8 @@
     },
     {
       "path": "app/static/js/syncthing_control.js",
-      "size": 104644,
-      "sha256": "d64fc2876a77d0d07cded6ad58a92112eadacbd9b623406d4fbbfc2970145fb2"
+      "size": 106520,
+      "sha256": "3164ac437ee5e54af7a00ddee521c0112a2a05416d1aa88f058db024c1dbc722"
     },
     {
       "path": "app/static/js/auth.js",
@@ -294,8 +294,8 @@
     },
     {
       "path": "app/routers/syncthing_control.py",
-      "size": 105877,
-      "sha256": "edfd1136dfbdfa85cc5016b9f6ecde4a6ca07698e89d809fdd5d35e4795de308"
+      "size": 106293,
+      "sha256": "a9494da2db9cc2c5c6f25bed79b65e20f49820c05b10823feb1436bdb1b4fb92"
     },
     {
       "path": "app/routers/system_health.py",
@@ -1270,63 +1270,63 @@
     {
       "severity": "WARN",
       "path": "app/routers/syncthing_control.py",
-      "line": 2319,
+      "line": 2325,
       "pattern": "secret_word",
       "sample": "api_key = _clean_text(payload.get(\"api_key\"), 500)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/syncthing_control.py",
-      "line": 2328,
+      "line": 2334,
       "pattern": "secret_word",
       "sample": "if not api_key:"
     },
     {
       "severity": "WARN",
       "path": "app/routers/syncthing_control.py",
-      "line": 2352,
+      "line": 2358,
       "pattern": "secret_word",
       "sample": "(name, api_base_url, gui_url, api_key, verify_tls, enabled, timeout_s, notes, created_at, updated_at)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/syncthing_control.py",
-      "line": 2354,
+      "line": 2360,
       "pattern": "secret_word",
       "sample": "\"\"\", (name, api_base_url, gui_url, api_key, verify_tls, enabled, timeout_s, notes, now, now))"
     },
     {
       "severity": "WARN",
       "path": "app/routers/syncthing_control.py",
-      "line": 2375,
+      "line": 2381,
       "pattern": "secret_word",
       "sample": "incoming_key = payload.get(\"api_key\", None)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/syncthing_control.py",
-      "line": 2376,
+      "line": 2382,
       "pattern": "secret_word",
       "sample": "api_key = current.get(\"api_key\", \"\")"
     },
     {
       "severity": "WARN",
       "path": "app/routers/syncthing_control.py",
-      "line": 2378,
+      "line": 2384,
       "pattern": "secret_word",
       "sample": "api_key = _clean_text(incoming_key, 500)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/syncthing_control.py",
-      "line": 2408,
+      "line": 2414,
       "pattern": "secret_word",
       "sample": "SET name=?, api_base_url=?, gui_url=?, api_key=?, verify_tls=?,"
     },
     {
       "severity": "WARN",
       "path": "app/routers/syncthing_control.py",
-      "line": 2411,
+      "line": 2417,
       "pattern": "secret_word",
       "sample": "\"\"\", (name, api_base_url, gui_url, api_key, verify_tls, enabled, timeout_s, notes, utc_now_iso(), node_id))"
     },
@@ -2110,14 +2110,14 @@
     {
       "severity": "WARN",
       "path": "app/static/js/syncthing_control.js",
-      "line": 1977,
+      "line": 2018,
       "pattern": "secret_word",
       "sample": "document.getElementById('st-node-api-key').value = '';"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/syncthing_control.js",
-      "line": 2056,
+      "line": 2097,
       "pattern": "secret_word",
       "sample": "api_key: document.getElementById('st-node-api-key')?.value || '',"
     },
