@@ -1823,11 +1823,17 @@
     try {
       const data = await apiJson(`/api/syncthing/transfer-chart?node_id=0&hours=${encodeURIComponent(rangeHours)}`);
       const points = data.points || [];
-      const maxRx = Math.max(0, ...points.map(p => Number(p[chartMeta.rxKey] || 0)));
-      const maxTx = Math.max(0, ...points.map(p => Number(p[chartMeta.txKey] || 0)));
-      const maxTotal = Math.max(0, ...points.map(p => Number(p[chartMeta.rxKey] || 0) + Number(p[chartMeta.txKey] || 0)));
+      const summary = data.summary || {};
+      const maxRxKey = chartMeta.mode === 'bytes' ? 'max_rx_delta_bytes' : 'max_rx_bps';
+      const maxTxKey = chartMeta.mode === 'bytes' ? 'max_tx_delta_bytes' : 'max_tx_bps';
+      const maxTotalKey = chartMeta.mode === 'bytes' ? 'max_total_delta_bytes' : 'max_total_bps';
 
-      setText('st-dashboard-chart-samples', String(points.length));
+      const maxRx = Number(summary[maxRxKey] ?? Math.max(0, ...points.map(p => Number(p[chartMeta.rxKey] || 0))));
+      const maxTx = Number(summary[maxTxKey] ?? Math.max(0, ...points.map(p => Number(p[chartMeta.txKey] || 0))));
+      const maxTotal = Number(summary[maxTotalKey] ?? Math.max(0, ...points.map(p => Number(p[chartMeta.rxKey] || 0) + Number(p[chartMeta.txKey] || 0))));
+      const sampleCount = Number(summary.raw_samples ?? summary.samples ?? points.length);
+
+      setText('st-dashboard-chart-samples', String(sampleCount));
       setText('st-dashboard-chart-max-rx', chartMeta.formatter(maxRx));
       setText('st-dashboard-chart-max-tx', chartMeta.formatter(maxTx));
       setText('st-dashboard-chart-max-total', chartMeta.formatter(maxTotal));

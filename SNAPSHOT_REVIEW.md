@@ -141,15 +141,15 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/routers/syncthing_control.py:1477` `secret_word` — api_key = str(node.get("api_key") or "").strip()
 - `WARN` `app/routers/syncthing_control.py:1478` `secret_word` — if api_key:
 - `WARN` `app/routers/syncthing_control.py:1479` `secret_word` — headers["X-API-Key"] = api_key
-- `WARN` `app/routers/syncthing_control.py:2303` `secret_word` — api_key = _clean_text(payload.get("api_key"), 500)
-- `WARN` `app/routers/syncthing_control.py:2312` `secret_word` — if not api_key:
-- `WARN` `app/routers/syncthing_control.py:2336` `secret_word` — (name, api_base_url, gui_url, api_key, verify_tls, enabled, timeout_s, notes, created_at, updated_at)
-- `WARN` `app/routers/syncthing_control.py:2338` `secret_word` — """, (name, api_base_url, gui_url, api_key, verify_tls, enabled, timeout_s, notes, now, now))
-- `WARN` `app/routers/syncthing_control.py:2359` `secret_word` — incoming_key = payload.get("api_key", None)
-- `WARN` `app/routers/syncthing_control.py:2360` `secret_word` — api_key = current.get("api_key", "")
-- `WARN` `app/routers/syncthing_control.py:2362` `secret_word` — api_key = _clean_text(incoming_key, 500)
-- `WARN` `app/routers/syncthing_control.py:2392` `secret_word` — SET name=?, api_base_url=?, gui_url=?, api_key=?, verify_tls=?,
-- `WARN` `app/routers/syncthing_control.py:2395` `secret_word` — """, (name, api_base_url, gui_url, api_key, verify_tls, enabled, timeout_s, notes, utc_now_iso(), node_id))
+- `WARN` `app/routers/syncthing_control.py:2319` `secret_word` — api_key = _clean_text(payload.get("api_key"), 500)
+- `WARN` `app/routers/syncthing_control.py:2328` `secret_word` — if not api_key:
+- `WARN` `app/routers/syncthing_control.py:2352` `secret_word` — (name, api_base_url, gui_url, api_key, verify_tls, enabled, timeout_s, notes, created_at, updated_at)
+- `WARN` `app/routers/syncthing_control.py:2354` `secret_word` — """, (name, api_base_url, gui_url, api_key, verify_tls, enabled, timeout_s, notes, now, now))
+- `WARN` `app/routers/syncthing_control.py:2375` `secret_word` — incoming_key = payload.get("api_key", None)
+- `WARN` `app/routers/syncthing_control.py:2376` `secret_word` — api_key = current.get("api_key", "")
+- `WARN` `app/routers/syncthing_control.py:2378` `secret_word` — api_key = _clean_text(incoming_key, 500)
+- `WARN` `app/routers/syncthing_control.py:2408` `secret_word` — SET name=?, api_base_url=?, gui_url=?, api_key=?, verify_tls=?,
+- `WARN` `app/routers/syncthing_control.py:2411` `secret_word` — """, (name, api_base_url, gui_url, api_key, verify_tls, enabled, timeout_s, notes, utc_now_iso(), node_id))
 - `WARN` `app/routers/hosts.py:575` `secret_word` — token    = request.cookies.get(SESSION_COOKIE)
 - `WARN` `app/routers/hosts.py:577` `secret_word` — username = validate_session(DB_PATH, token) if enabled else None
 - `WARN` `app/routers/scans.py:135` `secret_word` — Devuelve el webhook Discord efectivo para un canal lógico.
