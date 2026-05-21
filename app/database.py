@@ -744,6 +744,31 @@ def init_db() -> None:
         if not column_exists(conn, "script_alert_rules", "max_running_hours"):
             conn.execute("ALTER TABLE script_alert_rules ADD COLUMN max_running_hours REAL NOT NULL DEFAULT 6")
 
+        # Paradas controladas de scripts: override operativo para evitar falsos stalled/running_long.
+        # No modifica los .status.json generados por los scripts; solo afecta al estado efectivo en Auditor IPs.
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS script_controlled_stops (
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            host_name    TEXT    NOT NULL DEFAULT 'Local',
+            script_name  TEXT    NOT NULL,
+            reason       TEXT    NOT NULL DEFAULT '',
+            created_at   TEXT    NOT NULL,
+            observed_start_time TEXT NOT NULL DEFAULT '',
+            cleared_at   TEXT,
+            cleared_reason TEXT NOT NULL DEFAULT ''
+        )
+        """)
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_script_controlled_stops_lookup "
+            "ON script_controlled_stops(host_name, script_name, cleared_at)"
+        )
+        conn.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_script_controlled_stops_active "
+            "ON script_controlled_stops(host_name, script_name) WHERE cleared_at IS NULL"
+        )
+        if not column_exists(conn, "script_controlled_stops", "observed_start_time"):
+            conn.execute("ALTER TABLE script_controlled_stops ADD COLUMN observed_start_time TEXT NOT NULL DEFAULT ''")
+
 
         # Agentes remotos de Automatizaciones — tokens por host y auditoría mínima.
         # No guardamos tokens en claro: solo hash SHA-256 de tokens de alta entropía.

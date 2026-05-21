@@ -503,6 +503,128 @@ def _status_file_mtime_dt(item: dict) -> datetime | None:
         return None
 
 
+
+def _controlled_stop_active_row(host_name: str, script_name: str):
+    try:
+        with db() as conn:
+            conn.execute("""
+            CREATE TABLE IF NOT EXISTS script_controlled_stops (
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                host_name    TEXT    NOT NULL DEFAULT 'Local',
+                script_name  TEXT    NOT NULL,
+                reason       TEXT    NOT NULL DEFAULT '',
+                created_at   TEXT    NOT NULL,
+                observed_start_time TEXT NOT NULL DEFAULT '',
+                cleared_at   TEXT,
+                cleared_reason TEXT NOT NULL DEFAULT ''
+            )
+            """)
+            try:
+                cols = [r["name"] for r in conn.execute("PRAGMA table_info(script_controlled_stops)").fetchall()]
+                if "observed_start_time" not in cols:
+                    conn.execute("ALTER TABLE script_controlled_stops ADD COLUMN observed_start_time TEXT NOT NULL DEFAULT ''")
+            except Exception:
+                pass
+
+            return conn.execute(
+                """
+                SELECT id, host_name, script_name, reason, created_at, observed_start_time
+                FROM script_controlled_stops
+                WHERE host_name=? AND script_name=? AND cleared_at IS NULL
+                ORDER BY id DESC
+                LIMIT 1
+                """,
+                (_alert_host_name(host_name), str(script_name or "").strip()),
+            ).fetchone()
+    except Exception:
+        return None
+
+
+def _clear_controlled_stop(host_name: str, script_name: str, reason: str) -> None:
+    try:
+        with db() as conn:
+            conn.execute(
+                """
+                UPDATE script_controlled_stops
+                SET cleared_at=?, cleared_reason=?
+                WHERE host_name=? AND script_name=? AND cleared_at IS NULL
+                """,
+                (
+                    datetime.now(timezone.utc).isoformat(),
+                    str(reason or "cleared"),
+                    _alert_host_name(host_name),
+                    str(script_name or "").strip(),
+                ),
+            )
+    except Exception:
+        pass
+
+
+def _item_controlled_stop_start_key(item: dict) -> str:
+    """
+    Clave estable de ejecución para una parada controlada.
+
+    Guardamos el start_time observado al marcar la parada y solo autolimpiamos
+    cuando llega otro start_time distinto. Evita problemas de zona horaria.
+    """
+    return str(item.get("start_time") or item.get("last_run") or "").strip()
+
+
+def _apply_controlled_stop_override(item: dict) -> bool:
+    """
+    Aplica una parada controlada activa como override seguro.
+
+    No modifica el status JSON. Mientras esté activa:
+    - conserva raw_state;
+    - muestra estado efectivo controlled_stop;
+    - evita watchdog stalled/missed sobre esa instancia;
+    - el motor de alertas omite esa instancia.
+    Se limpia automáticamente solo si aparece otra ejecución real con start_time distinto.
+    """
+    script_name = str(item.get("name") or item.get("script") or "").strip()
+    if not script_name:
+        return False
+
+    host_name = _alert_host_name(item.get("host_name") or item.get("cfg_host_name") or "Local")
+    row = _controlled_stop_active_row(host_name, script_name)
+    if not row:
+        return False
+
+    created_at = str(row["created_at"] or "")
+    observed_start_time = str(row["observed_start_time"] or "").strip()
+    current_start_time = _item_controlled_stop_start_key(item)
+
+    if not observed_start_time and current_start_time:
+        observed_start_time = current_start_time
+        try:
+            with db() as conn:
+                conn.execute(
+                    "UPDATE script_controlled_stops SET observed_start_time=? WHERE id=?",
+                    (observed_start_time, row["id"]),
+                )
+        except Exception:
+            pass
+
+    if observed_start_time and current_start_time and current_start_time != observed_start_time:
+        _clear_controlled_stop(host_name, script_name, "auto_cleared_new_execution")
+        return False
+
+    raw_state = str(item.get("state") or item.get("status") or "unknown").strip() or "unknown"
+
+    item["controlled_stop"] = True
+    item["controlled_stop_id"] = row["id"]
+    item["controlled_stop_reason"] = str(row["reason"] or "")
+    item["controlled_stop_at"] = created_at
+    item["controlled_stop_observed_start_time"] = observed_start_time
+    item["raw_state"] = raw_state
+    item["state"] = "controlled_stop"
+    item["status"] = "controlled_stop"
+    item["watchdog_state"] = ""
+    item["watchdog_reason"] = "Parada controlada marcada en Auditor IPs"
+    item["watchdog_mode"] = "controlled_stop"
+    return True
+
+
 def _apply_internal_watchdog_state(item: dict) -> None:
     """
     Deriva missed/stalled dentro de Auditor IPs sin ejecutar scripts.
@@ -1192,7 +1314,7 @@ def _normalize_agent_status(payload: dict) -> dict:
     )
 
     status = str(payload.get("status") or payload.get("state") or "unknown").strip().lower()
-    allowed_status = {"running", "started", "completed", "ok", "failed", "error", "missed", "stalled", "unknown"}
+    allowed_status = {"running", "started", "completed", "ok", "failed", "error", "missed", "stalled", "controlled_stop", "unknown"}
     if status not in allowed_status:
         status = "unknown"
 
@@ -1330,7 +1452,9 @@ def rotate_automation_agent_token(host_name: str, request: Request):
     """Rota el token del agente y devuelve el nuevo token una sola vez."""
     host_name = _safe_agent_segment(host_name, "host_name")
     token = _automation_agent_new_token()
-    now = datetime.now(timezone.utc).isoformat()
+    # Guardar en hora local de la app para comparar correctamente con start_time
+    # de los .status.json, que normalmente llega como fecha local sin timezone.
+    now = datetime.now(_local_tzinfo()).strftime("%Y-%m-%d %H:%M:%S")
 
     with db() as conn:
         cur = conn.execute("""
@@ -1496,7 +1620,7 @@ def get_scripts_status():
             ec         = item.get("exit_code")
             if raw_status in ("running", "started"):
                 item["state"] = "running"
-            elif raw_status in ("missed", "stalled"):
+            elif raw_status in ("missed", "stalled", "controlled_stop"):
                 # Mantener estados específicos: la UI los representa de forma diferenciada.
                 item["state"] = raw_status
             elif raw_status in ("failed", "error"):
@@ -1535,7 +1659,8 @@ def get_scripts_status():
             if cron_source:
                 item["cron_source"] = cron_source
 
-        _apply_internal_watchdog_state(item)
+        if not _apply_controlled_stop_override(item):
+            _apply_internal_watchdog_state(item)
 
         # errors — usar error_messages, pero filtrar avisos internos del monitor
         # que no son errores reales (aparecen aunque exit_code=0)
@@ -1599,6 +1724,12 @@ def get_scripts_status():
     except Exception:
         # Degradación elegante: si falla la BD, los scripts se muestran sin color/etiqueta
         pass
+
+    # Reaplicar parada controlada al final: el enriquecimiento de configuración puede
+    # reconstruir o pisar campos de estado. Este segundo pase garantiza el estado efectivo.
+    for _item in result:
+        if not _item.get("controlled_stop"):
+            _apply_controlled_stop_override(_item)
 
     return result
 
@@ -1746,6 +1877,103 @@ def _script_instance_key(host: str | None, script_name: str | None) -> str:
     return f"{_alert_host_name(host)}::{str(script_name or '').strip()}"
 
 
+
+@router.get("/api/scripts/controlled-stops")
+def get_controlled_stops(active_only: bool = True):
+    """Lista paradas controladas de scripts."""
+    with db() as conn:
+        where = "WHERE cleared_at IS NULL" if active_only else ""
+        rows = conn.execute(
+            f"""
+            SELECT id, host_name, script_name, reason, created_at, observed_start_time, cleared_at, cleared_reason
+            FROM script_controlled_stops
+            {where}
+            ORDER BY COALESCE(cleared_at, created_at) DESC, id DESC
+            LIMIT 500
+            """
+        ).fetchall()
+    return {"ok": True, "items": [dict(r) for r in rows]}
+
+
+@router.post("/api/scripts/controlled-stops/{script_name}")
+async def mark_controlled_stop(
+    script_name: str,
+    request: Request,
+    host: str = Query("Local", max_length=120),
+):
+    """Marca una parada controlada para suprimir falsos stalled/running_long hasta la próxima ejecución real."""
+    payload = await request.json()
+    host_name = _alert_host_name(payload.get("host_name") or host)
+    reason = str(payload.get("reason") or "Parada controlada marcada desde Auditor IPs").strip()
+
+    observed_start_time = str(payload.get("start_time") or "").strip()
+    if not observed_start_time:
+        try:
+            for item in get_scripts_status():
+                if str(item.get("name") or "") == str(script_name or "") and _alert_host_name(item.get("host_name")) == host_name:
+                    observed_start_time = _item_controlled_stop_start_key(item)
+                    break
+        except Exception:
+            observed_start_time = ""
+
+    now = datetime.now(_local_tzinfo()).strftime("%Y-%m-%d %H:%M:%S")
+
+    with db() as conn:
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS script_controlled_stops (
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            host_name    TEXT    NOT NULL DEFAULT 'Local',
+            script_name  TEXT    NOT NULL,
+            reason       TEXT    NOT NULL DEFAULT '',
+            created_at   TEXT    NOT NULL,
+            observed_start_time TEXT NOT NULL DEFAULT '',
+            cleared_at   TEXT,
+            cleared_reason TEXT NOT NULL DEFAULT ''
+        )
+        """)
+        try:
+            cols = [r["name"] for r in conn.execute("PRAGMA table_info(script_controlled_stops)").fetchall()]
+            if "observed_start_time" not in cols:
+                conn.execute("ALTER TABLE script_controlled_stops ADD COLUMN observed_start_time TEXT NOT NULL DEFAULT ''")
+        except Exception:
+            pass
+
+        conn.execute(
+            """
+            UPDATE script_controlled_stops
+            SET cleared_at=?, cleared_reason=?
+            WHERE host_name=? AND script_name=? AND cleared_at IS NULL
+            """,
+            (now, "replaced_by_new_controlled_stop", host_name, script_name),
+        )
+        conn.execute(
+            """
+            INSERT INTO script_controlled_stops
+                (host_name, script_name, reason, created_at, observed_start_time)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (host_name, script_name, reason[:500], now, observed_start_time),
+        )
+
+    return {
+        "ok": True,
+        "host_name": host_name,
+        "script_name": script_name,
+        "reason": reason[:500],
+        "created_at": now,
+        "observed_start_time": observed_start_time,
+        "instance_key": _script_instance_key(host_name, script_name),
+    }
+
+
+@router.delete("/api/scripts/controlled-stops/{script_name}")
+def clear_controlled_stop(script_name: str, host: str = Query("Local", max_length=120)):
+    """Reactiva la vigilancia normal eliminando la parada controlada activa."""
+    host_name = _alert_host_name(host)
+    _clear_controlled_stop(host_name, script_name, "manual_clear")
+    return {"ok": True, "host_name": host_name, "script_name": script_name, "instance_key": _script_instance_key(host_name, script_name)}
+
+
 @router.get("/api/scripts/alert-rules")
 def get_alert_rules():
     """Lista todas las reglas de alerta de scripts."""
@@ -1867,6 +2095,9 @@ def check_script_alerts() -> int:
             s = statuses_by_name.get(name)
         if not s:
             continue  # script sin status.json todavía
+
+        if s.get("controlled_stop"):
+            continue  # parada controlada: no disparar missed/stalled/running_long/error para esta instancia
 
         msgs = []
 
