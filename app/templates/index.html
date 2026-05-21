@@ -3456,6 +3456,17 @@
     }
   </style>
 
+
+  <style id="hidePwaInstallEntry">
+    #pwaOpenModal,
+    #pwaOpenModal2,
+    [data-section="pwa"],
+    [data-target="#pwaModal"],
+    [data-bs-target="#pwaModal"] {
+      display: none !important;
+    }
+  </style>
+
 </head>
 
 <body>
@@ -4496,9 +4507,12 @@
           <span class="small-muted" style="font-size:.8rem"><i class="bi bi-info-circle"></i> Click en nodo → detalles · Rueda → zoom · Arrastra para mover</span>
           <div class="ms-auto d-flex gap-2 flex-wrap">
             <select id="mapGroupBy" class="form-select form-select-sm" style="width:auto">
-              <option value="flat">Vista plana</option>
-              <option value="subnet">Agrupar por subred</option>
-              <option value="type">Agrupar por tipo</option>
+              <option value="flat">Sin agrupar</option>
+              <option value="owner">Responsable</option>
+              <option value="type">Tipo</option>
+              <option value="status">Estado</option>
+              <option value="subnet">Red</option>
+              <option value="known">Conocido</option>
             </select>
             <select id="mapFilter" class="form-select form-select-sm" style="width:auto">
               <option value="all">Todos los dispositivos</option>
@@ -4582,6 +4596,7 @@
                     <option value="online">🟢 Se pone online</option>
                     <option value="status_change">🔄 Cambia estado</option>
                     <option value="ip_change">🔀 Cambia de IP</option>
+                    <option value="mac_change">⚠️ Cambio MAC</option>
                   </select>
                 </div>
                 <div class="col-6 col-md-2">
@@ -4590,11 +4605,13 @@
                     <option value="all">Todos los hosts</option>
                     <option value="ip">IP específica</option>
                     <option value="type_id">Tipo específico</option>
+                    <option value="mac">MAC específica</option>
                   </select>
                 </div>
                 <div class="col-6 col-md-2" id="alFilterValueWrap" style="display:none">
                   <label class="form-label form-label-sm small-muted mb-1" id="alFilterLabel">Valor</label>
                   <input id="alFilterValueIp" class="form-control form-control-sm" placeholder="192.168.1.x" style="display:none">
+                  <input id="alFilterValueMac" class="form-control form-control-sm" placeholder="AA:BB:CC:DD:EE:FF" style="display:none">
                   <select id="alFilterValueType" class="form-select form-select-sm" style="display:none">
                     {% for t in types %}
                       <option value="{{ t.id }}">{{ t.icon or '' }} {{ t.name }}</option>
@@ -5820,14 +5837,14 @@ window._secondaryNetworks = {{ secondary_nets | default([]) | tojson | safe }};
      Orden: app.js primero (globals + init), luego dominio
 ════════════════════════════════════════════════════ -->
 <script src="/static/js/i18n.js?v=20260518_v4_i18n_timezone_final4"></script>
-<script src="/static/js/app.js?v=20260520_v4_config_open_no_flash1"></script>
+<script src="/static/js/app.js?v=v4_dashboard_wol_map_exec_ux4"></script>
 <script src="/static/js/hosts.js?v=20260325_wol2"></script>
-<script src="/static/js/services.js?v=20260518_v4_i18n_timezone_final2"></script>
-<script src="/static/js/alerts.js?v=20260520_v4_host_alerts_mobile_syncthing_runtime1"></script>
+<script src="/static/js/services.js?v=20260521_v4_services_expected_schedule3"></script>
+<script src="/static/js/alerts.js?v=20260521_mac_filter"></script>
 <script src="/static/js/dashboard.js?v=20260518_v4_module_gating_foundation1"></script>
 <script src="/static/js/scans.js?v=20260518_v4_i18n_timezone_final1"></script>
 <script src="/static/js/quality.js?v=20260518_v4_i18n_timezone_final2"></script>
-<script src="/static/js/config.js?v=20260520_v4_automation_cron_presets5"></script>
+<script src="/static/js/config.js?v=20260521_doc_consolidation_public_clean1"></script>
 <script src="/static/js/auth.js?v=20260518_v4_i18n_timezone_final1"></script>
 <script src="/static/js/scripts.js?v=20260521_v4_automation_schedule_modal_controlled_stop3"></script>
 <script src="/static/js/active_processes_topbar.js?v=20260518_v4_i18n_timezone_final1"></script>
@@ -6340,6 +6357,7 @@ window.syncFiltersBar = function() {}; // no-op para compatibilidad
                 <option value="online">🟢 Se pone online</option>
                 <option value="status_change">🔄 Cambia estado</option>
                 <option value="ip_change">🔀 Cambia de IP</option>
+                <option value="mac_change">⚠️ Cambio MAC</option>
               </select>
             </div>
             <div class="col-12 col-md-6">
@@ -6348,11 +6366,13 @@ window.syncFiltersBar = function() {}; // no-op para compatibilidad
                 <option value="all">Todos los hosts</option>
                 <option value="ip">IP específica</option>
                 <option value="type_id">Tipo específico</option>
+                <option value="mac">MAC específica</option>
               </select>
             </div>
             <div class="col-12 col-md-6" id="alertEditFilterValueWrap" style="display:none">
               <label class="form-label form-label-sm small-muted mb-1">Valor del filtro</label>
               <input id="alertEditFilterValueIp" class="form-control form-control-sm" placeholder="192.168.1.x" style="display:none">
+              <input id="alertEditFilterValueMac" class="form-control form-control-sm" placeholder="AA:BB:CC:DD:EE:FF" style="display:none">
               <select id="alertEditFilterValueType" class="form-select form-select-sm" style="display:none">
                 {% for t in types %}
                   <option value="{{ t.id }}">{{ t.icon or '' }} {{ t.name }}</option>

@@ -30,7 +30,7 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/host_classification.py:177` `secret_word` — token_compact = _compact_text(token)
 - `WARN` `app/host_classification.py:179` `secret_word` — return token
 - `WARN` `app/host_classification.py:181` `secret_word` — return token
-- `WARN` `app/config.py:158` `localhost_url` — "ai_ollama_url":       os.getenv("OLLAMA_URL",     "http://localhost:11434"),
+- `WARN` `app/config.py:162` `localhost_url` — "ai_ollama_url":       os.getenv("OLLAMA_URL",     "http://localhost:11434"),
 - `WARN` `app/device_enrichment.py:92` `secret_word` — elif any(token in os_text for token in ["windows 11", "windows 10", "windows 8", "windows 7", "microsoft windows"]):
 - `WARN` `app/main.py:239` `secret_word` — token = request.cookies.get(SESSION_COOKIE)
 - `WARN` `app/main.py:241` `secret_word` — username = validate_session(DB_PATH, token) if auth_enabled(DB_PATH) else None
@@ -58,7 +58,7 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/auth_middleware.py:164` `secret_word` — def destroy_session(db_path: str, token: str) -> None:
 - `WARN` `app/auth_middleware.py:166` `secret_word` — c.execute("DELETE FROM auth_sessions WHERE token=?", (token,))
 - `WARN` `app/auth_middleware.py:184` `secret_word` — rows = c.execute("""SELECT token,username,created_at,expires_at,ip,user_agent
-- `WARN` `app/database.py:277` `secret_word` — api_key TEXT NOT NULL DEFAULT '',
+- `WARN` `app/database.py:285` `secret_word` — api_key TEXT NOT NULL DEFAULT '',
 - `WARN` `scripts/install_auditor_agent.py:40` `localhost_url` — AUDITOR_URL="${AUDITOR_URL:-https://127.0.0.1:9909}"
 - `WARN` `scripts/install_auditor_agent.py:81` `secret_word` — url, token, host, script, status, exit_code, now, duration, progress, step_label, log_json, verify_tls = sys.argv[1:]
 - `WARN` `scripts/install_auditor_agent.py:100` `secret_word` — "Authorization": "Bearer " + token,
@@ -101,55 +101,55 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `docs/BACKUP_RESTORE.md:30` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
 - `WARN` `docs/CONFIGURATION.md:18` `secret_word` — - `DISCORD_WEBHOOK_URL`: webhook opcional de Discord.
 - `WARN` `docs/UPGRADE.md:19` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
-- `WARN` `app/templates/index.html:4894` `secret_word` — Las alertas se evalúan tras cada escaneo. Acción: Discord webhook (si configurado).
-- `WARN` `app/templates/index.html:6442` `secret_word` — <input type="password" id="loginModalPass" class="form-control form-control-sm"
-- `WARN` `app/templates/index.html:6443` `secret_word` — placeholder="Contraseña" autocomplete="current-password">
-- `WARN` `app/templates/index.html:7194` `secret_word` — Si no configuras webhook de alertas, se conserva el webhook legacy anterior como fallback.
-- `WARN` `app/templates/index.html:7200` `secret_word` — <input id="cfgDiscordInfo" type="password" class="form-control form-control-sm" placeholder="https://discord.com/api/webhooks/...">
-- `WARN` `app/templates/index.html:7206` `secret_word` — Si no hay webhook informativo, usar el canal de alertas como fallback
-- `WARN` `app/templates/index.html:7217` `secret_word` — <input id="cfgDiscordAlerts" type="password" class="form-control form-control-sm" placeholder="https://discord.com/api/webhooks/...">
-- `WARN` `app/templates/index.html:7278` `secret_word` — <input id="cfgSmtpPass" type="password" class="form-control form-control-sm" placeholder="contraseña o app password">
-- `WARN` `app/templates/index.html:7841` `secret_word` — <input id="cfgAiGeminiKey" type="password" class="form-control form-control-sm" placeholder="AIzaSy…">
-- `WARN` `app/templates/index.html:7856` `secret_word` — <input id="cfgAiMistralKey" type="password" class="form-control form-control-sm" placeholder="…">
-- `WARN` `app/templates/index.html:8533` `secret_word` — <input id="newUserPw" type="password" class="form-control form-control-sm" placeholder="mín. 8 caracteres" style="max-width:180px">
-- `WARN` `app/templates/index.html:8544` `secret_word` — <input id="cpCurrentPw" type="password" class="form-control form-control-sm" placeholder="Actual" style="max-width:170px">
-- `WARN` `app/templates/index.html:8548` `secret_word` — <input id="cpNewPw" type="password" class="form-control form-control-sm" placeholder="Nueva" style="max-width:170px">
-- `WARN` `app/templates/index.html:8552` `secret_word` — <input id="cpNewPw2" type="password" class="form-control form-control-sm" placeholder="Repetir" style="max-width:170px">
-- `WARN` `app/templates/index.html:9032` `secret_word` — El token se muestra solo al crearlo o rotarlo. Auditor IPs no ejecuta comandos remotos.
-- `WARN` `app/templates/index.html:9062` `secret_word` — Copia este token ahora. No se volverá a mostrar.
-- `WARN` `app/templates/index.html:9078` `secret_word` — <th>Token</th>
-- `WARN` `app/templates/login.html:455` `secret_word` — <input type="password" id="setupPassword" class="form-control" placeholder="••••••••" autocomplete="new-password">
-- `WARN` `app/templates/login.html:463` `secret_word` — <input type="password" id="setupPassword2" class="form-control" placeholder="••••••••" autocomplete="new-password">
-- `WARN` `app/templates/login.html:490` `secret_word` — <input type="password" id="loginPassword" class="form-control" placeholder="••••••••"
-- `WARN` `app/templates/login.html:491` `secret_word` — autocomplete="current-password" tabindex="2">
-- `WARN` `app/templates/login.html:518` `secret_word` — inp.type = vis ? 'password' : 'text';
-- `WARN` `app/templates/login.html:542` `secret_word` — body: JSON.stringify({username, password: pw})
-- `WARN` `app/templates/login.html:551` `secret_word` — body: JSON.stringify({username, password: pw})
-- `WARN` `app/templates/login.html:572` `secret_word` — inp.type = vis ? 'password' : 'text';
-- `WARN` `app/templates/login.html:578` `secret_word` — const password = document.getElementById('loginPassword').value;
-- `WARN` `app/templates/login.html:583` `secret_word` — if (!username || !password) {
-- `WARN` `app/templates/login.html:596` `secret_word` — body: JSON.stringify({username, password})
-- `WARN` `app/templates/login.html:669` `secret_word` — password: el('setupV2Password')?.value || '',
-- `WARN` `app/templates/login.html:702` `secret_word` — if (p.password.length < 8) return 'La contraseña debe tener al menos 8 caracteres.';
-- `WARN` `app/templates/login.html:703` `secret_word` — if (p.password !== p.password2) return 'Las contraseñas no coinciden.';
-- `WARN` `app/templates/login.html:819` `secret_word` — <input id="setupV2Password" type="password" class="form-control" autocomplete="new-password">
-- `WARN` `app/templates/login.html:821` `secret_word` — <input id="setupV2Password2" type="password" class="form-control" autocomplete="new-password">
+- `WARN` `app/templates/index.html:4656` `secret_word` — Las alertas se evalúan tras cada escaneo. Acción: Discord webhook (si configurado).
+- `WARN` `app/templates/index.html:6515` `secret_word` — <input type="password" id="loginModalPass" class="form-control form-control-sm"
+- `WARN` `app/templates/index.html:6516` `secret_word` — placeholder="Contraseña" autocomplete="current-password">
+- `WARN` `app/templates/index.html:7267` `secret_word` — Si no configuras webhook de alertas, se conserva el webhook legacy anterior como fallback.
+- `WARN` `app/templates/index.html:7273` `secret_word` — <input id="cfgDiscordInfo" type="password" class="form-control form-control-sm" placeholder="https://discord.com/api/webhooks/...">
+- `WARN` `app/templates/index.html:7279` `secret_word` — Si no hay webhook informativo, usar el canal de alertas como fallback
+- `WARN` `app/templates/index.html:7290` `secret_word` — <input id="cfgDiscordAlerts" type="password" class="form-control form-control-sm" placeholder="https://discord.com/api/webhooks/...">
+- `WARN` `app/templates/index.html:7351` `secret_word` — <input id="cfgSmtpPass" type="password" class="form-control form-control-sm" placeholder="contraseña o app password">
+- `WARN` `app/templates/index.html:7914` `secret_word` — <input id="cfgAiGeminiKey" type="password" class="form-control form-control-sm" placeholder="AIzaSy…">
+- `WARN` `app/templates/index.html:7929` `secret_word` — <input id="cfgAiMistralKey" type="password" class="form-control form-control-sm" placeholder="…">
+- `WARN` `app/templates/index.html:8606` `secret_word` — <input id="newUserPw" type="password" class="form-control form-control-sm" placeholder="mín. 8 caracteres" style="max-width:180px">
+- `WARN` `app/templates/index.html:8617` `secret_word` — <input id="cpCurrentPw" type="password" class="form-control form-control-sm" placeholder="Actual" style="max-width:170px">
+- `WARN` `app/templates/index.html:8621` `secret_word` — <input id="cpNewPw" type="password" class="form-control form-control-sm" placeholder="Nueva" style="max-width:170px">
+- `WARN` `app/templates/index.html:8625` `secret_word` — <input id="cpNewPw2" type="password" class="form-control form-control-sm" placeholder="Repetir" style="max-width:170px">
+- `WARN` `app/templates/index.html:9354` `secret_word` — El token se muestra solo al crear o rotar el agente.
+- `WARN` `app/templates/index.html:9423` `secret_word` — Copia este token ahora. No se volverá a mostrar.
+- `WARN` `app/templates/index.html:9439` `secret_word` — <th>Token</th>
+- `WARN` `app/templates/login.html:437` `secret_word` — <input type="password" id="setupPassword" class="form-control" placeholder="••••••••" autocomplete="new-password">
+- `WARN` `app/templates/login.html:445` `secret_word` — <input type="password" id="setupPassword2" class="form-control" placeholder="••••••••" autocomplete="new-password">
+- `WARN` `app/templates/login.html:472` `secret_word` — <input type="password" id="loginPassword" class="form-control" placeholder="••••••••"
+- `WARN` `app/templates/login.html:473` `secret_word` — autocomplete="current-password" tabindex="2">
+- `WARN` `app/templates/login.html:503` `secret_word` — inp.type = vis ? 'password' : 'text';
+- `WARN` `app/templates/login.html:527` `secret_word` — body: JSON.stringify({username, password: pw})
+- `WARN` `app/templates/login.html:536` `secret_word` — body: JSON.stringify({username, password: pw})
+- `WARN` `app/templates/login.html:557` `secret_word` — inp.type = vis ? 'password' : 'text';
+- `WARN` `app/templates/login.html:563` `secret_word` — const password = document.getElementById('loginPassword').value;
+- `WARN` `app/templates/login.html:568` `secret_word` — if (!username || !password) {
+- `WARN` `app/templates/login.html:581` `secret_word` — body: JSON.stringify({username, password})
+- `WARN` `app/templates/login.html:654` `secret_word` — password: el('setupV2Password')?.value || '',
+- `WARN` `app/templates/login.html:687` `secret_word` — if (p.password.length < 8) return 'La contraseña debe tener al menos 8 caracteres.';
+- `WARN` `app/templates/login.html:688` `secret_word` — if (p.password !== p.password2) return 'Las contraseñas no coinciden.';
+- `WARN` `app/templates/login.html:804` `secret_word` — <input id="setupV2Password" type="password" class="form-control" autocomplete="new-password">
+- `WARN` `app/templates/login.html:806` `secret_word` — <input id="setupV2Password2" type="password" class="form-control" autocomplete="new-password">
 - `WARN` `app/routers/syncthing_control.py:47` `secret_word` — api_key TEXT NOT NULL DEFAULT '',
 - `WARN` `app/routers/syncthing_control.py:398` `secret_word` — api_key = item.pop("api_key", "") or ""
 - `WARN` `app/routers/syncthing_control.py:399` `secret_word` — item["api_key_configured"] = bool(api_key)
 - `WARN` `app/routers/syncthing_control.py:400` `secret_word` — item["api_key_masked"] = _mask_secret(api_key)
-- `WARN` `app/routers/syncthing_control.py:1472` `secret_word` — api_key = str(node.get("api_key") or "").strip()
-- `WARN` `app/routers/syncthing_control.py:1473` `secret_word` — if api_key:
-- `WARN` `app/routers/syncthing_control.py:1474` `secret_word` — headers["X-API-Key"] = api_key
-- `WARN` `app/routers/syncthing_control.py:2272` `secret_word` — api_key = _clean_text(payload.get("api_key"), 500)
-- `WARN` `app/routers/syncthing_control.py:2281` `secret_word` — if not api_key:
-- `WARN` `app/routers/syncthing_control.py:2305` `secret_word` — (name, api_base_url, gui_url, api_key, verify_tls, enabled, timeout_s, notes, created_at, updated_at)
-- `WARN` `app/routers/syncthing_control.py:2307` `secret_word` — """, (name, api_base_url, gui_url, api_key, verify_tls, enabled, timeout_s, notes, now, now))
-- `WARN` `app/routers/syncthing_control.py:2328` `secret_word` — incoming_key = payload.get("api_key", None)
-- `WARN` `app/routers/syncthing_control.py:2329` `secret_word` — api_key = current.get("api_key", "")
-- `WARN` `app/routers/syncthing_control.py:2331` `secret_word` — api_key = _clean_text(incoming_key, 500)
-- `WARN` `app/routers/syncthing_control.py:2361` `secret_word` — SET name=?, api_base_url=?, gui_url=?, api_key=?, verify_tls=?,
-- `WARN` `app/routers/syncthing_control.py:2364` `secret_word` — """, (name, api_base_url, gui_url, api_key, verify_tls, enabled, timeout_s, notes, utc_now_iso(), node_id))
+- `WARN` `app/routers/syncthing_control.py:1477` `secret_word` — api_key = str(node.get("api_key") or "").strip()
+- `WARN` `app/routers/syncthing_control.py:1478` `secret_word` — if api_key:
+- `WARN` `app/routers/syncthing_control.py:1479` `secret_word` — headers["X-API-Key"] = api_key
+- `WARN` `app/routers/syncthing_control.py:2303` `secret_word` — api_key = _clean_text(payload.get("api_key"), 500)
+- `WARN` `app/routers/syncthing_control.py:2312` `secret_word` — if not api_key:
+- `WARN` `app/routers/syncthing_control.py:2336` `secret_word` — (name, api_base_url, gui_url, api_key, verify_tls, enabled, timeout_s, notes, created_at, updated_at)
+- `WARN` `app/routers/syncthing_control.py:2338` `secret_word` — """, (name, api_base_url, gui_url, api_key, verify_tls, enabled, timeout_s, notes, now, now))
+- `WARN` `app/routers/syncthing_control.py:2359` `secret_word` — incoming_key = payload.get("api_key", None)
+- `WARN` `app/routers/syncthing_control.py:2360` `secret_word` — api_key = current.get("api_key", "")
+- `WARN` `app/routers/syncthing_control.py:2362` `secret_word` — api_key = _clean_text(incoming_key, 500)
+- `WARN` `app/routers/syncthing_control.py:2392` `secret_word` — SET name=?, api_base_url=?, gui_url=?, api_key=?, verify_tls=?,
+- `WARN` `app/routers/syncthing_control.py:2395` `secret_word` — """, (name, api_base_url, gui_url, api_key, verify_tls, enabled, timeout_s, notes, utc_now_iso(), node_id))
 - `WARN` `app/routers/hosts.py:575` `secret_word` — token    = request.cookies.get(SESSION_COOKIE)
 - `WARN` `app/routers/hosts.py:577` `secret_word` — username = validate_session(DB_PATH, token) if enabled else None
 - `WARN` `app/routers/scans.py:135` `secret_word` — Devuelve el webhook Discord efectivo para un canal lógico.
@@ -160,61 +160,61 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/routers/scans.py:232` `secret_word` — token = _vapid_jwt(sub["endpoint"], vapid_pub, vapid_priv)
 - `WARN` `app/routers/scans.py:233` `secret_word` — if token:
 - `WARN` `app/routers/scans.py:234` `secret_word` — headers["Authorization"] = f"vapid t={token},k={vapid_pub}"
-- `WARN` `app/routers/scans.py:1031` `localhost_url` — ollama_url = _cfg("ollama_url", "http://localhost:11434")
-- `WARN` `app/routers/config_api.py:311` `secret_word` — "discord_webhook": "Webhook Discord legacy",
-- `WARN` `app/routers/config_api.py:312` `secret_word` — "discord_webhook_info": "Webhook Discord informativo",
-- `WARN` `app/routers/config_api.py:313` `secret_word` — "discord_webhook_alerts": "Webhook Discord alertas",
-- `WARN` `app/routers/config_api.py:639` `secret_word` — api_key = cfg("ai_gemini_key", "").strip()
-- `WARN` `app/routers/config_api.py:641` `secret_word` — if not api_key:
-- `WARN` `app/routers/config_api.py:643` `secret_word` — url = f"https://generativelanguage.googleapis.com/v1beta/models/{urllib.parse.quote(model)}:generateContent?key={urllib.parse.quote(api_key)}"
-- `WARN` `app/routers/config_api.py:651` `secret_word` — api_key = cfg("ai_mistral_key", "").strip()
-- `WARN` `app/routers/config_api.py:653` `secret_word` — if not api_key:
-- `WARN` `app/routers/config_api.py:657` `secret_word` — req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}, method="POST")
-- `WARN` `app/routers/config_api.py:663` `localhost_url` — base_url = (cfg("ai_ollama_url", "http://localhost:11434") or "http://localhost:11434").rstrip("/")
-- `WARN` `app/routers/config_api.py:691` `secret_word` — webhook = discord_webhook_for_channel(channel)
-- `WARN` `app/routers/config_api.py:692` `secret_word` — if not webhook:
-- `WARN` `app/routers/config_api.py:694` `secret_word` — return JSONResponse({"ok": False, "error": f"No hay webhook Discord {label} configurado"}, status_code=400)
-- `WARN` `app/routers/config_api.py:721` `secret_word` — password = cfg("smtp_pass",  "")
-- `WARN` `app/routers/config_api.py:738` `secret_word` — if user and password:
-- `WARN` `app/routers/config_api.py:739` `secret_word` — s.login(user, password)
-- `WARN` `app/routers/config_api.py:746` `secret_word` — if user and password:
-- `WARN` `app/routers/config_api.py:747` `secret_word` — s.login(user, password)
-- `WARN` `app/routers/config_api.py:751` `secret_word` — if user and password:
-- `WARN` `app/routers/config_api.py:752` `secret_word` — s.login(user, password)
+- `WARN` `app/routers/scans.py:1058` `localhost_url` — ollama_url = _cfg("ollama_url", "http://localhost:11434")
+- `WARN` `app/routers/config_api.py:315` `secret_word` — "discord_webhook": "Webhook Discord legacy",
+- `WARN` `app/routers/config_api.py:316` `secret_word` — "discord_webhook_info": "Webhook Discord informativo",
+- `WARN` `app/routers/config_api.py:317` `secret_word` — "discord_webhook_alerts": "Webhook Discord alertas",
+- `WARN` `app/routers/config_api.py:643` `secret_word` — api_key = cfg("ai_gemini_key", "").strip()
+- `WARN` `app/routers/config_api.py:645` `secret_word` — if not api_key:
+- `WARN` `app/routers/config_api.py:647` `secret_word` — url = f"https://generativelanguage.googleapis.com/v1beta/models/{urllib.parse.quote(model)}:generateContent?key={urllib.parse.quote(api_key)}"
+- `WARN` `app/routers/config_api.py:655` `secret_word` — api_key = cfg("ai_mistral_key", "").strip()
+- `WARN` `app/routers/config_api.py:657` `secret_word` — if not api_key:
+- `WARN` `app/routers/config_api.py:661` `secret_word` — req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}, method="POST")
+- `WARN` `app/routers/config_api.py:667` `localhost_url` — base_url = (cfg("ai_ollama_url", "http://localhost:11434") or "http://localhost:11434").rstrip("/")
+- `WARN` `app/routers/config_api.py:695` `secret_word` — webhook = discord_webhook_for_channel(channel)
+- `WARN` `app/routers/config_api.py:696` `secret_word` — if not webhook:
+- `WARN` `app/routers/config_api.py:698` `secret_word` — return JSONResponse({"ok": False, "error": f"No hay webhook Discord {label} configurado"}, status_code=400)
+- `WARN` `app/routers/config_api.py:725` `secret_word` — password = cfg("smtp_pass",  "")
+- `WARN` `app/routers/config_api.py:742` `secret_word` — if user and password:
+- `WARN` `app/routers/config_api.py:743` `secret_word` — s.login(user, password)
+- `WARN` `app/routers/config_api.py:750` `secret_word` — if user and password:
+- `WARN` `app/routers/config_api.py:751` `secret_word` — s.login(user, password)
+- `WARN` `app/routers/config_api.py:755` `secret_word` — if user and password:
+- `WARN` `app/routers/config_api.py:756` `secret_word` — s.login(user, password)
 - `WARN` `app/routers/scripts_status.py:78` `localhost_url` — _ENV_OLLAMA_URL    = os.getenv("OLLAMA_URL",      "http://localhost:11434")
-- `WARN` `app/routers/scripts_status.py:909` `secret_word` — def _automation_agent_token_hash(token: str) -> str:
-- `WARN` `app/routers/scripts_status.py:910` `secret_word` — return hashlib.sha256(str(token or "").encode("utf-8")).hexdigest()
-- `WARN` `app/routers/scripts_status.py:917` `secret_word` — def _automation_agent_token_prefix(token: str) -> str:
-- `WARN` `app/routers/scripts_status.py:918` `secret_word` — return str(token or "")[:10]
-- `WARN` `app/routers/scripts_status.py:932` `secret_word` — return str(request.headers.get("x-automation-agent-token") or "").strip()
-- `WARN` `app/routers/scripts_status.py:994` `secret_word` — token = _automation_agent_extract_token(request)
-- `WARN` `app/routers/scripts_status.py:995` `secret_word` — if not token:
-- `WARN` `app/routers/scripts_status.py:996` `secret_word` — _automation_agent_audit(host_name, request, "auth_failed", False, "token ausente")
-- `WARN` `app/routers/scripts_status.py:997` `secret_word` — raise HTTPException(status_code=403, detail="Token de agente inválido")
-- `WARN` `app/routers/scripts_status.py:1006` `secret_word` — incoming_hash = _automation_agent_token_hash(token)
-- `WARN` `app/routers/scripts_status.py:1010` `secret_word` — _automation_agent_audit(host_name, request, "auth_failed", False, "token de host inválido")
-- `WARN` `app/routers/scripts_status.py:1011` `secret_word` — raise HTTPException(status_code=403, detail="Token de agente inválido")
-- `WARN` `app/routers/scripts_status.py:1013` `secret_word` — # Compatibilidad con bloque anterior: token global.
-- `WARN` `app/routers/scripts_status.py:1016` `secret_word` — _automation_agent_audit(host_name, request, "auth_failed", False, "sin token global ni agente registrado")
-- `WARN` `app/routers/scripts_status.py:1019` `secret_word` — if not secrets.compare_digest(token, expected):
-- `WARN` `app/routers/scripts_status.py:1020` `secret_word` — _automation_agent_audit(host_name, request, "auth_failed", False, "token global inválido")
-- `WARN` `app/routers/scripts_status.py:1021` `secret_word` — raise HTTPException(status_code=403, detail="Token de agente inválido")
-- `WARN` `app/routers/scripts_status.py:1098` `secret_word` — """Crea un agente y devuelve el token una sola vez."""
-- `WARN` `app/routers/scripts_status.py:1110` `secret_word` — token = _automation_agent_new_token()
-- `WARN` `app/routers/scripts_status.py:1121` `secret_word` — _automation_agent_token_hash(token),
-- `WARN` `app/routers/scripts_status.py:1122` `secret_word` — _automation_agent_token_prefix(token),
-- `WARN` `app/routers/scripts_status.py:1135` `secret_word` — "token": token,
-- `WARN` `app/routers/scripts_status.py:1136` `secret_word` — "token_prefix": _automation_agent_token_prefix(token),
-- `WARN` `app/routers/scripts_status.py:1137` `secret_word` — "warning": "Guarda este token ahora; no se volverá a mostrar.",
-- `WARN` `app/routers/scripts_status.py:1184` `secret_word` — """Rota el token del agente y devuelve el nuevo token una sola vez."""
-- `WARN` `app/routers/scripts_status.py:1186` `secret_word` — token = _automation_agent_new_token()
-- `WARN` `app/routers/scripts_status.py:1195` `secret_word` — _automation_agent_token_hash(token),
-- `WARN` `app/routers/scripts_status.py:1196` `secret_word` — _automation_agent_token_prefix(token),
-- `WARN` `app/routers/scripts_status.py:1203` `secret_word` — _automation_agent_audit(host_name, request, "agent_token_rotated", True, {"token_prefix": _automation_agent_token_prefix(token)})
-- `WARN` `app/routers/scripts_status.py:1207` `secret_word` — "token": token,
-- `WARN` `app/routers/scripts_status.py:1208` `secret_word` — "token_prefix": _automation_agent_token_prefix(token),
-- `WARN` `app/routers/scripts_status.py:1209` `secret_word` — "warning": "Guarda este token ahora; no se volverá a mostrar.",
-- `WARN` `app/routers/scripts_status.py:1264` `secret_word` — - protegida por token global legado o token específico por host;
+- `WARN` `app/routers/scripts_status.py:1177` `secret_word` — def _automation_agent_token_hash(token: str) -> str:
+- `WARN` `app/routers/scripts_status.py:1178` `secret_word` — return hashlib.sha256(str(token or "").encode("utf-8")).hexdigest()
+- `WARN` `app/routers/scripts_status.py:1185` `secret_word` — def _automation_agent_token_prefix(token: str) -> str:
+- `WARN` `app/routers/scripts_status.py:1186` `secret_word` — return str(token or "")[:10]
+- `WARN` `app/routers/scripts_status.py:1200` `secret_word` — return str(request.headers.get("x-automation-agent-token") or "").strip()
+- `WARN` `app/routers/scripts_status.py:1262` `secret_word` — token = _automation_agent_extract_token(request)
+- `WARN` `app/routers/scripts_status.py:1263` `secret_word` — if not token:
+- `WARN` `app/routers/scripts_status.py:1264` `secret_word` — _automation_agent_audit(host_name, request, "auth_failed", False, "token ausente")
+- `WARN` `app/routers/scripts_status.py:1265` `secret_word` — raise HTTPException(status_code=403, detail="Token de agente inválido")
+- `WARN` `app/routers/scripts_status.py:1274` `secret_word` — incoming_hash = _automation_agent_token_hash(token)
+- `WARN` `app/routers/scripts_status.py:1278` `secret_word` — _automation_agent_audit(host_name, request, "auth_failed", False, "token de host inválido")
+- `WARN` `app/routers/scripts_status.py:1279` `secret_word` — raise HTTPException(status_code=403, detail="Token de agente inválido")
+- `WARN` `app/routers/scripts_status.py:1281` `secret_word` — # Compatibilidad con bloque anterior: token global.
+- `WARN` `app/routers/scripts_status.py:1284` `secret_word` — _automation_agent_audit(host_name, request, "auth_failed", False, "sin token global ni agente registrado")
+- `WARN` `app/routers/scripts_status.py:1287` `secret_word` — if not secrets.compare_digest(token, expected):
+- `WARN` `app/routers/scripts_status.py:1288` `secret_word` — _automation_agent_audit(host_name, request, "auth_failed", False, "token global inválido")
+- `WARN` `app/routers/scripts_status.py:1289` `secret_word` — raise HTTPException(status_code=403, detail="Token de agente inválido")
+- `WARN` `app/routers/scripts_status.py:1366` `secret_word` — """Crea un agente y devuelve el token una sola vez."""
+- `WARN` `app/routers/scripts_status.py:1378` `secret_word` — token = _automation_agent_new_token()
+- `WARN` `app/routers/scripts_status.py:1389` `secret_word` — _automation_agent_token_hash(token),
+- `WARN` `app/routers/scripts_status.py:1390` `secret_word` — _automation_agent_token_prefix(token),
+- `WARN` `app/routers/scripts_status.py:1403` `secret_word` — "token": token,
+- `WARN` `app/routers/scripts_status.py:1404` `secret_word` — "token_prefix": _automation_agent_token_prefix(token),
+- `WARN` `app/routers/scripts_status.py:1405` `secret_word` — "warning": "Guarda este token ahora; no se volverá a mostrar.",
+- `WARN` `app/routers/scripts_status.py:1452` `secret_word` — """Rota el token del agente y devuelve el nuevo token una sola vez."""
+- `WARN` `app/routers/scripts_status.py:1454` `secret_word` — token = _automation_agent_new_token()
+- `WARN` `app/routers/scripts_status.py:1465` `secret_word` — _automation_agent_token_hash(token),
+- `WARN` `app/routers/scripts_status.py:1466` `secret_word` — _automation_agent_token_prefix(token),
+- `WARN` `app/routers/scripts_status.py:1473` `secret_word` — _automation_agent_audit(host_name, request, "agent_token_rotated", True, {"token_prefix": _automation_agent_token_prefix(token)})
+- `WARN` `app/routers/scripts_status.py:1477` `secret_word` — "token": token,
+- `WARN` `app/routers/scripts_status.py:1478` `secret_word` — "token_prefix": _automation_agent_token_prefix(token),
+- `WARN` `app/routers/scripts_status.py:1479` `secret_word` — "warning": "Guarda este token ahora; no se volverá a mostrar.",
+- `WARN` `app/routers/scripts_status.py:1534` `secret_word` — - protegida por token global legado o token específico por host;
 - `WARN` `app/routers/auth.py:109` `secret_word` — password = str(payload.get("password") or "")
 - `WARN` `app/routers/auth.py:114` `secret_word` — if len(password) < 8:
 - `WARN` `app/routers/auth.py:116` `secret_word` — if password != password2:

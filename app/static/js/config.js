@@ -4305,8 +4305,8 @@ $(function () {
       $el.html(`<div class="alert alert-warning small">
         No se pudo cargar el documento <strong>${esc(name)}</strong>.<br>
         <span class="text-muted">${esc(e.message)}</span><br><br>
-        Asegúrate de que los documentos canónicos están en <code>DOC_ONLINE/</code>
-        en la raíz del proyecto, por ejemplo <code>README.md</code> y <code>ROADMAP_Auditor_IPs.txt</code>.
+        Asegúrate de que la documentación integrada está disponible en esta instalación.
+        En PRE se sirve desde la documentación canónica privada y en el repositorio público desde la documentación incluida.
       </div>`);
     }
   }

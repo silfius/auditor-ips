@@ -5,7 +5,7 @@
 $(function() {
   const TRIGGER_LABELS = {
     new_host: '🆕 Nuevo host', offline: '🔴 Offline', offline_for: '🔴⏱ Offline prolongado',
-    online: '🟢 Online', status_change: '🔄 Cambio estado', ip_change: '🔀 Cambio IP'
+    online: '🟢 Online', status_change: '🔄 Cambio estado', ip_change: '🔀 Cambio IP', mac_change: '⚠️ Cambio MAC'
   };
 
   function fmtAlertDateTime(value) {
@@ -22,8 +22,9 @@ $(function() {
     const mode = $(this).val();
     $('#alFilterValueWrap').toggle(mode !== 'all');
     $('#alFilterValueIp').toggle(mode === 'ip');
+    $('#alFilterValueMac').toggle(mode === 'mac');
     $('#alFilterValueType').toggle(mode === 'type_id');
-    $('#alFilterLabel').text(mode === 'ip' ? 'IP' : 'Tipo');
+    $('#alFilterLabel').text(mode === 'ip' ? 'IP' : mode === 'mac' ? 'MAC' : 'Tipo');
   });
 
   window.loadAlerts = async function loadAlerts() {
@@ -42,6 +43,7 @@ $(function() {
     for (const a of data.alerts) {
       const filterDesc = a.filter_mode === 'all' ? 'Todos'
                        : a.filter_mode === 'ip'  ? `IP: <code>${esc(a.filter_value||'')}</code>`
+                       : a.filter_mode === 'mac' ? `MAC: <code>${esc(a.filter_value||'')}</code>`
                        : `Tipo: <span class="badge bg-secondary">${esc(a.type_name||a.filter_value||'')}</span>`;
       const stateBadge = a.enabled
         ? '<span class="badge badge-active">Activa</span>'
@@ -87,6 +89,7 @@ $(function() {
     const trigger = $('#alTrigger').val();
     const fmode   = $('#alFilterMode').val();
     const fvalue  = fmode === 'ip'      ? ($('#alFilterValueIp').val()||'').trim()
+                  : fmode === 'mac'     ? ($('#alFilterValueMac').val()||'').trim()
                   : fmode === 'type_id' ? $('#alFilterValueType').val()
                   : '';
     const cooldown = parseInt($('#alCooldown').val()||'0');
@@ -139,7 +142,7 @@ $(function() {
     'new_host': '🆕 Nuevo host', 'offline': '🔴 Offline',
     'offline_for': '🔴⏱ Offline prolongado',
     'online': '🟢 Online', 'status_change': '🔄 Cambio estado',
-    'ip_change': '🔀 Cambio IP'
+    'ip_change': '🔀 Cambio IP', 'mac_change': '⚠️ Cambio MAC'
   };
 
   $('#alTrigger').on('change', function() {
@@ -153,6 +156,7 @@ $(function() {
     const trigger = $('#alTrigger').val();
     const fmode   = $('#alFilterMode').val();
     const fvalue  = fmode === 'ip'      ? ($('#alFilterValueIp').val()||'').trim()
+                  : fmode === 'mac'     ? ($('#alFilterValueMac').val()||'').trim()
                   : fmode === 'type_id' ? $('#alFilterValueType').val()
                   : '';
     const cooldown  = parseInt($('#alCooldown').val()||'0');
@@ -201,6 +205,7 @@ $(function() {
     for (const a of data.alerts) {
       const filterDesc = a.filter_mode === 'all' ? 'Todos'
                        : a.filter_mode === 'ip'  ? `IP: <code>${esc(a.filter_value||'')}</code>`
+                       : a.filter_mode === 'mac' ? `MAC: <code>${esc(a.filter_value||'')}</code>`
                        : `Tipo: <span class="badge bg-secondary">${esc(a.type_name||a.filter_value||'')}</span>`;
       const stateBadge = a.enabled
         ? '<span class="badge badge-active">Activa</span>'
@@ -270,6 +275,7 @@ $(function() {
     const fm = a.filter_mode;
     $('#alertEditFilterValueWrap').toggle(fm !== 'all');
     $('#alertEditFilterValueIp').toggle(fm === 'ip').val(fm === 'ip' ? (a.filter_value||'') : '');
+    $('#alertEditFilterValueMac').toggle(fm === 'mac').val(fm === 'mac' ? (a.filter_value||'') : '');
     $('#alertEditFilterValueType').toggle(fm === 'type_id');
     if (fm === 'type_id') $('#alertEditFilterValueType').val(a.filter_value||'');
     $('#alertEditMinDownWrap').toggle(a.trigger_type === 'offline_for');
@@ -282,6 +288,7 @@ $(function() {
     const v = $(this).val();
     $('#alertEditFilterValueWrap').toggle(v !== 'all');
     $('#alertEditFilterValueIp').toggle(v === 'ip');
+    $('#alertEditFilterValueMac').toggle(v === 'mac');
     $('#alertEditFilterValueType').toggle(v === 'type_id');
   });
   $('#alertEditTrigger').on('change', function() {
@@ -292,7 +299,7 @@ $(function() {
   $('#alertEditSave').on('click', async function() {
     const id = $('#alertEditId').val();
     const fm = $('#alertEditFilterMode').val();
-    const fv = fm === 'ip' ? $('#alertEditFilterValueIp').val() : fm === 'type_id' ? $('#alertEditFilterValueType').val() : '';
+    const fv = fm === 'ip' ? $('#alertEditFilterValueIp').val() : fm === 'mac' ? $('#alertEditFilterValueMac').val() : fm === 'type_id' ? $('#alertEditFilterValueType').val() : '';
     const payload = {
       name: $('#alertEditName').val().trim(),
       trigger_type: $('#alertEditTrigger').val(),

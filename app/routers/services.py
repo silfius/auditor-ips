@@ -7,7 +7,7 @@ import json as _json
 import ssl as _ssl
 import threading
 import urllib.request as _urlreq
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Body
@@ -15,7 +15,7 @@ from fastapi.responses import JSONResponse
 
 from config import cfg
 from database import db
-from utils import utc_now, utc_now_iso
+from utils import utc_now, utc_now_iso, get_app_tz
 
 router = APIRouter()
 
@@ -82,6 +82,123 @@ def http_check(url: str, timeout: Optional[float] = None):
             return True, ms, resp.status, body, None
     except Exception as e:
         return False, round((time.monotonic() - t0) * 1000, 1), None, None, str(e)[:120]
+
+
+
+def _service_schedule_bool(value: Any) -> bool:
+    return str(value).strip().lower() in {"1", "true", "yes", "on", "si", "sí"}
+
+
+def _normalize_service_schedule_payload(payload: Dict[str, Any], defaults: Optional[dict] = None) -> dict:
+    defaults = defaults or {}
+
+    enabled_raw = payload.get("expected_schedule_enabled", defaults.get("expected_schedule_enabled", 0))
+    enabled = 1 if _service_schedule_bool(enabled_raw) else 0
+
+    days_raw = payload.get("expected_schedule_days", defaults.get("expected_schedule_days", "1,2,3,4,5,6,7"))
+    if isinstance(days_raw, list):
+        days = [str(x).strip() for x in days_raw]
+    else:
+        days = [x.strip() for x in str(days_raw or "").split(",")]
+    days = [d for d in days if d in {"1", "2", "3", "4", "5", "6", "7"}]
+    if not days:
+        days = ["1", "2", "3", "4", "5", "6", "7"]
+
+    start = str(payload.get("expected_schedule_start", defaults.get("expected_schedule_start", "")) or "").strip()
+    end = str(payload.get("expected_schedule_end", defaults.get("expected_schedule_end", "")) or "").strip()
+
+    time_re = re_compile_time()
+    if start and not time_re.match(start):
+        start = ""
+    if end and not time_re.match(end):
+        end = ""
+
+    return {
+        "expected_schedule_enabled": enabled,
+        "expected_schedule_days": ",".join(days),
+        "expected_schedule_start": start or None,
+        "expected_schedule_end": end or None,
+    }
+
+
+def re_compile_time():
+    import re
+    return re.compile(r"^\d{2}:\d{2}$")
+
+
+def _time_to_minutes(value: Any) -> Optional[int]:
+    raw = str(value or "").strip()
+    if not re_compile_time().match(raw):
+        return None
+    hh, mm = raw.split(":", 1)
+    try:
+        h = int(hh)
+        m = int(mm)
+    except Exception:
+        return None
+    if h < 0 or h > 23 or m < 0 or m > 59:
+        return None
+    return h * 60 + m
+
+
+def _service_expected_schedule_state(svc: dict, now: Optional[datetime] = None) -> dict:
+    enabled = _service_schedule_bool(svc.get("expected_schedule_enabled", 0))
+    days_raw = str(svc.get("expected_schedule_days") or "1,2,3,4,5,6,7")
+    days = {int(x) for x in days_raw.split(",") if x.strip().isdigit() and 1 <= int(x.strip()) <= 7}
+
+    start_raw = str(svc.get("expected_schedule_start") or "").strip()
+    end_raw = str(svc.get("expected_schedule_end") or "").strip()
+    start_min = _time_to_minutes(start_raw)
+    end_min = _time_to_minutes(end_raw)
+
+    if not enabled:
+        return {
+            "enabled": False,
+            "in_expected_window": True,
+            "label": "Sin horario esperado",
+            "detail": "",
+            "state": "not_configured",
+        }
+
+    if start_min is None or end_min is None or not days:
+        return {
+            "enabled": True,
+            "in_expected_window": True,
+            "label": "Horario incompleto",
+            "detail": "Revisa inicio, fin y días activos",
+            "state": "invalid",
+        }
+
+    tz = get_app_tz()
+    current = now or datetime.now(tz)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=tz)
+    local = current.astimezone(tz)
+
+    weekday = local.isoweekday()
+    prev_weekday = 7 if weekday == 1 else weekday - 1
+    minute = local.hour * 60 + local.minute
+
+    crosses_midnight = start_min > end_min
+    if start_min == end_min:
+        in_window = weekday in days
+    elif crosses_midnight:
+        in_window = (weekday in days and minute >= start_min) or (prev_weekday in days and minute < end_min)
+    else:
+        in_window = weekday in days and start_min <= minute < end_min
+
+    day_labels = ["L", "M", "X", "J", "V", "S", "D"]
+    detail_days = ", ".join(day_labels[d - 1] for d in sorted(days))
+    detail = f"{detail_days} · {start_raw}-{end_raw}"
+
+    return {
+        "enabled": True,
+        "in_expected_window": bool(in_window),
+        "label": "Horario activo" if in_window else "Fuera de horario",
+        "detail": detail,
+        "state": "active" if in_window else "outside",
+    }
+
 
 
 def fetch_service_info(svc: dict) -> dict:
@@ -176,6 +293,7 @@ def run_service_check(service_id: int) -> None:
         if ok and svc.get("service_type") and svc["service_type"] != "generic":
             info_dict = fetch_service_info(svc)
         info_json = _json.dumps(info_dict) if info_dict else None
+        schedule_state = _service_expected_schedule_state(svc)
 
         with db() as conn:
             conn.execute("""
@@ -191,7 +309,7 @@ def run_service_check(service_id: int) -> None:
             ).fetchone()
             prev_status = prev_row["status"] if prev_row else None
 
-            if prev_status is not None and prev_status != status:
+            if schedule_state.get("in_expected_window", True) and prev_status is not None and prev_status != status:
                 emoji = "🟢" if status == "up" else ("🟡" if status == "timeout" else "🔴")
                 msg = (f"{emoji} **Servicio {status.upper()}**: {svc['name']} "
                        f"(`{svc['host']}:{svc['port']}`)")
@@ -227,12 +345,13 @@ def run_service_check(service_id: int) -> None:
                     except Exception:
                         pass
 
-            conn.execute("""
-                INSERT INTO service_last_status (service_id, status, notified_at)
-                VALUES (?,?,?)
-                ON CONFLICT(service_id) DO UPDATE
-                    SET status=excluded.status, notified_at=excluded.notified_at
-            """, (service_id, status, now))
+            if schedule_state.get("in_expected_window", True):
+                conn.execute("""
+                    INSERT INTO service_last_status (service_id, status, notified_at)
+                    VALUES (?,?,?)
+                    ON CONFLICT(service_id) DO UPDATE
+                        SET status=excluded.status, notified_at=excluded.notified_at
+                """, (service_id, status, now))
 
 
 def schedule_services() -> None:
@@ -279,7 +398,10 @@ def api_services_list():
             )
             ORDER BY s.name
         """).fetchall()
-    return {"ok": True, "services": [dict(r) for r in rows]}
+    services = [dict(r) for r in rows]
+    for item in services:
+        item["expected_schedule_state"] = _service_expected_schedule_state(item)
+    return {"ok": True, "services": services}
 
 
 @router.get("/api/services/{svc_id}/history")
@@ -308,6 +430,7 @@ def api_service_create(payload: Dict[str, Any] = Body(...)):
     service_url    = (payload.get("service_url") or "").strip() or None
     access_url     = (payload.get("access_url") or "").strip() or None
     notes          = (payload.get("notes") or "").strip() or None
+    schedule       = _normalize_service_schedule_payload(payload)
 
     if not name or not host:
         return JSONResponse({"ok": False, "error": "name y host son obligatorios"}, status_code=400)
@@ -315,9 +438,12 @@ def api_service_create(payload: Dict[str, Any] = Body(...)):
     with db() as conn:
         cur = conn.execute("""
             INSERT INTO services
-                (name,host,port,protocol,check_interval,enabled,service_type,service_url,access_url,notes,created_at)
-            VALUES (?,?,?,?,?,1,?,?,?,?,?)
-        """, (name, host, port, protocol, check_interval, service_type, service_url, access_url, notes, utc_now_iso()))
+                (name,host,port,protocol,check_interval,enabled,service_type,service_url,access_url,notes,
+                 expected_schedule_enabled,expected_schedule_days,expected_schedule_start,expected_schedule_end,created_at)
+            VALUES (?,?,?,?,?,1,?,?,?,?,?,?,?,?,?)
+        """, (name, host, port, protocol, check_interval, service_type, service_url, access_url, notes,
+              schedule["expected_schedule_enabled"], schedule["expected_schedule_days"],
+              schedule["expected_schedule_start"], schedule["expected_schedule_end"], utc_now_iso()))
         new_id = cur.lastrowid
 
     threading.Thread(target=run_service_check, args=(new_id,), daemon=True).start()
@@ -343,18 +469,21 @@ def api_service_update(svc_id: int, payload: Dict[str, Any] = Body(...)):
     access_url     = (payload.get("access_url") or "").strip() or None
     notes          = (payload.get("notes") or "").strip() or None
     enabled        = 1 if payload.get("enabled", True) else 0
-
     with db() as conn:
-        row = conn.execute("SELECT id FROM services WHERE id=?", (svc_id,)).fetchone()
+        row = conn.execute("SELECT * FROM services WHERE id=?", (svc_id,)).fetchone()
         if not row:
             return JSONResponse({"ok": False, "error": "Servicio no encontrado"}, status_code=404)
+        schedule = _normalize_service_schedule_payload(payload, dict(row))
         conn.execute("""
             UPDATE services
             SET name=?,host=?,port=?,protocol=?,check_interval=?,
-                service_type=?,service_url=?,access_url=?,notes=?,enabled=?
+                service_type=?,service_url=?,access_url=?,notes=?,enabled=?,
+                expected_schedule_enabled=?,expected_schedule_days=?,expected_schedule_start=?,expected_schedule_end=?
             WHERE id=?
         """, (name, host, port, protocol, check_interval,
-              service_type, service_url, access_url, notes, enabled, svc_id))
+              service_type, service_url, access_url, notes, enabled,
+              schedule["expected_schedule_enabled"], schedule["expected_schedule_days"],
+              schedule["expected_schedule_start"], schedule["expected_schedule_end"], svc_id))
 
     sched = _get_scheduler()
     if sched:

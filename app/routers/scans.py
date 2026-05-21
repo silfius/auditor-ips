@@ -548,6 +548,9 @@ def evaluate_alerts(
     messages: List[str] = []
     prev_macs = {v.get("mac") for v in prev.values() if v.get("mac")}
 
+    def _norm_mac(value: Any) -> str:
+        return str(value or "").strip().upper().replace("-", ":")
+
     for alert in alerts:
         aid, name, ttype = alert["id"], alert["name"], alert["trigger_type"]
         fmode, fvalue    = alert["filter_mode"], alert["filter_value"] or ""
@@ -563,7 +566,14 @@ def evaluate_alerts(
 
         for ip, cur in current.items():
             p = prev.get(ip)
-            if fmode == "ip"      and fvalue and ip != fvalue: continue
+            if fmode == "ip" and fvalue and ip != fvalue:
+                continue
+            if fmode == "mac" and fvalue:
+                target_mac = _norm_mac(fvalue)
+                current_mac = _norm_mac(cur.get("mac"))
+                previous_mac = _norm_mac(p.get("mac") if p else "")
+                if target_mac not in {current_mac, previous_mac}:
+                    continue
             if fmode == "type_id" and fvalue:
                 host_row = conn.execute("SELECT type_id FROM hosts WHERE ip=?", (ip,)).fetchone()
                 if not host_row or str(host_row["type_id"] or "") != fvalue:
@@ -589,17 +599,33 @@ def evaluate_alerts(
                 if p and p.get("status") != "online": fired_ips.append(ip)
             elif ttype == "status_change":
                 if p and p.get("status") != cur.get("status"): fired_ips.append(ip)
+            elif ttype == "mac_change":
+                old_mac = p.get("mac") if p else None
+                new_mac = cur.get("mac")
+                if old_mac and new_mac and old_mac != new_mac:
+                    fired_ips.append(f"{ip} {old_mac}→{new_mac}")
 
         if ttype == "ip_change":
-            for old_ip in prev:
-                if old_ip not in current:
-                    old_mac = prev[old_ip].get("mac")
-                    if old_mac:
-                        new_entry = next((c for c in current.values() if c.get("mac") == old_mac), None)
-                        if new_entry:
-                            new_ip = next(k for k, v in current.items() if v is new_entry)
-                            if fmode == "all" or (fmode == "ip" and fvalue == old_ip):
-                                fired_ips.append(f"{old_ip}→{new_ip}")
+            current_mac_to_ip = {
+                _norm_mac(v.get("mac")): ip
+                for ip, v in current.items()
+                if _norm_mac(v.get("mac"))
+            }
+            for old_ip, old_data in prev.items():
+                if old_ip in current:
+                    continue
+                old_mac = _norm_mac(old_data.get("mac"))
+                if not old_mac:
+                    continue
+                new_ip = current_mac_to_ip.get(old_mac)
+                if not new_ip or new_ip == old_ip:
+                    continue
+                if (
+                    fmode == "all"
+                    or (fmode == "ip" and fvalue == old_ip)
+                    or (fmode == "mac" and _norm_mac(fvalue) == old_mac)
+                ):
+                    fired_ips.append(f"{old_ip}→{new_ip}")
 
         if not fired_ips:
             continue
@@ -610,7 +636,8 @@ def evaluate_alerts(
         labels = {
             "new_host": "🆕 Nuevo host", "offline": "🔴 Offline",
             "online": "🟢 Online", "status_change": "🔄 Cambio estado",
-            "ip_change": "🔀 Cambio de IP", "offline_for": "🔴 Offline prolongado",
+            "ip_change": "🔀 Cambio de IP", "mac_change": "⚠️ Cambio de MAC",
+            "offline_for": "🔴 Offline prolongado",
         }
         msg = f"🔔 **Alerta: {name}**\n{labels.get(ttype, ttype)}: {ips_str}"
         messages.append(msg)

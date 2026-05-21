@@ -51,6 +51,97 @@ $(function() {
     return '—';
   }
 
+  function svcExpectedScheduleState(svc) {
+    return svc?.expected_schedule_state || {
+      enabled: !!svc?.expected_schedule_enabled,
+      in_expected_window: true,
+      label: '',
+      detail: '',
+      state: 'not_configured'
+    };
+  }
+
+  function svcExpectedScheduleBadge(svc) {
+    const state = svcExpectedScheduleState(svc);
+    if (!state.enabled) return '';
+
+    const st = String(svc?.last_status || '').toLowerCase();
+    const breach = state.in_expected_window && st && st !== 'up';
+    const cls = !state.in_expected_window
+      ? 'bg-secondary'
+      : breach
+        ? 'bg-danger'
+        : 'bg-success';
+    const label = breach ? 'Incumplimiento horario' : (state.label || 'Horario esperado');
+    const detail = state.detail ? ` · ${esc(state.detail)}` : '';
+
+    return `<span class="badge ${cls}" title="${esc(label + (state.detail ? ' · ' + state.detail : ''))}">
+      <i class="bi bi-calendar-check me-1"></i>${esc(label)}${detail}
+    </span>`;
+  }
+
+  function svcExpectedScheduleDays(svc) {
+    const raw = String(svc?.expected_schedule_days || '1,2,3,4,5,6,7');
+    const selected = new Set(raw.split(',').map(x => x.trim()).filter(Boolean));
+    return ['1','2','3','4','5','6','7'].map(value => ({
+      value,
+      label: ['L','M','X','J','V','S','D'][Number(value) - 1],
+      checked: selected.has(value),
+    }));
+  }
+
+  function renderSvcExpectedScheduleEditor(svc) {
+    const enabled = !!svc?.expected_schedule_enabled;
+    const start = esc(svc?.expected_schedule_start || '');
+    const end = esc(svc?.expected_schedule_end || '');
+    const dayChecks = svcExpectedScheduleDays(svc).map(day => `
+      <label class="form-check form-check-inline mb-0 small-muted" style="font-size:.76rem">
+        <input class="form-check-input ef-expected-day" type="checkbox" value="${day.value}" ${day.checked ? 'checked' : ''}>
+        ${day.label}
+      </label>
+    `).join('');
+
+    return `
+      <div class="col-12">
+        <div class="p-2 rounded" style="border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.03)">
+          <label class="form-check form-switch d-flex align-items-center gap-2 mb-2">
+            <input class="form-check-input ef-expected-enabled" type="checkbox" ${enabled ? 'checked' : ''}>
+            <span class="small-muted" style="font-size:.78rem">Horario esperado de funcionamiento</span>
+          </label>
+          <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-5">
+              <div class="small-muted mb-1" style="font-size:.72rem">Días activos</div>
+              <div>${dayChecks}</div>
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="small-muted" style="font-size:.72rem">Inicio</label>
+              <input type="time" class="form-control form-control-sm ef-expected-start" value="${start}">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="small-muted" style="font-size:.72rem">Fin</label>
+              <input type="time" class="form-control form-control-sm ef-expected-end" value="${end}">
+            </div>
+            <div class="col-12">
+              <div class="small-muted" style="font-size:.72rem">
+                Fuera de esta franja se siguen guardando checks, pero no se envían alertas de caída/timeout.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function svcExpectedSchedulePayload(form) {
+    const days = form.find('.ef-expected-day:checked').map(function(){ return this.value; }).get();
+    return {
+      expected_schedule_enabled: form.find('.ef-expected-enabled').is(':checked'),
+      expected_schedule_days: days.length ? days.join(',') : '1,2,3,4,5,6,7',
+      expected_schedule_start: form.find('.ef-expected-start').val() || '',
+      expected_schedule_end: form.find('.ef-expected-end').val() || '',
+    };
+  }
+
+
   function renderSvcInfo(infoJson) {
     if (!infoJson) return '';
     let info = {};
@@ -71,7 +162,10 @@ $(function() {
   }
 
   function renderSvcCard(svc) {
-    const statusClass = svc.last_status === 'up' ? 'up' : svc.last_status === 'down' ? 'down' : 'unknown';
+    const rawStatusClass = svc.last_status === 'up' ? 'up' : svc.last_status === 'down' ? 'down' : 'unknown';
+    const scheduleState = svcExpectedScheduleState(svc);
+    const statusClass = scheduleState.enabled && !scheduleState.in_expected_window ? 'unknown' : rawStatusClass;
+    const scheduleBadge = svcExpectedScheduleBadge(svc);
     const latText     = svc.last_latency != null ? `${svc.last_latency}ms` : '—';
     const icon        = SVC_TYPE_ICONS[svc.service_type] || '🔌';
     const checkedAt   = svcFmtTime(svc.last_checked);
@@ -123,6 +217,7 @@ $(function() {
               ${(svc.last_status || 'Sin datos').toUpperCase()}
             </span>
             <span class="svc-latency">${latText}</span>
+            ${scheduleBadge}
             <span class="svc-latency ms-auto">Último: ${checkedAt}</span>
           </div>
           <div class="svc-card-meta-extra">${infoHtml}${errHtml}</div>
@@ -156,6 +251,7 @@ $(function() {
                 <input class="form-control form-control-sm ef-access" value="${esc(svc.access_url||'')}" placeholder="https://mi.dominio.com"></div>
               <div class="col-6 col-sm-3"><label class="small-muted" style="font-size:.72rem">Intervalo (s)</label>
                 <input type="number" class="form-control form-control-sm ef-interval" value="${svc.check_interval}" min="30"></div>
+              ${renderSvcExpectedScheduleEditor(svc)}
               <div class="col-12 col-sm-9"><label class="small-muted" style="font-size:.72rem">Notas</label>
                 <input class="form-control form-control-sm ef-notes" value="${esc(svc.notes||'')}"></div>
               <div class="col-12 d-flex gap-2 justify-content-end">
@@ -222,6 +318,11 @@ $(function() {
       svc.last_error || '',
       svc.last_info || '',
       svc.uptime_pct ?? null,
+      svc.expected_schedule_enabled ?? null,
+      svc.expected_schedule_days || '',
+      svc.expected_schedule_start || '',
+      svc.expected_schedule_end || '',
+      svc.expected_schedule_state?.state || '',
     ]);
   }
 
@@ -237,6 +338,11 @@ $(function() {
       svc.uptime_pct ?? null,
       svc.last_checked || '',
       svc.check_interval ?? null,
+      svc.expected_schedule_enabled ?? null,
+      svc.expected_schedule_days || '',
+      svc.expected_schedule_start || '',
+      svc.expected_schedule_end || '',
+      svc.expected_schedule_state?.state || '',
     ])));
   }
 
@@ -334,12 +440,16 @@ $(function() {
       const icon = SVC_TYPE_ICONS[svc.service_type] || '🔌';
       const lat = svc.last_latency != null ? `${svc.last_latency}ms` : '—';
       const checkedAt = svcFmtTime(svc.last_checked);
+      const scheduleInline = svcExpectedScheduleBadge(svc);
       const accessUrl = svc.access_url || `http://${svc.host}:${svc.port}`;
       // Uptime from recent checks if available
       const uptime = svc.uptime_pct != null ? `${svc.uptime_pct}%` : '—';
       return `<tr>
         <td>${stBadge}</td>
-        <td><a href="${esc(accessUrl)}" target="_blank" class="text-decoration-none" style="color:inherit">${icon} ${esc(svc.name)}</a></td>
+        <td>
+          <a href="${esc(accessUrl)}" target="_blank" class="text-decoration-none" style="color:inherit">${icon} ${esc(svc.name)}</a>
+          ${scheduleInline ? `<div class="mt-1">${scheduleInline}</div>` : ''}
+        </td>
         <td class="mono small">${esc(svc.host)}:${svc.port}</td>
         <td><span class="badge bg-secondary">${esc(svc.service_type)}</span></td>
         <td class="mono">${lat}</td>
@@ -753,6 +863,7 @@ $(function() {
       enabled:        true,
       protocol:       ['http','https'].includes(form.find('.ef-type').val()) ? form.find('.ef-type').val() : 'tcp',
     };
+    Object.assign(payload, svcExpectedSchedulePayload(form));
     setBtnLoading(this, true);
     const res  = await fetch(`/api/services/${id}`, {
       method:'PUT', headers:{'Content-Type':'application/json'},
@@ -761,6 +872,8 @@ $(function() {
     const data = await res.json();
     setBtnLoading(this, false);
     if (!data.ok) { showToast((window.t?.('services.error_prefix', 'Error:') || 'Error:') + ' ' + (data.error||'?'), 'danger'); return; }
+    $(`#svcEdit_${id}`).removeClass('open');
+    $(`[data-id="${id}"].btn-svc-edit i`).removeClass('bi-pencil-fill').addClass('bi-pencil');
     await loadServices();
   });
 

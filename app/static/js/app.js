@@ -704,6 +704,15 @@ $(function () {
   }
 
 
+  function _applyHostGroupOrder() {
+    if (_hostGroupBy === 'owner') hostsTable.order([[16, 'asc'], [1, 'desc'], [2, 'asc']]);
+    else if (_hostGroupBy === 'type') hostsTable.order([[17, 'asc'], [1, 'desc'], [2, 'asc']]);
+    else if (_hostGroupBy === 'status') hostsTable.order([[18, 'asc'], [2, 'asc']]);
+    else if (_hostGroupBy === 'network') hostsTable.order([[2, 'asc']]);
+    else if (_hostGroupBy === 'known') hostsTable.order([[19, 'asc'], [1, 'desc'], [2, 'asc']]);
+    else hostsTable.order([[1, 'desc'], [2, 'asc']]);
+  }
+
   function _applyHostGrouping(value, draw = true) {
     _hostGroupBy = String(value || '');
     localStorage.setItem(HOST_GROUP_BY_KEY, _hostGroupBy);
@@ -717,12 +726,7 @@ $(function () {
       hostsTable.rowGroup().enable(!!_hostGroupBy);
     }
 
-    if (_hostGroupBy === 'owner') hostsTable.order([[16, 'asc'], [1, 'desc'], [2, 'asc']]);
-    else if (_hostGroupBy === 'type') hostsTable.order([[17, 'asc'], [1, 'desc'], [2, 'asc']]);
-    else if (_hostGroupBy === 'status') hostsTable.order([[18, 'asc'], [2, 'asc']]);
-    else if (_hostGroupBy === 'network') hostsTable.order([[2, 'asc']]);
-    else if (_hostGroupBy === 'known') hostsTable.order([[19, 'asc'], [1, 'desc'], [2, 'asc']]);
-    else hostsTable.order([[1, 'desc'], [2, 'asc']]);
+    _applyHostGroupOrder();
 
     if (draw) hostsTable.draw(false);
     else hostsTable.draw(false);
@@ -1113,33 +1117,46 @@ $(function () {
     }
     if (window._prefetch) window._prefetch.hosts = data;
 
-    const existingRows = new Map();
-    hostsTable.rows().every(function () {
-      const node = this.node();
-      const ip = String($(node).attr('data-ip') || $(node).children('td').eq(2).text().trim() || '');
-      if (ip) existingRows.set(ip, this);
-    });
-
-    const incomingIps = new Set();
-    hosts.forEach(host => {
-      const ip = String(host?.ip || '');
-      if (!ip) return;
-      incomingIps.add(ip);
-      const rowApi = existingRows.get(ip);
-      if (rowApi) {
-        _syncHostRowNode(rowApi.node(), host);
-        rowApi.invalidate('dom');
-      } else {
+    if (_hostGroupBy) {
+      // RowGroup/DataTables puede mantener datos cacheados al actualizar filas DOM in-place.
+      // Con agrupación activa, reconstruimos desde /api/hosts para recalcular columnas ocultas
+      // de responsable/tipo/estado/conocido sin requerir F5.
+      hostsTable.clear();
+      hosts.forEach(host => {
         const node = $(_hostRowHtml(host))[0];
         hostsTable.row.add(node);
-      }
-    });
+      });
+      _applyHostGroupOrder();
+      hostsTable.draw(false);
+    } else {
+      const existingRows = new Map();
+      hostsTable.rows().every(function () {
+        const node = this.node();
+        const ip = String($(node).attr('data-ip') || $(node).children('td').eq(2).text().trim() || '');
+        if (ip) existingRows.set(ip, this);
+      });
 
-    existingRows.forEach((rowApi, ip) => {
-      if (!incomingIps.has(ip)) rowApi.remove();
-    });
+      const incomingIps = new Set();
+      hosts.forEach(host => {
+        const ip = String(host?.ip || '');
+        if (!ip) return;
+        incomingIps.add(ip);
+        const rowApi = existingRows.get(ip);
+        if (rowApi) {
+          _syncHostRowNode(rowApi.node(), host);
+          rowApi.invalidate('dom');
+        } else {
+          const node = $(_hostRowHtml(host))[0];
+          hostsTable.row.add(node);
+        }
+      });
 
-    hostsTable.draw(false);
+      existingRows.forEach((rowApi, ip) => {
+        if (!incomingIps.has(ip)) rowApi.remove();
+      });
+
+      hostsTable.draw(false);
+    }
 
     if (keepPage) {
       const pageCount = hostsTable.page.info().pages || 1;
@@ -1151,6 +1168,8 @@ $(function () {
     if (adjustLayout) _adjustHostsTableLayout(0);
     if (_hostGroupBy && hostsTable.rowGroup) {
       hostsTable.rowGroup().enable(true);
+      _applyHostGroupOrder();
+      hostsTable.draw(false);
     }
     window._refreshSplitByNet?.();
     window._refreshHostsVisualViews?.();
@@ -1238,18 +1257,32 @@ $(function () {
 
   async function refreshActiveViews(options = {}) {
     const refreshHosts = options.refreshHosts !== false;
-    const tasks = [window.pollStatus?.()];
-    if (refreshHosts) tasks.push(refreshHostsTable({ keepPage: true }));
+
+    // Mantener orden estable: primero datos globales/tabla, después vistas dependientes
+    // y por último el modal. Evita carreras al guardar un host y reabrir detalle.
+    await Promise.allSettled([window.pollStatus?.()].filter(Boolean));
+
+    if (refreshHosts) {
+      try {
+        await refreshHostsTable({
+          keepPage: true,
+          adjustLayout: options.adjustLayout !== false && _isHostsTableVisible(),
+        });
+      } catch (_) {}
+    }
+
+    const secondaryTasks = [];
     if (options.refreshScans && document.getElementById('hostsScans')?.classList.contains('show') && typeof window.loadScans === 'function') {
-      tasks.push(window.loadScans());
+      secondaryTasks.push(window.loadScans());
     }
     if (options.refreshDashboard && document.getElementById('dashboardView')?.classList.contains('show') && typeof window.loadDashboard === 'function') {
-      tasks.push(window.loadDashboard());
+      secondaryTasks.push(window.loadDashboard());
     }
+    await Promise.allSettled(secondaryTasks);
+
     if (options.reopenIp && document.getElementById('hostModal')?.classList.contains('show') && typeof window.openHost === 'function') {
-      tasks.push(window.openHost(options.reopenIp));
+      try { await window.openHost(options.reopenIp); } catch (_) {}
     }
-    await Promise.allSettled(tasks.filter(Boolean));
   }
 
 
@@ -1490,39 +1523,39 @@ $(function () {
     const meta = {
       readme: {
         title: 'README',
-        subtitle: 'DOC_ONLINE/README.md',
+        subtitle: 'Documentación integrada · README',
         tabId: 'doc-readme-tab',
         keywords: ['documentacion', 'documentación', 'docs', 'manual', 'guia', 'guía', 'canónico', 'canonico']
       },
       roadmap: {
         title: 'Roadmap',
-        subtitle: 'DOC_ONLINE/ROADMAP_Auditor_IPs.txt',
+        subtitle: 'Documentación integrada · Roadmap',
         tabId: 'doc-roadmap-tab',
         keywords: ['roadmap', 'ruta', 'plan', 'pendientes', 'bloques']
       },
       estado: {
         title: 'Estado actual',
-        subtitle: 'DOC_ONLINE/ESTADO_ACTUAL_Auditor_IPs.txt',
+        subtitle: 'Documentación integrada · Estado actual',
         keywords: ['estado', 'continuidad', 'traspaso', 'handoff']
       },
       indice: {
         title: 'Índice técnico',
-        subtitle: 'DOC_ONLINE/INDICE_Auditor_IPs.txt',
+        subtitle: 'Documentación integrada · Índice técnico',
         keywords: ['indice', 'índice', 'ficheros', 'secciones']
       },
       prompt: {
         title: 'Prompt operativo',
-        subtitle: 'DOC_ONLINE/PROMPT_Auditor_IPs.txt',
+        subtitle: 'Documentación integrada · Prompt operativo',
         keywords: ['prompt', 'ritual', 'inicio', 'reglas']
       },
       checklist: {
         title: 'Checklist de cierre',
-        subtitle: 'DOC_ONLINE/CHECKLIST_CIERRE_BLOQUE.md',
+        subtitle: 'Documentación integrada · Checklist',
         keywords: ['checklist', 'cierre', 'bloque', 'merge']
       },
       decisiones: {
         title: 'Decisiones y errores',
-        subtitle: 'DOC_ONLINE/DECISIONES_Y_ERRORES.md',
+        subtitle: 'Documentación integrada · Decisiones',
         keywords: ['decisiones', 'errores', 'trampas', 'regresiones']
       },
       redes: {
@@ -1892,12 +1925,44 @@ $(function () {
 
 
   // ── E. Scans table + loadScans ───────────────────────────────────────────────
+  function _fmtScanDateTime(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '—';
+
+    const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})(?::(\d{2}))?/);
+    if (match) {
+      const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+      const year = match[1];
+      const month = months[Math.max(0, Math.min(11, Number(match[2]) - 1))];
+      const day = match[3];
+      const hour = match[4];
+      const minute = match[5];
+      const second = match[6] || '00';
+      return `${day} ${month} ${year} · ${hour}:${minute}:${second}`;
+    }
+
+    return raw
+      .replace('T', ' ')
+      .replace(/\.\d+([+-]\d{2}:?\d{2}|Z)?$/, '')
+      .replace(/([+-]\d{2}:?\d{2}|Z)$/, '');
+  }
+
   const scansTable = $.fn.DataTable.isDataTable('#scans')
     ? $('#scans').DataTable()
     : $('#scans').DataTable({
         pageLength: 25,
         order: [[0, 'desc']],
         deferRender: true,
+        columnDefs: [
+          {
+            targets: [1, 2],
+            render: function (data, type) {
+              const raw = String(data ?? '').trim();
+              if (type === 'display' || type === 'filter') return esc(_fmtScanDateTime(raw));
+              return raw;
+            }
+          }
+        ],
         columns: [null, null, null, null, null, null, null, null, null, null, { orderable: false }]
       });
 
@@ -1908,7 +1973,7 @@ $(function () {
       const rows = await fetch('/api/scans').then(r => r.json());
       scansTable.clear();
       scansTable.rows.add((rows || []).map(r => [
-        esc(r.id ?? ''), esc(r.started_at ?? ''), esc(r.finished_at ?? ''),
+        esc(r.id ?? ''), r.started_at ?? '', r.finished_at ?? '',
         esc(r.cidr ?? ''), esc(r.online_hosts ?? ''), esc(r.offline_hosts ?? ''),
         esc(r.new_hosts ?? ''), esc(r.events_sent ?? ''),
         r.discord_sent ? '✅' : '—', '—', '',
@@ -2145,8 +2210,8 @@ $(function () {
         throw new Error(data.error || 'Error');
       }
       $sel.data('prev-type-val', type_id);
-      $sel.closest('tr').find('td.type-sort').text($sel.find('option:selected').text());
-      hostsTable.draw(false);
+      const reopenIp = (window.currentIp && window.currentIp === ip) ? ip : undefined;
+      await refreshActiveViews({ refreshHosts: true, refreshDashboard: true, reopenIp });
     } catch (err) {
       setLoading(false); $sel.prop('disabled', false);
       // Ensure select is reverted on any error path
@@ -2284,7 +2349,8 @@ $(function () {
       }
 
       $sel.data('prev-owner-val', ownerVal || '');
-      await refreshHostsTable({ keepPage: true });
+      const reopenIp = (window.currentIp && window.currentIp === ip) ? ip : undefined;
+      await refreshActiveViews({ refreshHosts: true, refreshDashboard: true, reopenIp });
     } catch (err) {
       $sel.val(prevVal);
       $('#bulkMsg').text('✗ ' + err.message);
@@ -3381,6 +3447,14 @@ $(function () {
     if (statsEl) statsEl.textContent = window.t?.('host.table_stats', '{online} online · {offline} offline · Total: {total}', { online: onlineCount, offline: offlineCount, total: visibleNodes.length }) || `${onlineCount} online · ${offlineCount} offline · Total: ${visibleNodes.length}`;
   }
 
+  function _mapGroupLabelForHost(host, groupBy) {
+    if (groupBy === 'owner') return _hostOwnerGroupLabel(host);
+    if (groupBy === 'type') return _hostTypeGroupLabel(host);
+    if (groupBy === 'status') return _hostStatusGroupLabelFromStatus(host?.status);
+    if (groupBy === 'known') return _hostKnownGroupLabelFromHost(host);
+    return 'Sin grupo';
+  }
+
   function layoutMapNodes(hosts = []) {
     const canvas = document.getElementById('networkCanvas');
     if (!canvas) return;
@@ -3401,6 +3475,47 @@ $(function () {
     });
 
     _mapGroups = [];
+
+    function layoutMapGroupsFromBuckets(buckets) {
+      const keys = Object.keys(buckets).sort((a, b) =>
+        String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' })
+      );
+      const groupCount = Math.max(1, keys.length);
+      const nodes = [];
+
+      keys.forEach((key, groupIndex) => {
+        const groupHosts = buckets[key];
+        const angle = (groupIndex / groupCount) * Math.PI * 2 - Math.PI / 2;
+        const groupRadius = Math.min(width, height) * 0.3;
+        const groupCx = cx + Math.cos(angle) * groupRadius;
+        const groupCy = cy + Math.sin(angle) * groupRadius;
+        const members = [];
+
+        groupHosts.forEach((host, idx) => {
+          const nodeAngle = (idx / Math.max(1, groupHosts.length)) * Math.PI * 2;
+          const radius = groupHosts.length === 1 ? 0 : Math.max(40, groupHosts.length * 12);
+          const node = makeNode(host);
+          node.x = groupCx + Math.cos(nodeAngle) * radius;
+          node.y = groupCy + Math.sin(nodeAngle) * radius;
+          nodes.push(node);
+          members.push(host.ip);
+        });
+
+        _mapGroups.push({ label: key, members });
+      });
+
+      _mapNodes = nodes;
+    }
+
+    if (['owner', 'status', 'known'].includes(_mapGroupBy)) {
+      const buckets = {};
+      hosts.forEach(host => {
+        const key = _mapGroupLabelForHost(host, _mapGroupBy);
+        (buckets[key] ||= []).push(host);
+      });
+      layoutMapGroupsFromBuckets(buckets);
+      return;
+    }
 
     if (_mapGroupBy === 'subnet') {
       const buckets = {};
@@ -4195,6 +4310,33 @@ $(function () {
     }).join(''));
 
     $card.show();
+  }
+
+  function _findCachedHostByIp(ip) {
+    const wanted = String(ip || '').trim();
+    if (!wanted) return null;
+    const list = Array.isArray(window._hostsData) ? window._hostsData : [];
+    return list.find(h => String(h?.ip || '').trim() === wanted) || null;
+  }
+
+  function _renderHostFastPreview(ip) {
+    const host = _findCachedHostByIp(ip);
+    if (!host) return;
+
+    const tone = _hostStatusTone(host.status);
+    $('#mIp').text(host.ip || ip || '—');
+    $('#mMac').text(host.mac || '—');
+    $('#mVendor').text(host.vendor || '—');
+    $('#mHost').text(host.manual_name || host.nmap_hostname || host.router_hostname || host.dns_name || '—');
+    $('#mDns').text(host.dns_name || '—');
+    $('#mStatus').attr('class', `badge ${tone.badge}`).text(tone.text);
+    $('#mSeenAgo').text(_hostFmtSeenAgo(host.seen_ago));
+    $('#mLatency').text(host.last_latency_ms != null ? `${Number(host.last_latency_ms).toFixed(1)}ms` : '—');
+    $('#mType').val(host.type_id ?? '');
+    $('#mOwner').html(_hostOwnerOptions(host.owner_id ?? '')).val(host.owner_id ?? '');
+    $('#mManual').val(host.manual_name || '');
+    $('#mNotes').val(host.notes || '');
+    $('#mMsg').text('Cargando detalle completo…');
   }
 
   function _renderHostSummary(detail) {
@@ -5033,17 +5175,27 @@ $(function () {
     const detail = await fetch(`/api/hosts/${encodeURIComponent(ip)}/detail`, { cache: 'no-store' }).then(r => r.json());
     if (!detail?.ok) throw new Error(detail?.error || _hostT('host.load_detail_failed', 'Could not load host detail'));
     _renderHostSummary(detail);
+    $('#mMsg').text('');
     $('#mScanHistory').html(`<div class="small-muted">${esc(_hostT('host.loading_state_changes', 'Loading state changes…'))}</div>`);
-    const timelineData = await _loadHostTimeline(
+
+    const timelinePromise = _loadHostTimeline(
       ip,
       _hostTimelineRange === 'date' ? 'day' : _hostTimelineRange,
       _hostTimelineRange === 'date' ? ($('#mHostDatePicker').val() || '') : ''
     );
+
+    const uptimePromise = _loadHostUptime(ip, _hostUptimeDays);
+    const latencyPromise = _loadHostLatency(ip);
+
+    const timelineResult = await Promise.allSettled([timelinePromise]);
+    const timelineData = timelineResult[0]?.status === 'fulfilled' ? timelineResult[0].value : null;
+
     await Promise.allSettled([
       _loadHostScanHistory(ip, detail, timelineData),
-      _loadHostUptime(ip, _hostUptimeDays),
-      _loadHostLatency(ip),
+      uptimePromise,
+      latencyPromise,
     ]);
+
     return detail;
   }
 
@@ -5329,6 +5481,7 @@ $(function () {
     $('#mScanHistory').html(`<div class="small-muted">${esc(_hostT('host.loading_state_changes', 'Loading state changes…'))}</div>`);
     $('#mTimelineStrip').html(`<div class="small-muted">${esc(_hostT('host.loading_availability', 'Loading availability…'))}</div>`);
     $('#mTimelineAxis').html('');
+    _renderHostFastPreview(ip);
     _hideTimelineTooltip();
     _stopHostPingLoop();
     hostPingModal?.hide();
