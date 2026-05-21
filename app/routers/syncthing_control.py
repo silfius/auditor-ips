@@ -2024,14 +2024,22 @@ def api_syncthing_transfer_chart(
                 "observed_at": datetime.fromtimestamp(bucket_ts, tz=timezone.utc).isoformat(),
                 "rx_bps_sum": 0.0,
                 "tx_bps_sum": 0.0,
+                "rx_bps_max": 0.0,
+                "tx_bps_max": 0.0,
+                "total_bps_max": 0.0,
                 "rx_delta_bytes": 0,
                 "tx_delta_bytes": 0,
                 "samples": 0,
             }
             buckets[bucket_ts] = current
 
-        current["rx_bps_sum"] += float(row["rx_bps"] or 0)
-        current["tx_bps_sum"] += float(row["tx_bps"] or 0)
+        row_rx_bps = float(row["rx_bps"] or 0)
+        row_tx_bps = float(row["tx_bps"] or 0)
+        current["rx_bps_sum"] += row_rx_bps
+        current["tx_bps_sum"] += row_tx_bps
+        current["rx_bps_max"] = max(float(current.get("rx_bps_max") or 0), row_rx_bps)
+        current["tx_bps_max"] = max(float(current.get("tx_bps_max") or 0), row_tx_bps)
+        current["total_bps_max"] = max(float(current.get("total_bps_max") or 0), row_rx_bps + row_tx_bps)
         current["rx_delta_bytes"] += int(row["rx_delta_bytes"] or 0)
         current["tx_delta_bytes"] += int(row["tx_delta_bytes"] or 0)
         current["samples"] += 1
@@ -2039,18 +2047,26 @@ def api_syncthing_transfer_chart(
     points = []
     for item in sorted(buckets.values(), key=lambda v: v["bucket_ts"]):
         samples = max(1, int(item["samples"] or 0))
-        rx_bps = item["rx_bps_sum"] / samples
-        tx_bps = item["tx_bps_sum"] / samples
+        rx_bps = float(item.get("rx_bps_max") or 0)
+        tx_bps = float(item.get("tx_bps_max") or 0)
+        total_bps = float(item.get("total_bps_max") or (rx_bps + tx_bps))
         points.append({
             "observed_at": item["observed_at"],
             "rx_bps": round(rx_bps, 2),
             "tx_bps": round(tx_bps, 2),
-            "total_bps": round(rx_bps + tx_bps, 2),
+            "total_bps": round(total_bps, 2),
             "rx_delta_bytes": int(item["rx_delta_bytes"] or 0),
             "tx_delta_bytes": int(item["tx_delta_bytes"] or 0),
             "total_delta_bytes": int(item["rx_delta_bytes"] or 0) + int(item["tx_delta_bytes"] or 0),
             "samples": samples,
         })
+
+    raw_max_rx_bps = max((float(row["rx_bps"] or 0) for row in rows), default=0.0)
+    raw_max_tx_bps = max((float(row["tx_bps"] or 0) for row in rows), default=0.0)
+    raw_max_total_bps = max(((float(row["rx_bps"] or 0) + float(row["tx_bps"] or 0)) for row in rows), default=0.0)
+    raw_max_rx_delta_bytes = max((int(row["rx_delta_bytes"] or 0) for row in rows), default=0)
+    raw_max_tx_delta_bytes = max((int(row["tx_delta_bytes"] or 0) for row in rows), default=0)
+    raw_max_total_delta_bytes = max(((int(row["rx_delta_bytes"] or 0) + int(row["tx_delta_bytes"] or 0)) for row in rows), default=0)
 
     summary = {
         "samples": len(points),
@@ -2060,12 +2076,12 @@ def api_syncthing_transfer_chart(
         "bucket_minutes": bucket_minutes,
         "first_observed_at": points[0]["observed_at"] if points else "",
         "last_observed_at": points[-1]["observed_at"] if points else "",
-        "max_rx_bps": round(max((float(p["rx_bps"]) for p in points), default=0.0), 2),
-        "max_tx_bps": round(max((float(p["tx_bps"]) for p in points), default=0.0), 2),
-        "max_total_bps": round(max((float(p["total_bps"]) for p in points), default=0.0), 2),
-        "max_rx_delta_bytes": max((int(p["rx_delta_bytes"]) for p in points), default=0),
-        "max_tx_delta_bytes": max((int(p["tx_delta_bytes"]) for p in points), default=0),
-        "max_total_delta_bytes": max((int(p["total_delta_bytes"]) for p in points), default=0),
+        "max_rx_bps": round(raw_max_rx_bps, 2),
+        "max_tx_bps": round(raw_max_tx_bps, 2),
+        "max_total_bps": round(raw_max_total_bps, 2),
+        "max_rx_delta_bytes": raw_max_rx_delta_bytes,
+        "max_tx_delta_bytes": raw_max_tx_delta_bytes,
+        "max_total_delta_bytes": raw_max_total_delta_bytes,
     }
 
     return {"ok": True, "summary": summary, "points": points}
