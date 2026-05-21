@@ -73,6 +73,7 @@ $(function () {
   function spStateGroup(s) {
     const state = String(s?.state || 'unknown');
     if (state === 'missed' || state === 'stalled') return 'missed';
+    if (state === 'controlled_stop') return 'unknown';
     if (['ok', 'running', 'error'].includes(state)) return state;
     return 'unknown';
   }
@@ -96,6 +97,7 @@ $(function () {
     if (state === 'error') return 500;
     if (state === 'missed' || state === 'stalled') return 400;
     if (state === 'running') return 300;
+    if (state === 'controlled_stop') return 250;
     if (state === 'unknown') return 200;
     return 100;
   }
@@ -221,6 +223,7 @@ $(function () {
       error:   '<span class="badge bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>Error</span>',
       stalled: '<span class="badge bg-warning text-dark"><i class="bi bi-clock-history me-1"></i>Stalled</span>',
       missed:  '<span class="badge bg-warning text-dark"><i class="bi bi-clock-history me-1"></i>Missed</span>',
+      controlled_stop: '<span class="badge bg-info text-dark"><i class="bi bi-pause-circle me-1"></i>Parada controlada</span>',
     };
     return map[state] || '<span class="badge bg-secondary">Desconocido</span>';
   }
@@ -279,6 +282,275 @@ $(function () {
       ${reason ? `<div>${esc(reason)}</div>` : ''}
       ${expected ? `<div>Última ejecución esperada: <strong>${esc(fmtDate(expected))}</strong></div>` : ''}
     </div>`;
+  }
+
+
+  function spScheduleValue(v) {
+    const raw = String(v ?? '').trim();
+    return raw || '—';
+  }
+
+  function spScheduleRow(label, value, opts = {}) {
+    const cls = opts.mono ? 'font-monospace' : '';
+    const valueCls = opts.html ? '' : 'text-info fw-semibold';
+    const html = opts.html ? value : esc(spScheduleValue(value));
+    return `<div class="col-12 col-md-6 col-xl-4">
+      <div class="border rounded p-2 h-100">
+        <div class="small text-muted mb-1">${esc(label)}</div>
+        <div class="small ${cls} ${valueCls}" style="word-break:break-word">${html}</div>
+      </div>
+    </div>`;
+  }
+
+  function spScheduleBtn(script, tableMode) {
+    const name = String(script?.name || '');
+    const host = spScriptHost(script || {});
+    const key = spScriptKey(script || {});
+    const title = 'Ver programación completa';
+    if (tableMode) {
+      return `<button class="btn btn-sm btn-outline-info sp-btn-schedule"
+                data-name="${esc(name)}" data-host="${esc(host)}" data-key="${esc(key)}"
+                title="${esc(title)}">
+                <i class="bi bi-calendar-week"></i>
+              </button>`;
+    }
+    return `<button class="btn btn-sm btn-outline-info sp-btn-schedule"
+              data-name="${esc(name)}" data-host="${esc(host)}" data-key="${esc(key)}"
+              title="${esc(title)}">
+              <i class="bi bi-calendar-week me-1"></i>Programación
+            </button>`;
+  }
+
+  function spScheduleAlertRulesHtml(rules, script) {
+    const name = String(script?.name || '');
+    const host = spScriptHost(script || {});
+    const matches = (rules || []).filter(r => {
+      const rn = String(r?.script_name || '');
+      const rh = String(r?.host_name || 'Local');
+      return rn === name && (rh === host || rh === 'Local' || !rh);
+    });
+
+    if (!matches.length) {
+      return '<div class="small text-muted">No hay regla de alerta específica encontrada para esta automatización.</div>';
+    }
+
+    return `<div class="table-responsive">
+      <table class="table table-sm align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Host</th>
+            <th>Sin ejecutar</th>
+            <th>Error</th>
+            <th>Ejecución larga</th>
+            <th>Cooldown</th>
+            <th>Último aviso</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${matches.map(r => `
+            <tr>
+              <td><code>${esc(r.host_name || 'Local')}</code></td>
+              <td>${Number(r.alert_missed || 0) ? `Sí · ${esc(r.max_hours || '—')}h` : 'No'}</td>
+              <td>${Number(r.alert_error || 0) ? 'Sí' : 'No'}</td>
+              <td>${Number(r.alert_running_long || 0) ? `Sí · ${esc(r.max_running_hours || '—')}h` : 'No'}</td>
+              <td>${esc(r.cooldown_min || '—')} min</td>
+              <td>${esc(fmtDate(r.last_fired) || '—')}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  }
+
+  async function spLoadScheduleAlertRules(script) {
+    const wrap = document.getElementById('sp-schedule-alerts');
+    if (!wrap) return;
+
+    wrap.innerHTML = '<div class="small text-muted">Cargando reglas de alerta…</div>';
+    try {
+      const res = await fetch('/api/scripts/alert-rules', { cache: 'no-store' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.ok === false) throw new Error(data.error || data.detail || `HTTP ${res.status}`);
+      const rules = Array.isArray(data.rules) ? data.rules : (Array.isArray(data) ? data : []);
+      wrap.innerHTML = spScheduleAlertRulesHtml(rules, script);
+    } catch (e) {
+      wrap.innerHTML = `<div class="small text-warning">No se pudieron cargar las reglas de alerta: ${esc(e.message || e)}</div>`;
+    }
+  }
+
+  function spRenderScheduleModal(script) {
+    const host = spScriptHost(script);
+    const label = script?.cfg_label || script?.name || 'Automatización';
+    const cronExpr = script?.cron_expr || script?.cfg_cron_expr || '';
+    const cronSource = script?.cron_source || script?.cfg_cron_source || '';
+    const watchdogEnabled = script?.watchdog_enabled === true || script?.watchdog_enabled === 1 || script?.watchdog_enabled === '1';
+
+    $('#sp-schedule-modal-title').text(label);
+    $('#sp-schedule-modal-subtitle').text(`${host} / ${script?.name || ''}`);
+    $('#sp-schedule-config-btn').data('script-name', script?.name || '').data('script-host', host);
+
+    const watchdogDetail = [
+      watchdogEnabled ? 'Habilitado' : 'No habilitado',
+      script?.watchdog_mode ? `modo ${script.watchdog_mode}` : '',
+      script?.watchdog_state ? `observa ${script.watchdog_state}` : '',
+      script?.watchdog_reason || '',
+    ].filter(Boolean).join(' · ');
+
+    const rawStatus = script?.raw_state ? `Estado raw: ${script.raw_state}` : '';
+
+    $('#sp-schedule-modal-body').html(`
+      <div class="alert alert-info py-2 small">
+        <i class="bi bi-info-circle me-1"></i>
+        Este modal resume la programación y configuración conocida por Auditor IPs. No ejecuta scripts ni modifica crontabs reales.
+      </div>
+
+      <div class="mb-3">
+        <div class="fw-semibold mb-2"><i class="bi bi-terminal me-1"></i>Identificación</div>
+        <div class="row g-2">
+          ${spScheduleRow('Nombre técnico', script?.name, { mono: true })}
+          ${spScheduleRow('Etiqueta visible', script?.cfg_label || script?.name)}
+          ${spScheduleRow('Host', host, { mono: true })}
+          ${spScheduleRow('Estado actual', `${spStateBadge(script?.state || 'unknown')} ${rawStatus ? `<span class="small text-muted ms-2">${esc(rawStatus)}</span>` : ''}`, { html: true })}
+          ${spScheduleRow('Origen host', script?.host_source || script?.cfg_host_source || '—')}
+          ${spScheduleRow('Clave de instancia', spScriptKey(script), { mono: true })}
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="fw-semibold mb-2"><i class="bi bi-calendar-week me-1"></i>Programación</div>
+        <div class="row g-2">
+          ${spScheduleRow('Cron efectivo', cronExpr || '—', { mono: true })}
+          ${spScheduleRow('Origen del cron', cronSource || '—')}
+          ${spScheduleRow('Próxima ejecución', fmtDate(script?.next_run))}
+          ${spScheduleRow('Última ejecución / inicio', fmtDate(script?.start_time || script?.last_run))}
+          ${spScheduleRow('Fin', fmtDate(script?.end_time))}
+          ${spScheduleRow('Duración', humanDuration(script?.duration_seconds))}
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="fw-semibold mb-2"><i class="bi bi-eye me-1"></i>Watchdog interno</div>
+        <div class="row g-2">
+          ${spScheduleRow('Estado watchdog', watchdogDetail || '—')}
+          ${spScheduleRow('Ejecución esperada incumplida', script?.watchdog_expected_at ? fmtDate(script.watchdog_expected_at) : '—')}
+          ${spScheduleRow('Margen missed', script?.watchdog_grace_minutes ? `${script.watchdog_grace_minutes} min` : '—')}
+          ${spScheduleRow('Umbral stalled', script?.watchdog_threshold_minutes ? `${script.watchdog_threshold_minutes} min` : '—')}
+          ${spScheduleRow('Nota watchdog', script?.watchdog_expected_at ? 'Hay una observación de missed calculada.' : 'Sin missed detectado. La última ejecución real se muestra en Programación.')}
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="fw-semibold mb-2"><i class="bi bi-pause-circle me-1"></i>Control operativo</div>
+        <div class="border rounded p-2">
+          ${script?.controlled_stop ? `
+            <div class="alert alert-info py-2 small mb-2">
+              <div class="fw-semibold">Parada controlada activa</div>
+              <div>Desde: ${esc(fmtDate(script.controlled_stop_at))}</div>
+              <div>Motivo: ${esc(script.controlled_stop_reason || '—')}</div>
+              <div class="mt-1">Mientras esté activa, Auditor IPs conserva el estado real como raw_state pero no dispara alertas por stalled/running_long/error de esta instancia.</div>
+            </div>
+          ` : `
+            <div class="small text-muted mb-2">
+              Marca una parada controlada si el script se ha detenido a medias y quieres evitar falsos stalled hasta la próxima ejecución real.
+            </div>
+          `}
+          <label class="form-label small-muted mb-1" for="sp-controlled-stop-reason">Motivo</label>
+          <input type="text" class="form-control form-control-sm mb-2" id="sp-controlled-stop-reason"
+                 value="${esc(script?.controlled_stop_reason || '')}"
+                 placeholder="Ej: parada manual por mantenimiento">
+          <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-outline-info btn-sm" id="sp-controlled-stop-mark" type="button">
+              <i class="bi bi-pause-circle me-1"></i>Marcar parada controlada
+            </button>
+            <button class="btn btn-outline-success btn-sm" id="sp-controlled-stop-clear" type="button" ${script?.controlled_stop ? '' : 'disabled'}>
+              <i class="bi bi-play-circle me-1"></i>Reactivar vigilancia normal
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="fw-semibold mb-2"><i class="bi bi-bell me-1"></i>Reglas de alerta</div>
+        <div id="sp-schedule-alerts" class="border rounded p-2">
+          <div class="small text-muted">Cargando reglas de alerta…</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="fw-semibold mb-2"><i class="bi bi-gear me-1"></i>Configuración conocida</div>
+        <div class="row g-2">
+          ${spScheduleRow('Cron configurado', script?.cfg_cron_expr || '—', { mono: true })}
+          ${spScheduleRow('Origen configurado', script?.cfg_cron_source || '—')}
+          ${spScheduleRow('Host configurado', script?.cfg_host_name || '—', { mono: true })}
+        </div>
+      </div>
+    `);
+  }
+
+  function spOpenScheduleModal(key) {
+    spScheduleCurrentKey = key;
+    const script = spFindScriptByKey(key);
+    if (!script) {
+      window.showToast?.('No se encontró la automatización seleccionada', 'warning');
+      return;
+    }
+
+    spRenderScheduleModal(script);
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('sp-schedule-modal')).show();
+    spLoadScheduleAlertRules(script);
+  }
+
+  let spScheduleCurrentKey = null;
+
+  async function spRefreshScheduleModalAfterChange(key) {
+    try {
+      const res = await fetch('/api/scripts/status', { cache: 'no-store' });
+      const data = await res.json();
+      spData = Array.isArray(data) ? data : [];
+      spRenderHostFilter();
+      spRenderHostSummary(spData);
+      spRenderCurrentView();
+
+      const refreshed = spFindScriptByKey(key);
+      if (refreshed) {
+        spRenderScheduleModal(refreshed);
+        spLoadScheduleAlertRules(refreshed);
+      }
+    } catch (e) {
+      window.showToast?.('No se pudo refrescar el estado: ' + (e.message || e), 'warning');
+    }
+  }
+
+  async function spSetControlledStop(mark) {
+    const key = spScheduleCurrentKey;
+    const script = spFindScriptByKey(key);
+    if (!script) return;
+
+    const name = String(script.name || '');
+    const host = spScriptHost(script);
+    const reason = ($('#sp-controlled-stop-reason').val() || '').trim()
+      || 'Parada controlada marcada desde Auditor IPs';
+
+    const url = `/api/scripts/controlled-stops/${encodeURIComponent(name)}?host=${encodeURIComponent(host)}`;
+
+    try {
+      const res = await fetch(url, {
+        method: mark ? 'POST' : 'DELETE',
+        headers: mark ? { 'Content-Type': 'application/json' } : {},
+        body: mark ? JSON.stringify({
+          host_name: host,
+          reason,
+          start_time: script.start_time || script.last_run || ''
+        }) : undefined,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.ok === false) throw new Error(data.error || data.detail || `HTTP ${res.status}`);
+
+      window.showToast?.(mark ? '✓ Parada controlada marcada' : '✓ Vigilancia normal reactivada', 'success');
+      await spRefreshScheduleModalAfterChange(key);
+    } catch (e) {
+      window.showToast?.('✗ ' + (e.message || e), 'danger');
+    }
   }
 
   function spAIBtn(scriptOrName, stateOrTableMode, maybeTableMode) {
@@ -606,6 +878,7 @@ $(function () {
               <button class="btn btn-sm btn-outline-secondary sp-btn-log" data-name="${esc(s.name)}" data-host="${esc(hostName)}" data-key="${esc(spScriptKey(s))}">
                 <i class="bi bi-file-text me-1"></i>Log
               </button>
+              ${spScheduleBtn(s, false)}
               ${spAIBtn(s, false)}
             </div>
           </div>
@@ -652,6 +925,7 @@ $(function () {
             <button class="btn btn-sm btn-outline-secondary sp-btn-log" data-name="${esc(s.name)}" data-host="${esc(hostName)}" data-key="${esc(spScriptKey(s))}" title="${esc(window.t?.('scripts.view_log', 'Ver log') || 'Ver log')}">
               <i class="bi bi-file-text"></i>
             </button>
+            ${spScheduleBtn(s, true)}
             ${spAIBtn(s, true)}
           </div>
         </td>
@@ -754,6 +1028,48 @@ $(function () {
   // ─────────────────────────────────────────────────
   // Log en vivo
   // ─────────────────────────────────────────────────
+  $(document).on('click', '.sp-btn-schedule', function () {
+    spOpenScheduleModal($(this).data('key') || $(this).data('name'));
+  });
+
+  $(document).on('click', '#sp-controlled-stop-mark', function () {
+    spSetControlledStop(true);
+  });
+
+  $(document).on('click', '#sp-controlled-stop-clear', function () {
+    spSetControlledStop(false);
+  });
+
+  $(document).on('click', '#sp-schedule-config-btn', function () {
+    const scheduleModalEl = document.getElementById('sp-schedule-modal');
+    const configModalEl = document.getElementById('configModal');
+
+    try { bootstrap.Modal.getInstance(scheduleModalEl)?.hide(); } catch (_) {}
+
+    if (!configModalEl || !window.bootstrap?.Modal) return;
+
+    setTimeout(function () {
+      const navButtons = Array.from(configModalEl.querySelectorAll('.cfg-nav-btn'));
+      const panels = Array.from(configModalEl.querySelectorAll('.cfg-panel'));
+      const section = 'scripts';
+      const targetBtn = navButtons.find(btn => String(btn.dataset.section || '') === section);
+
+      if (targetBtn) {
+        navButtons.forEach(btn => btn.classList.remove('active'));
+        targetBtn.classList.add('active');
+        panels.forEach(panel => {
+          panel.style.display = String(panel.dataset.panel || '') === section ? '' : 'none';
+        });
+      }
+
+      bootstrap.Modal.getOrCreateInstance(configModalEl).show();
+
+      setTimeout(function () {
+        targetBtn?.click();
+      }, 40);
+    }, 140);
+  });
+
   $(document).on('click', '.sp-btn-log', function () {
     spOpenLog($(this).data('key') || $(this).data('name'));
   });
