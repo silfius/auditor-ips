@@ -2067,6 +2067,9 @@ def api_syncthing_transfer_chart(
     raw_max_rx_delta_bytes = max((int(row["rx_delta_bytes"] or 0) for row in rows), default=0)
     raw_max_tx_delta_bytes = max((int(row["tx_delta_bytes"] or 0) for row in rows), default=0)
     raw_max_total_delta_bytes = max(((int(row["rx_delta_bytes"] or 0) + int(row["tx_delta_bytes"] or 0)) for row in rows), default=0)
+    raw_total_rx_delta_bytes = sum(int(row["rx_delta_bytes"] or 0) for row in rows)
+    raw_total_tx_delta_bytes = sum(int(row["tx_delta_bytes"] or 0) for row in rows)
+    raw_total_delta_bytes = raw_total_rx_delta_bytes + raw_total_tx_delta_bytes
 
     summary = {
         "samples": len(points),
@@ -2082,6 +2085,9 @@ def api_syncthing_transfer_chart(
         "max_rx_delta_bytes": raw_max_rx_delta_bytes,
         "max_tx_delta_bytes": raw_max_tx_delta_bytes,
         "max_total_delta_bytes": raw_max_total_delta_bytes,
+        "total_rx_delta_bytes": raw_total_rx_delta_bytes,
+        "total_tx_delta_bytes": raw_total_tx_delta_bytes,
+        "total_delta_bytes": raw_total_delta_bytes,
     }
 
     return {"ok": True, "summary": summary, "points": points}
