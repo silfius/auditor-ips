@@ -2499,6 +2499,31 @@ $(function () {
   $(document).on('input change', '#cfgScriptCron', cfgValidateMainCron);
   $(document).on('input change', '.cfg-script-cron', function () { cfgValidateTableCronInput(this); });
 
+  function cfgApplyCronPreset(selectEl, inputSelector, afterApply) {
+    const value = String(selectEl?.value || '').trim();
+    if (!value) return;
+
+    const input = document.querySelector(inputSelector);
+    if (!input) return;
+
+    input.value = value;
+    selectEl.value = '';
+
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+
+    if (typeof afterApply === 'function') afterApply();
+    input.focus();
+  }
+
+  $(document).on('change', '#cfgScriptCronPreset', function () {
+    cfgApplyCronPreset(this, '#cfgScriptCron', cfgValidateMainCron);
+  });
+
+  $(document).on('change', '#cfgScriptWizardCronPreset', function () {
+    cfgApplyCronPreset(this, '#cfgScriptWizardCron', cfgScriptWizardRefreshSummary);
+  });
+
 
   // ─────────────────────────────────────────────────
   // Asistente guiado de alta de script
@@ -2825,6 +2850,7 @@ $(function () {
     $('#cfgScriptCron').val(($('#cfgScriptWizardCron').val() || '').trim());
     $('#cfgScriptCronSource').val(($('#cfgScriptWizardCronSource').val() || '').trim());
     $('#cfgScriptColor').val($('#cfgScriptWizardColor').val() || '#4dffb5');
+    cfgValidateMainCron();
     $('#cfgScriptAddMsg').text('Datos pasados desde el asistente. Revisa y pulsa Añadir.');
     const modalEl = document.getElementById('cfgScriptWizardModal');
     if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).hide();
@@ -2930,7 +2956,13 @@ $(function () {
     try {
       const data = await fetch('/api/config/scripts', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ script_name: name, label, description: desc, color, active: true, cron_expr: cronExpr, cron_source: cronSource, host_name: hostName, host_source: 'config_ui' }) }).then(r => r.json());
       $('#cfgScriptAddMsg').text(data.ok ? (window.t?.('cfg.scripts.added', '✓ Añadido') || '✓ Añadido') : '✗ ' + (data.error || window.t?.('status.error', 'Error') || 'Error'));
-      if (data.ok) { $('#cfgScriptName,#cfgScriptHost,#cfgScriptLabel,#cfgScriptDesc,#cfgScriptCron,#cfgScriptCronSource').val(''); $('#cfgScriptHost').val('Local'); await loadMonitoredScripts(); }
+      if (data.ok) {
+        $('#cfgScriptName,#cfgScriptHost,#cfgScriptLabel,#cfgScriptDesc,#cfgScriptCron,#cfgScriptCronSource').val('');
+        $('#cfgScriptHost').val('Local');
+        $('#cfgScriptCronPreset').val('');
+        cfgValidateMainCron();
+        await loadMonitoredScripts();
+      }
     } catch (e) { $('#cfgScriptAddMsg').text('✗ ' + e.message); }
   });
 
