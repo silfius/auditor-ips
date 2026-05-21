@@ -1668,10 +1668,26 @@ $(function () {
     if (kind === 'openConfig') {
       const modalEl = document.getElementById('configModal');
       if (!modalEl || !window.bootstrap?.Modal) return;
+
+      const section = String(target || 'scanner');
+      const navButtons = Array.from(modalEl.querySelectorAll('.cfg-nav-btn'));
+      const panels = Array.from(modalEl.querySelectorAll('.cfg-panel'));
+      const targetBtn = navButtons.find(btn => String(btn.dataset.section || '') === section);
+
+      // Preactivar antes de mostrar el modal para evitar flash visual del panel por defecto.
+      if (targetBtn) {
+        navButtons.forEach(btn => btn.classList.remove('active'));
+        targetBtn.classList.add('active');
+        panels.forEach(panel => {
+          panel.style.display = String(panel.dataset.panel || '') === section ? '' : 'none';
+        });
+      }
+
       window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
+
       window.setTimeout(() => {
-        document.querySelector(`.cfg-nav-btn[data-section="${target}"]`)?.click();
-      }, 90);
+        targetBtn?.click();
+      }, 30);
     }
   }
 

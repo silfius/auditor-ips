@@ -5103,7 +5103,7 @@
             <div id="qualityDiagAiBody" class="ai-analysis-body"></div>
           </div>
 
-          <div class="row g-3">
+          <div class="row g-3" style="margin-left:0;margin-right:0">
             <div class="col-lg-4">
               <div class="tool-card-soft h-100">
                 <div class="small-muted mb-2"><i class="bi bi-broadcast"></i> Ping</div>
@@ -5330,7 +5330,7 @@
 
   <!-- ══ Modal Informe IA de Red (detalle) ══ -->
   <div class="modal fade" id="aiReportDetailModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
       <div class="modal-content" style="background:var(--card-bg);color:var(--text-color)">
         <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,0.09)">
           <h5 class="modal-title">
@@ -5389,7 +5389,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
         <div class="modal-body">
-          <div class="row g-3">
+          <div class="row g-3" style="margin-left:0;margin-right:0">
             <div class="col-lg-4">
               <div class="cardish">
                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -5615,7 +5615,7 @@
   </div>
 
   <div class="modal fade" id="hostHistoryModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" data-i18n="host.complete_state_changes"><i class="bi bi-calendar-week"></i> Cambios de estado completos</h5>
@@ -5783,14 +5783,14 @@ window._secondaryNetworks = {{ secondary_nets | default([]) | tojson | safe }};
      Orden: app.js primero (globals + init), luego dominio
 ════════════════════════════════════════════════════ -->
 <script src="/static/js/i18n.js?v=20260518_v4_i18n_timezone_final4"></script>
-<script src="/static/js/app.js?v=20260520_v4_host_alerts_mobile_syncthing_runtime1"></script>
+<script src="/static/js/app.js?v=20260520_v4_config_open_no_flash1"></script>
 <script src="/static/js/hosts.js?v=20260325_wol2"></script>
 <script src="/static/js/services.js?v=20260518_v4_i18n_timezone_final2"></script>
 <script src="/static/js/alerts.js?v=20260520_v4_host_alerts_mobile_syncthing_runtime1"></script>
 <script src="/static/js/dashboard.js?v=20260518_v4_module_gating_foundation1"></script>
 <script src="/static/js/scans.js?v=20260518_v4_i18n_timezone_final1"></script>
 <script src="/static/js/quality.js?v=20260518_v4_i18n_timezone_final2"></script>
-<script src="/static/js/config.js?v=20260520_v4_automation_cron_validation1"></script>
+<script src="/static/js/config.js?v=20260520_v4_automation_cron_presets5"></script>
 <script src="/static/js/auth.js?v=20260518_v4_i18n_timezone_final1"></script>
 <script src="/static/js/scripts.js?v=20260520_v4_automation_watchdog_observe2"></script>
 <script src="/static/js/active_processes_topbar.js?v=20260518_v4_i18n_timezone_final1"></script>
@@ -8744,7 +8744,7 @@ window.syncFiltersBar = function() {}; // no-op para compatibilidad
             <!-- Añadir red -->
             <div class="cfg-section mb-3">
               <div class="cfg-section-title" style="font-size:.82rem"><i class="bi bi-plus-circle"></i> Añadir red secundaria</div>
-              <div class="d-flex flex-wrap gap-2 align-items-end mt-2">
+              <div class="d-flex flex-wrap gap-2 align-items-start mt-2">
                 <div style="flex:1 1 160px">
                   <label class="form-label small-muted mb-1">Etiqueta</label>
                   <input type="text" id="cfgNetLabel" class="form-control form-control-sm" placeholder="Red ISP">
@@ -8930,8 +8930,9 @@ ip route get 192.168.18.1</code></pre>
             <!-- Añadir script manualmente -->
             <div class="cfg-section mb-3">
               <div class="cfg-section-title" style="font-size:.82rem"><i class="bi bi-plus-circle"></i> Añadir script</div>
-              <div class="d-flex flex-wrap gap-2 align-items-end mt-2">
-                <div style="flex:2 1 180px">
+
+              <div class="mt-2" style="display:grid;grid-template-columns:minmax(230px,1.25fr) minmax(120px,.55fr) minmax(190px,.9fr) minmax(300px,1.4fr) 54px auto;gap:.5rem;align-items:end">
+                <div>
                   <label class="form-label small-muted mb-1">Script (nombre del .status.json)</label>
                   <div class="input-group input-group-sm">
                     <input type="text" id="cfgScriptName" class="form-control" placeholder="mi_script">
@@ -8946,43 +8947,69 @@ ip route get 192.168.18.1</code></pre>
                     </ul>
                   </div>
                 </div>
-                <div style="flex:1 1 130px">
+
+                <div>
                   <label class="form-label small-muted mb-1">Host</label>
                   <input type="text" id="cfgScriptHost" class="form-control form-control-sm" value="Local" placeholder="Local">
                 </div>
-                <div style="flex:2 1 150px">
+
+                <div>
                   <label class="form-label small-muted mb-1">Etiqueta <small>(opcional)</small></label>
                   <input type="text" id="cfgScriptLabel" class="form-control form-control-sm" placeholder="Mi Script">
                 </div>
-                <div style="flex:3 1 200px">
+
+                <div>
                   <label class="form-label small-muted mb-1">Descripción <small>(opcional)</small></label>
                   <input type="text" id="cfgScriptDesc" class="form-control form-control-sm" placeholder="Qué hace este script…">
                 </div>
-                <div style="flex:2 1 170px">
-                  <label class="form-label small-muted mb-1">Cron real <small>(opcional)</small></label>
-                  <input type="text" id="cfgScriptCron" class="form-control form-control-sm font-monospace" placeholder="Ej: 35 * * * *" aria-describedby="cfgScriptCronFeedback">
-                  <div class="form-text small" id="cfgScriptCronFeedback">Formato: min hora día mes semana.</div>
-                </div>
-                <div style="flex:2 1 130px">
-                  <label class="form-label small-muted mb-1">Dónde está definido <small>(opcional)</small></label>
-                  <input type="text" id="cfgScriptCronSource" class="form-control form-control-sm" placeholder="Ej: ServerLinuxAuxiliar / sudo crontab">
-                </div>
-                <div style="flex:0 0 auto">
+
+                <div>
                   <label class="form-label small-muted mb-1" data-i18n="cfg.scripts.color">Color</label>
                   <input type="color" id="cfgScriptColor" class="form-control form-control-sm form-control-color"
                          value="#4dffb5" style="width:44px;padding:2px">
                 </div>
-                <div style="flex:0 0 auto">
+
+                <div class="d-flex gap-2 justify-content-end">
                   <button class="btn btn-outline-success btn-sm" id="cfgScriptAddBtn">
                     <i class="bi bi-plus-lg"></i> <span data-i18n="cfg.scripts.add">Añadir</span>
                   </button>
-                </div>
-                <div style="flex:0 0 auto">
                   <button class="btn btn-outline-info btn-sm" id="cfgScriptWizardBtn" type="button">
                     <i class="bi bi-magic me-1"></i>Asistente
                   </button>
                 </div>
               </div>
+
+              <div class="mt-2" style="display:grid;grid-template-columns:minmax(420px,520px) minmax(320px,520px) 1fr;gap:.75rem;align-items:start">
+                <div>
+                  <label class="form-label small-muted mb-1">Cron real <small>(opcional)</small></label>
+                  <div class="input-group input-group-sm">
+                    <input type="text" id="cfgScriptCron" class="form-control font-monospace" placeholder="Ej: 35 * * * *" aria-describedby="cfgScriptCronFeedback">
+                    <select class="form-select" id="cfgScriptCronPreset" title="Aplicar preset de cron" style="max-width:210px">
+                      <option value="">Preset rápido…</option>
+                      <option value="*/5 * * * *">Cada 5 minutos</option>
+                      <option value="*/15 * * * *">Cada 15 minutos</option>
+                      <option value="0 * * * *">Cada hora</option>
+                      <option value="35 * * * *">Minuto 35 de cada hora</option>
+                      <option value="0 0 * * *">Diario a las 00:00</option>
+                      <option value="0 2 * * *">Diario a las 02:00</option>
+                      <option value="10 8-22 * * *">Cada hora de 08:10 a 22:10</option>
+                      <option value="0 0 * * 1">Semanal lunes 00:00</option>
+                      <option value="0 3 1 * *">Mensual día 1 a las 03:00</option>
+                    </select>
+                  </div>
+                  <div class="form-text small" id="cfgScriptCronFeedback">Formato: min hora día mes semana.</div>
+                </div>
+
+                <div>
+                  <label class="form-label small-muted mb-1">Dónde está definido <small>(opcional)</small></label>
+                  <input type="text" id="cfgScriptCronSource" class="form-control form-control-sm" placeholder="Ej: ServerLinuxAuxiliar / sudo crontab">
+                </div>
+
+                <div class="small text-muted" style="padding-top:1.85rem">
+                  Si día del mes y día de semana tienen valor, cron puede ejecutarse cuando coincida cualquiera de los dos.
+                </div>
+              </div>
+
               <div id="cfgScriptAddMsg" class="small mt-2" style="min-height:18px"></div>
             </div>
 
@@ -8997,7 +9024,7 @@ ip route get 192.168.18.1</code></pre>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                   </div>
-                  <div class="modal-body" style="display:block;overflow-x:hidden">
+                  <div class="modal-body" style="display:block;overflow-x:hidden;padding:1rem 1.25rem">
                     <div class="small mb-3" style="display:block;width:100%;clear:both;padding:.65rem .8rem;border-radius:.65rem;background:rgba(13,202,240,.12);border:1px solid rgba(13,202,240,.28);color:rgba(255,255,255,.86)">
                       <i class="bi bi-info-circle me-1"></i><strong>Qué hace:</strong> crea la configuración visual de Auditor IPs usando estados detectados o datos manuales. El script debe seguir generando su <code>.status.json</code> como hasta ahora.
                       <div class="mt-2">
@@ -9037,12 +9064,25 @@ ip route get 192.168.18.1</code></pre>
                         <input type="text" class="form-control form-control-sm" id="cfgScriptWizardDesc" placeholder="Qué hace este script…">
                       </div>
 
-                      <div class="col-12 col-md-6">
+                      <div class="col-12 col-lg-7">
                         <label class="form-label small-muted mb-1">Cron real</label>
                         <input type="text" class="form-control form-control-sm font-monospace" id="cfgScriptWizardCron" placeholder="Ej: 0 2 * * *" aria-describedby="cfgScriptWizardCronFeedback">
+                        <select class="form-select form-select-sm mt-1" id="cfgScriptWizardCronPreset" title="Aplicar preset de cron">
+                          <option value="">Preset rápido…</option>
+                          <option value="*/5 * * * *">Cada 5 minutos</option>
+                          <option value="*/15 * * * *">Cada 15 minutos</option>
+                          <option value="0 * * * *">Cada hora</option>
+                          <option value="35 * * * *">Minuto 35 de cada hora</option>
+                          <option value="0 0 * * *">Diario a las 00:00</option>
+                          <option value="0 2 * * *">Diario a las 02:00</option>
+                          <option value="10 8-22 * * *">Cada hora de 08:10 a 22:10</option>
+                          <option value="0 0 * * 1">Semanal lunes 00:00</option>
+                          <option value="0 3 1 * *">Mensual día 1 a las 03:00</option>
+                        </select>
                         <div class="form-text" id="cfgScriptWizardCronFeedback">Se usa para próxima ejecución y watchdog. No modifica el crontab real.</div>
+                        <div class="form-text small text-muted">Si día del mes y día de semana tienen valor, cron puede ejecutarse cuando coincida cualquiera de los dos.</div>
                       </div>
-                      <div class="col-12 col-md-6">
+                      <div class="col-12 col-lg-5">
                         <label class="form-label small-muted mb-1">Dónde está definido</label>
                         <input type="text" class="form-control form-control-sm" id="cfgScriptWizardCronSource" placeholder="Ej: ServerLinuxAuxiliar / root crontab">
                       </div>
