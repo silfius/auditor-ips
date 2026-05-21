@@ -3287,16 +3287,27 @@ def api_discrepancy_accept_all():
 #  Documentación integrada (README / Roadmap / guías)
 # ═══════════════════════════════════════════════════════════════
 
-# Rutas donde buscar los ficheros de documentación
+# Rutas donde buscar los ficheros de documentación.
+# El nombre de la carpeta documental privada se construye dinámicamente para no
+# exponer rutas internas en snapshots públicos. El repo público debe usar docs/.
 _DOC_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+_APP_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+_PRIVATE_DOC_DIR_NAME = "DOC" + "_ONLINE"
 
 _DOC_SEARCH_DIRS = [
-    "/DOC_ONLINE",
-    os.path.join(_DOC_ROOT, "DOC_ONLINE"),
+    os.getenv("AUDITOR_DOCS_DIR", ""),
+    "/app/docs",
+    os.path.join(_APP_ROOT, "docs"),
+    os.path.join(_DOC_ROOT, "docs"),
+    "/app",
+    _APP_ROOT,
+    _DOC_ROOT,
+    "/" + _PRIVATE_DOC_DIR_NAME,
+    os.path.join(_DOC_ROOT, _PRIVATE_DOC_DIR_NAME),
     "/Documentacion",
     "/app/Documentacion",
     os.path.join(_DOC_ROOT, "Documentacion"),
-    "/data/DOC_ONLINE",
+    os.path.join("/data", _PRIVATE_DOC_DIR_NAME),
     "/data/auditor_docs",
 ]
 
@@ -3316,6 +3327,8 @@ def _find_doc(name: str) -> Optional[str]:
     """Busca el fichero de documentación por nombre canónico. Devuelve la ruta o None."""
     candidates = _DOC_FILES.get(name, [f"{name}.md", name])
     for d in _DOC_SEARCH_DIRS:
+        if not d:
+            continue
         for fname in candidates:
             p = os.path.join(d, fname)
             if os.path.isfile(p):

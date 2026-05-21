@@ -45,6 +45,8 @@ def api_alert_create(payload: Dict[str, Any] = Body(...)):
     ttype    = (payload.get("trigger_type") or "").strip()
     fmode    = (payload.get("filter_mode") or "all").strip()
     fvalue   = (payload.get("filter_value") or "").strip() or None
+    if fmode == "mac" and fvalue:
+        fvalue = fvalue.upper().replace("-", ":")
     action   = (payload.get("action") or "discord").strip()
     cooldown = int(payload.get("cooldown_minutes") or 0)
     min_down = int(payload.get("min_down_minutes") or 0)
@@ -52,9 +54,13 @@ def api_alert_create(payload: Dict[str, Any] = Body(...)):
 
     if not name:
         return JSONResponse({"ok": False, "error": "Nombre vacío"}, status_code=400)
-    valid_types = {"new_host", "offline", "online", "status_change", "ip_change", "offline_for"}
+    valid_types = {"new_host", "offline", "online", "status_change", "ip_change", "mac_change", "offline_for"}
     if ttype not in valid_types:
         return JSONResponse({"ok": False, "error": f"trigger_type inválido: {ttype}"}, status_code=400)
+    if fmode not in {"all", "ip", "mac", "type_id"}:
+        return JSONResponse({"ok": False, "error": f"filter_mode inválido: {fmode}"}, status_code=400)
+    if fmode in {"ip", "mac", "type_id"} and not fvalue:
+        return JSONResponse({"ok": False, "error": "filter_value requerido"}, status_code=400)
 
     with db() as conn:
         conn.execute("""
@@ -72,6 +78,8 @@ def api_alert_update(alert_id: int, payload: Dict[str, Any] = Body(...)):
     ttype    = (payload.get("trigger_type") or "").strip()
     fmode    = (payload.get("filter_mode") or "all").strip()
     fvalue   = (payload.get("filter_value") or "").strip() or None
+    if fmode == "mac" and fvalue:
+        fvalue = fvalue.upper().replace("-", ":")
     action   = (payload.get("action") or "discord").strip()
     cooldown = int(payload.get("cooldown_minutes") or 0)
     min_down = int(payload.get("min_down_minutes") or 0)
@@ -81,6 +89,13 @@ def api_alert_update(alert_id: int, payload: Dict[str, Any] = Body(...)):
         row = conn.execute("SELECT id FROM alerts WHERE id=?", (alert_id,)).fetchone()
         if not row:
             return JSONResponse({"ok": False, "error": "Alerta no encontrada"}, status_code=404)
+        valid_types = {"new_host", "offline", "online", "status_change", "ip_change", "mac_change", "offline_for"}
+        if ttype not in valid_types:
+            return JSONResponse({"ok": False, "error": f"trigger_type inválido: {ttype}"}, status_code=400)
+        if fmode not in {"all", "ip", "mac", "type_id"}:
+            return JSONResponse({"ok": False, "error": f"filter_mode inválido: {fmode}"}, status_code=400)
+        if fmode in {"ip", "mac", "type_id"} and not fvalue:
+            return JSONResponse({"ok": False, "error": "filter_value requerido"}, status_code=400)
         conn.execute("""
             UPDATE alerts
             SET name=?, trigger_type=?, filter_mode=?, filter_value=?,

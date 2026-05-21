@@ -243,6 +243,14 @@ def init_db() -> None:
         """)
         if not column_exists(conn, "services", "access_url"):
             conn.execute("ALTER TABLE services ADD COLUMN access_url TEXT")
+        if not column_exists(conn, "services", "expected_schedule_enabled"):
+            conn.execute("ALTER TABLE services ADD COLUMN expected_schedule_enabled INTEGER NOT NULL DEFAULT 0")
+        if not column_exists(conn, "services", "expected_schedule_days"):
+            conn.execute("ALTER TABLE services ADD COLUMN expected_schedule_days TEXT NOT NULL DEFAULT '1,2,3,4,5,6,7'")
+        if not column_exists(conn, "services", "expected_schedule_start"):
+            conn.execute("ALTER TABLE services ADD COLUMN expected_schedule_start TEXT")
+        if not column_exists(conn, "services", "expected_schedule_end"):
+            conn.execute("ALTER TABLE services ADD COLUMN expected_schedule_end TEXT")
 
         conn.execute("""
         CREATE TABLE IF NOT EXISTS service_checks (

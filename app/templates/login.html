@@ -331,8 +331,11 @@
       margin: 1.7rem 0 1.15rem;
     }
     .public-wol-entry {
-      display: flex;
+      display: none;
       justify-content: center;
+    }
+    .public-wol-entry.is-visible {
+      display: flex;
     }
     .public-wol-link {
       display: inline-flex;
@@ -883,6 +886,41 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
  /* END initial setup transactional wizard v2 */
 </script>
+
+
+  <script id="publicWolEntryAutoVisibility">
+    (function () {
+      const entry = document.querySelector('.public-wol-entry');
+      if (!entry) return;
+
+      function extractHosts(payload) {
+        if (Array.isArray(payload)) return payload;
+        if (payload && Array.isArray(payload.hosts)) return payload.hosts;
+        if (payload && Array.isArray(payload.items)) return payload.items;
+        return [];
+      }
+
+      function canWake(host) {
+        const ready = String(host && host.wol_ready).toLowerCase();
+        return ready === 'true' || ready === '1';
+      }
+
+      fetch('/api/public/wol/hosts', {
+        cache: 'no-store',
+        credentials: 'same-origin'
+      })
+        .then(function (response) {
+          if (!response.ok) throw new Error('WoL hosts unavailable');
+          return response.json();
+        })
+        .then(function (payload) {
+          entry.classList.toggle('is-visible', extractHosts(payload).some(canWake));
+        })
+        .catch(function () {
+          entry.classList.remove('is-visible');
+        });
+    })();
+  </script>
 
 </body>
 </html>
