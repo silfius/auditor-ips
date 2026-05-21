@@ -9287,11 +9287,54 @@ ip route get 192.168.18.1</code></pre>
                 </div>
               </div>
 
-              <p class="small text-muted mb-3">
-                Gestiona hosts remotos que envían estados y logs por
-                <code>POST /api/automation-agents/status</code>.
-                El token se muestra solo al crearlo o rotarlo. Auditor IPs no ejecuta comandos remotos.
-              </p>
+              <div class="alert alert-info py-2 mb-3" style="font-size:.78rem">
+                <div class="d-flex align-items-start gap-2">
+                  <i class="bi bi-info-circle mt-1"></i>
+                  <div>
+                    <div class="fw-semibold mb-1">Guía rápida de agentes remotos vía API</div>
+                    <div>
+                      Los agentes remotos envían estados a <code>POST /api/automation-agents/status</code>.
+                      El token se muestra solo al crear o rotar el agente.
+                      <strong>Auditor IPs no ejecuta comandos remotos</strong>: solo recibe estados publicados por el host remoto.
+                    </div>
+
+                    <div class="mt-2">
+                      Para que Auditor IPs detecte bien origen, cron y estado, cada script remoto debería publicar:
+                      <code>name/script_name</code>, <code>state/status</code>, <code>host_name</code>,
+                      <code>cron_expr</code>, <code>cron_source</code>, hora de inicio/fin o última ejecución,
+                      y errores/mensaje si existen.
+                    </div>
+
+                    <details class="mt-2">
+                      <summary class="fw-semibold" style="cursor:pointer">Ver contrato recomendado de estado remoto</summary>
+                      <pre class="mt-2 mb-0 p-2 rounded" style="background:rgba(0,0,0,.22);font-size:.74rem;white-space:pre-wrap"><code>POST /api/automation-agents/status
+Authorization: Bearer &lt;token_del_agente&gt;
+Content-Type: application/json
+
+{
+  "host_name": "NAS-Backups",
+  "statuses": [
+    {
+      "name": "backup_nas",
+      "state": "ok",
+      "cron_expr": "0 2 * * *",
+      "cron_source": "NAS-Backups / root crontab",
+      "start_time": "2026-05-21 02:00:00",
+      "end_time": "2026-05-21 02:12:30",
+      "last_run": "2026-05-21 02:00:00",
+      "message": "Backup completado",
+      "errors": 0
+    }
+  ]
+}</code></pre>
+                    </details>
+
+                    <div class="mt-2 text-warning">
+                      Si faltan <code>cron_expr</code> o <code>cron_source</code>, se podrán completar manualmente en la configuración del script.
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               <div class="row g-2 align-items-end mb-3">
                 <div class="col-12 col-md-3">
