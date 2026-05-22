@@ -5,7 +5,7 @@ Este snapshot ha sido generado de forma local y no ha sido publicado.
 ## Resultado del escaneo ligero
 
 - Hallazgos HIGH: 0
-- Hallazgos WARN: 279
+- Hallazgos WARN: 286
 
 Los hallazgos WARN pueden corresponder a documentación o nombres de variables.
 Los hallazgos HIGH deben bloquear la publicación hasta revisión.
@@ -30,7 +30,7 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/host_classification.py:177` `secret_word` — token_compact = _compact_text(token)
 - `WARN` `app/host_classification.py:179` `secret_word` — return token
 - `WARN` `app/host_classification.py:181` `secret_word` — return token
-- `WARN` `app/config.py:162` `localhost_url` — "ai_ollama_url":       os.getenv("OLLAMA_URL",     "http://localhost:11434"),
+- `WARN` `app/config.py:163` `localhost_url` — "ai_ollama_url":       os.getenv("OLLAMA_URL",     "http://localhost:11434"),
 - `WARN` `app/device_enrichment.py:92` `secret_word` — elif any(token in os_text for token in ["windows 11", "windows 10", "windows 8", "windows 7", "microsoft windows"]):
 - `WARN` `app/main.py:239` `secret_word` — token = request.cookies.get(SESSION_COOKIE)
 - `WARN` `app/main.py:241` `secret_word` — username = validate_session(DB_PATH, token) if auth_enabled(DB_PATH) else None
@@ -99,6 +99,13 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `docs/INSTALL.md:66` `localhost_url` — AUDITOR_BASE_URL=https://127.0.0.1:9909 scripts/smoke_system_health.sh
 - `WARN` `docs/TROUBLESHOOTING.md:21` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
 - `WARN` `docs/BACKUP_RESTORE.md:30` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
+- `WARN` `docs/USER_MANUAL.md:373` `secret_word` — 4. Copiar el token generado.
+- `WARN` `docs/USER_MANUAL.md:374` `secret_word` — 5. Guardar el token en el host remoto de forma segura.
+- `WARN` `docs/USER_MANUAL.md:376` `secret_word` — El token solo debe mostrarse al crear o rotar.
+- `WARN` `docs/USER_MANUAL.md:388` `secret_word` — El instalador puede pedir el token de forma interactiva.
+- `WARN` `docs/USER_MANUAL.md:579` `secret_word` — - revisar permisos de ficheros de token de agentes.
+- `WARN` `docs/USER_MANUAL.md:590` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
+- `WARN` `docs/USER_MANUAL.md:620` `secret_word` — - token correcto;
 - `WARN` `docs/CONFIGURATION.md:18` `secret_word` — - `DISCORD_WEBHOOK_URL`: webhook opcional de Discord.
 - `WARN` `docs/UPGRADE.md:19` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
 - `WARN` `app/templates/index.html:4656` `secret_word` — Las alertas se evalúan tras cada escaneo. Acción: Discord webhook (si configurado).
@@ -150,37 +157,37 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/routers/syncthing_control.py:2384` `secret_word` — api_key = _clean_text(incoming_key, 500)
 - `WARN` `app/routers/syncthing_control.py:2414` `secret_word` — SET name=?, api_base_url=?, gui_url=?, api_key=?, verify_tls=?,
 - `WARN` `app/routers/syncthing_control.py:2417` `secret_word` — """, (name, api_base_url, gui_url, api_key, verify_tls, enabled, timeout_s, notes, utc_now_iso(), node_id))
-- `WARN` `app/routers/hosts.py:575` `secret_word` — token    = request.cookies.get(SESSION_COOKIE)
-- `WARN` `app/routers/hosts.py:577` `secret_word` — username = validate_session(DB_PATH, token) if enabled else None
-- `WARN` `app/routers/scans.py:135` `secret_word` — Devuelve el webhook Discord efectivo para un canal lógico.
-- `WARN` `app/routers/scans.py:159` `secret_word` — webhook = discord_webhook_for_channel(channel)
-- `WARN` `app/routers/scans.py:160` `secret_word` — if not webhook:
-- `WARN` `app/routers/scans.py:161` `secret_word` — return False, f"No hay discord webhook configurado para canal {channel or 'alerts'}"
-- `WARN` `app/routers/scans.py:165` `secret_word` — webhook, data=data,
-- `WARN` `app/routers/scans.py:232` `secret_word` — token = _vapid_jwt(sub["endpoint"], vapid_pub, vapid_priv)
-- `WARN` `app/routers/scans.py:233` `secret_word` — if token:
-- `WARN` `app/routers/scans.py:234` `secret_word` — headers["Authorization"] = f"vapid t={token},k={vapid_pub}"
-- `WARN` `app/routers/scans.py:1058` `localhost_url` — ollama_url = _cfg("ollama_url", "http://localhost:11434")
-- `WARN` `app/routers/config_api.py:315` `secret_word` — "discord_webhook": "Webhook Discord legacy",
-- `WARN` `app/routers/config_api.py:316` `secret_word` — "discord_webhook_info": "Webhook Discord informativo",
-- `WARN` `app/routers/config_api.py:317` `secret_word` — "discord_webhook_alerts": "Webhook Discord alertas",
-- `WARN` `app/routers/config_api.py:643` `secret_word` — api_key = cfg("ai_gemini_key", "").strip()
-- `WARN` `app/routers/config_api.py:645` `secret_word` — if not api_key:
-- `WARN` `app/routers/config_api.py:647` `secret_word` — url = f"https://generativelanguage.googleapis.com/v1beta/models/{urllib.parse.quote(model)}:generateContent?key={urllib.parse.quote(api_key)}"
-- `WARN` `app/routers/config_api.py:655` `secret_word` — api_key = cfg("ai_mistral_key", "").strip()
-- `WARN` `app/routers/config_api.py:657` `secret_word` — if not api_key:
-- `WARN` `app/routers/config_api.py:661` `secret_word` — req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}, method="POST")
-- `WARN` `app/routers/config_api.py:667` `localhost_url` — base_url = (cfg("ai_ollama_url", "http://localhost:11434") or "http://localhost:11434").rstrip("/")
-- `WARN` `app/routers/config_api.py:695` `secret_word` — webhook = discord_webhook_for_channel(channel)
-- `WARN` `app/routers/config_api.py:696` `secret_word` — if not webhook:
-- `WARN` `app/routers/config_api.py:698` `secret_word` — return JSONResponse({"ok": False, "error": f"No hay webhook Discord {label} configurado"}, status_code=400)
-- `WARN` `app/routers/config_api.py:725` `secret_word` — password = cfg("smtp_pass",  "")
-- `WARN` `app/routers/config_api.py:742` `secret_word` — if user and password:
-- `WARN` `app/routers/config_api.py:743` `secret_word` — s.login(user, password)
-- `WARN` `app/routers/config_api.py:750` `secret_word` — if user and password:
-- `WARN` `app/routers/config_api.py:751` `secret_word` — s.login(user, password)
-- `WARN` `app/routers/config_api.py:755` `secret_word` — if user and password:
-- `WARN` `app/routers/config_api.py:756` `secret_word` — s.login(user, password)
+- `WARN` `app/routers/hosts.py:583` `secret_word` — token    = request.cookies.get(SESSION_COOKIE)
+- `WARN` `app/routers/hosts.py:585` `secret_word` — username = validate_session(DB_PATH, token) if enabled else None
+- `WARN` `app/routers/scans.py:136` `secret_word` — Devuelve el webhook Discord efectivo para un canal lógico.
+- `WARN` `app/routers/scans.py:160` `secret_word` — webhook = discord_webhook_for_channel(channel)
+- `WARN` `app/routers/scans.py:161` `secret_word` — if not webhook:
+- `WARN` `app/routers/scans.py:162` `secret_word` — return False, f"No hay discord webhook configurado para canal {channel or 'alerts'}"
+- `WARN` `app/routers/scans.py:166` `secret_word` — webhook, data=data,
+- `WARN` `app/routers/scans.py:233` `secret_word` — token = _vapid_jwt(sub["endpoint"], vapid_pub, vapid_priv)
+- `WARN` `app/routers/scans.py:234` `secret_word` — if token:
+- `WARN` `app/routers/scans.py:235` `secret_word` — headers["Authorization"] = f"vapid t={token},k={vapid_pub}"
+- `WARN` `app/routers/scans.py:1114` `localhost_url` — ollama_url = _cfg("ollama_url", "http://localhost:11434")
+- `WARN` `app/routers/config_api.py:316` `secret_word` — "discord_webhook": "Webhook Discord legacy",
+- `WARN` `app/routers/config_api.py:317` `secret_word` — "discord_webhook_info": "Webhook Discord informativo",
+- `WARN` `app/routers/config_api.py:318` `secret_word` — "discord_webhook_alerts": "Webhook Discord alertas",
+- `WARN` `app/routers/config_api.py:644` `secret_word` — api_key = cfg("ai_gemini_key", "").strip()
+- `WARN` `app/routers/config_api.py:646` `secret_word` — if not api_key:
+- `WARN` `app/routers/config_api.py:648` `secret_word` — url = f"https://generativelanguage.googleapis.com/v1beta/models/{urllib.parse.quote(model)}:generateContent?key={urllib.parse.quote(api_key)}"
+- `WARN` `app/routers/config_api.py:656` `secret_word` — api_key = cfg("ai_mistral_key", "").strip()
+- `WARN` `app/routers/config_api.py:658` `secret_word` — if not api_key:
+- `WARN` `app/routers/config_api.py:662` `secret_word` — req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}, method="POST")
+- `WARN` `app/routers/config_api.py:668` `localhost_url` — base_url = (cfg("ai_ollama_url", "http://localhost:11434") or "http://localhost:11434").rstrip("/")
+- `WARN` `app/routers/config_api.py:696` `secret_word` — webhook = discord_webhook_for_channel(channel)
+- `WARN` `app/routers/config_api.py:697` `secret_word` — if not webhook:
+- `WARN` `app/routers/config_api.py:699` `secret_word` — return JSONResponse({"ok": False, "error": f"No hay webhook Discord {label} configurado"}, status_code=400)
+- `WARN` `app/routers/config_api.py:726` `secret_word` — password = cfg("smtp_pass",  "")
+- `WARN` `app/routers/config_api.py:743` `secret_word` — if user and password:
+- `WARN` `app/routers/config_api.py:744` `secret_word` — s.login(user, password)
+- `WARN` `app/routers/config_api.py:751` `secret_word` — if user and password:
+- `WARN` `app/routers/config_api.py:752` `secret_word` — s.login(user, password)
+- `WARN` `app/routers/config_api.py:756` `secret_word` — if user and password:
+- `WARN` `app/routers/config_api.py:757` `secret_word` — s.login(user, password)
 - `WARN` `app/routers/scripts_status.py:78` `localhost_url` — _ENV_OLLAMA_URL    = os.getenv("OLLAMA_URL",      "http://localhost:11434")
 - `WARN` `app/routers/scripts_status.py:1177` `secret_word` — def _automation_agent_token_hash(token: str) -> str:
 - `WARN` `app/routers/scripts_status.py:1178` `secret_word` — return hashlib.sha256(str(token or "").encode("utf-8")).hexdigest()
@@ -215,12 +222,5 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/routers/scripts_status.py:1478` `secret_word` — "token_prefix": _automation_agent_token_prefix(token),
 - `WARN` `app/routers/scripts_status.py:1479` `secret_word` — "warning": "Guarda este token ahora; no se volverá a mostrar.",
 - `WARN` `app/routers/scripts_status.py:1534` `secret_word` — - protegida por token global legado o token específico por host;
-- `WARN` `app/routers/auth.py:109` `secret_word` — password = str(payload.get("password") or "")
-- `WARN` `app/routers/auth.py:114` `secret_word` — if len(password) < 8:
-- `WARN` `app/routers/auth.py:116` `secret_word` — if password != password2:
-- `WARN` `app/routers/auth.py:134` `secret_word` — token = secrets.token_urlsafe(32)
-- `WARN` `app/routers/auth.py:172` `secret_word` — (username, hash_password(password), now),
-- `WARN` `app/routers/auth.py:181` `secret_word` — (token,user_id,username,created_at,expires_at,ip,user_agent)
-- `WARN` `app/routers/auth.py:183` `secret_word` — (token, user_id, username, now, expires_at, ip, ua),
-- ... 79 hallazgos adicionales no listados.
+- ... 86 hallazgos adicionales no listados.
 

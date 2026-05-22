@@ -96,6 +96,7 @@ def cfg_defaults() -> Dict[str, Any]:
         "backup_keep":         "7",
         # Frontend refresh
         "frontend_refresh_interval_seconds": "30",
+        "host_offline_grace_seconds": "600",
         "frontend_dashboard_refresh_interval_seconds": "60",
         # Frontend data limits
         "frontend_history_limit": "5000",

@@ -66,6 +66,14 @@ def _ip_in_any_primary(ip: str) -> bool:
     return False
 
 
+
+def _host_offline_grace_seconds() -> int:
+    try:
+        value = int(str(cfg("host_offline_grace_seconds", "600") or "600").strip())
+    except Exception:
+        value = 600
+    return max(60, min(value, 86400))
+
 def _display_status(ip: str, status: str, router_seen: Any, last_seen: Any = None) -> str:
     status = (status or "").strip()
     router_primary = (
@@ -86,7 +94,7 @@ def _display_status(ip: str, status: str, router_seen: Any, last_seen: Any = Non
             last_seen_dt = parse_iso(last_seen)
             if is_scan_running() and last_seen_dt:
                 age_seconds = max(0.0, (utc_now() - last_seen_dt).total_seconds())
-                if age_seconds < 300:
+                if age_seconds < _host_offline_grace_seconds():
                     return "online_silent"
         except Exception:
             pass

@@ -12,6 +12,7 @@ import ipaddress
 import json
 import re
 import sqlite3
+import sys
 import subprocess
 import threading
 import time
@@ -842,14 +843,69 @@ def _icmp_ping_once(ip: str, timeout_s: int = 1) -> bool:
         return False
 
 
-def _router_target_status(ip: str, found_by_ip: Dict[str, Any], rdata: Dict[str, Any]) -> Optional[str]:
+
+def _router_discovery_decision(ip: str, found_by_ip: Dict[str, Any], rdata: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Decide la validez de una señal de discovery procedente de nmap/router.
+
+    Criterio conservador:
+    - nmap confirma online.
+    - el propio router se considera online.
+    - router activo sin nmap confirma presencia, pero como online_silent.
+    - DHCP/lease o señales inactivas no bastan para marcar online.
+    """
+    ip = str(ip or "").strip()
+    presence_source = (rdata.get("router_presence_source") or "").strip()
+    neigh_state = (rdata.get("neigh_state") or "").strip().upper()
+    arp_flags = (rdata.get("arp_flags") or "").strip().lower()
+
     if ip in found_by_ip:
-        return "online"
+        return {
+            "status": "online",
+            "confidence": 100,
+            "source": "nmap",
+            "reason": "nmap_detected",
+            "presence_source": presence_source,
+            "neigh_state": neigh_state,
+            "arp_flags": arp_flags,
+        }
+
     if bool(rdata.get("router_self")):
-        return "online"
+        return {
+            "status": "online",
+            "confidence": 95,
+            "source": "router_self",
+            "reason": "router_management_ip",
+            "presence_source": presence_source or "ssh:self",
+            "neigh_state": neigh_state,
+            "arp_flags": arp_flags,
+        }
+
     if bool(rdata.get("router_active")):
-        return "online_silent"
-    return None
+        return {
+            "status": "online_silent",
+            "confidence": 75,
+            "source": "router_active",
+            "reason": presence_source or "router_active",
+            "presence_source": presence_source,
+            "neigh_state": neigh_state,
+            "arp_flags": arp_flags,
+        }
+
+    return {
+        "status": None,
+        "confidence": 0,
+        "source": "router_inactive",
+        "reason": presence_source or "router_inactive_or_lease_only",
+        "presence_source": presence_source,
+        "neigh_state": neigh_state,
+        "arp_flags": arp_flags,
+    }
+
+def _router_target_status(ip: str, found_by_ip: Dict[str, Any], rdata: Dict[str, Any]) -> Optional[str]:
+    decision = _router_discovery_decision(ip, found_by_ip, rdata)
+    status = decision.get("status")
+    return str(status) if status else None
 
 def merge_router_data(
     conn: sqlite3.Connection,
@@ -1259,6 +1315,7 @@ def _run_router_primary_scan(cidr: str, prev: Dict, default_type_id: Optional[in
 
     new_hosts   = 0
     online_ips  = set()
+    discovery_source_counts: Dict[str, int] = {}
 
     with db() as conn:
         arp_cache = read_arp_cache()
@@ -1270,8 +1327,14 @@ def _run_router_primary_scan(cidr: str, prev: Dict, default_type_id: Optional[in
             lease_exp  = rdata.get("dhcp_lease_expires")
             vendor     = oui_lookup(mac) if mac else ""
 
+            decision = _router_discovery_decision(ip, {}, rdata)
+            target_status = str(decision.get("status") or "")
+            if not target_status:
+                continue
+
             online_ips.add(ip)
-            target_status = "online"
+            _src = str(decision.get("source") or "router").strip() or "router"
+            discovery_source_counts[_src] = discovery_source_counts.get(_src, 0) + 1
 
             row = conn.execute(
                 "SELECT ip, status, mac, router_hostname FROM hosts WHERE ip=?", (ip,)
@@ -1347,6 +1410,7 @@ def _run_router_primary_scan(cidr: str, prev: Dict, default_type_id: Optional[in
         "finished_at":  utc_now_iso(),
         "router_error": router_error,
         "source":       "router",
+        "discovery_sources": discovery_source_counts,
     }
 
 
@@ -1437,6 +1501,18 @@ def register_nmap_complement_job() -> None:
 
 
 _SCAN_CYCLE_STATUS: Dict[str, str] = {}
+
+
+def _host_offline_grace_seconds() -> int:
+    """
+    Tiempo de gracia antes de confirmar offline tras no ver un host.
+    Evita falsos offline en móviles/IoT intermitentes sin aceptar señales débiles como online.
+    """
+    try:
+        value = int(str(cfg("host_offline_grace_seconds", "600") or "600").strip())
+    except Exception:
+        value = 600
+    return max(60, min(value, 86400))
 
 def _availability_family(status: Any) -> str:
     s = str(status or "").strip().lower()
@@ -1712,7 +1788,16 @@ def rebuild_scans_chart_cache(conn: sqlite3.Connection, lookback_days: int = 32)
     return inserted
 
 
+
+def _is_running_under_uvicorn() -> bool:
+    argv = " ".join(str(x) for x in getattr(sys, "argv", [])).lower()
+    if "uvicorn" in argv:
+        return True
+    return any(name.startswith("uvicorn") for name in sys.modules.keys())
+
 def _launch_dns_refresh_for_online_hosts() -> None:
+    if not _is_running_under_uvicorn():
+        return
     try:
         with db() as conn:
             online_ips = [
@@ -1743,7 +1828,7 @@ def _finalize_scan_cycle(
 ) -> Dict[str, Any]:
     with db() as conn:
         finished_at = utc_now_iso()
-        offline_grace_seconds = 300
+        offline_grace_seconds = _host_offline_grace_seconds()
 
         for row in conn.execute("SELECT ip, status, last_seen, router_seen FROM hosts").fetchall():
             if row["status"] != "offline":
@@ -2014,11 +2099,16 @@ def _run_scan_inner(
 
     found = parse_nmap(out) if run_nmap else []
     found_by_ip = {h["ip"]: h for h in found if h.get("ip")}
+    for _data in found_by_ip.values():
+        _data.setdefault("_discovery_source", "nmap")
+        _data.setdefault("_discovery_confidence", 100)
 
     # Inyectar IPs locales del servidor en este CIDR (nmap nunca reporta el propio host)
     for local in get_local_ips_in_cidr(cidr):
         lip = local["ip"]
         if lip not in found_by_ip:
+            local["_discovery_source"] = "local_self"
+            local["_discovery_confidence"] = 95
             found_by_ip[lip] = local
 
     # Promover a online los hosts que el router ve y además responden a ICMP,
@@ -2034,9 +2124,19 @@ def _run_scan_inner(
                     "mac": (rdata.get("mac") or "").strip().upper(),
                     "nmap_hostname": (rdata.get("router_hostname") or "").strip(),
                     "latency_ms": None,
+                    "_discovery_source": "router_icmp",
+                    "_discovery_confidence": 90,
                 }
 
     arp = read_arp_cache()
+    discovery_source_counts: Dict[str, int] = {}
+    for _data in found_by_ip.values():
+        _src = str(_data.get("_discovery_source") or "unknown").strip() or "unknown"
+        discovery_source_counts[_src] = discovery_source_counts.get(_src, 0) + 1
+    if router_data:
+        discovery_source_counts["router_records"] = len(router_data)
+    if router_error:
+        discovery_source_counts["router_error"] = 1
     new_hosts = 0
 
     with db() as conn:
@@ -2135,6 +2235,8 @@ def _run_scan_inner(
                 error=router_error,
             )
             online_hosts += silent_new
+            if silent_new:
+                discovery_source_counts["router_silent_new"] = silent_new
 
 
         elif router_error:
@@ -2156,6 +2258,7 @@ def _run_scan_inner(
         "finished_at": utc_now_iso(),
         "router_error": router_error,
         "source": "router+nmap" if use_router and run_nmap else ("router" if use_router else "nmap"),
+        "discovery_sources": discovery_source_counts,
     }
 
 
