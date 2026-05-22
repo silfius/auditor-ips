@@ -1,11 +1,11 @@
 {
   "repo_name": "auditor-ips",
-  "generated_at": "2026-05-21T17:04:15.061640+00:00",
+  "generated_at": "2026-05-22T10:22:45.136421+00:00",
   "source_root": "<internal-source-redacted>",
-  "snapshot_dir": "auditor-ips-20260521-190414",
-  "files_count": 85,
+  "snapshot_dir": "auditor-ips-20260522-122244",
+  "files_count": 110,
   "high_findings_count": 0,
-  "warn_findings_count": 279,
+  "warn_findings_count": 286,
   "files": [
     {
       "path": "app/scan_scheduler.py",
@@ -29,8 +29,8 @@
     },
     {
       "path": "app/config.py",
-      "size": 16017,
-      "sha256": "3c27b8987d0eb211292edcb0bed1eb3c2d2f6c44cc816756406b9ee318f1ff43"
+      "size": 16062,
+      "sha256": "704df1c07a8926cdfeb841e75574c2f26578eec47e22619dea21007bf4dcb201"
     },
     {
       "path": "app/requirements.txt",
@@ -304,8 +304,8 @@
     },
     {
       "path": "app/routers/hosts.py",
-      "size": 92289,
-      "sha256": "07534aac241d262296e2bec84d50de23e440ab9cfe55047a3bf90f895a0bf0cf"
+      "size": 92532,
+      "sha256": "ef98665fa3484031b515a777faaef0b36b14a5e11b1ff47485b782ae5692bcf1"
     },
     {
       "path": "app/routers/discovery.py",
@@ -314,13 +314,13 @@
     },
     {
       "path": "app/routers/scans.py",
-      "size": 110588,
-      "sha256": "e28b87a71c0fd5a1b82143ebd36519ef4b1061586b53619753f0f782d1d963fd"
+      "size": 114588,
+      "sha256": "3300aeba571a155c89c861fb9aa18e5ffe66a586e00003e3e4c9918386c050dc"
     },
     {
       "path": "app/routers/config_api.py",
-      "size": 149092,
-      "sha256": "b5bd06ea2c5a6f2ee48028e7188102cc000654809814f2da89114c6ced0f9ab9"
+      "size": 149157,
+      "sha256": "9f48f5979c7a34ec5f5ced046446f891735d3b3e1511893ca4a3bce0285c8062"
     },
     {
       "path": "app/routers/scripts_status.py",
@@ -418,6 +418,131 @@
       "sha256": "6da4feda9e4aed70e927e744bfd160461e8677478046f7dfc887a7065e65a569"
     },
     {
+      "path": "docs/USER_MANUAL.md",
+      "size": 15085,
+      "sha256": "62aa972b9422c25bee643e4255bd6bee81c4e1ef808bc19419029442f432f7d7"
+    },
+    {
+      "path": "docs/img/calidad.png",
+      "size": 854369,
+      "sha256": "a41291ef9161a8ebeb452dc0aef77075aed2204bda62df7d0712ec53e532d721"
+    },
+    {
+      "path": "docs/img/config-apariencia.png",
+      "size": 210108,
+      "sha256": "cccc1df3bf43bde6e381861832be3b25426aac3a3d608e657084038de11b0103"
+    },
+    {
+      "path": "docs/img/config-audit-log.png",
+      "size": 1149538,
+      "sha256": "2753a759bdeb6f01ae79edf569cb89ebd85d8e47fce77220ca3f23366f49e3bb"
+    },
+    {
+      "path": "docs/img/config-backup-bd.png",
+      "size": 108492,
+      "sha256": "6071dc0b684dd9a3701a341ce72e8e4404785726834ef849e07ea9c605608659"
+    },
+    {
+      "path": "docs/img/config-calidad.png",
+      "size": 129923,
+      "sha256": "dd53f729618bde9758934e2696250f60226bbe76e2b11fe95c23a3963ba2aaaf"
+    },
+    {
+      "path": "docs/img/config-documentacion.png",
+      "size": 708653,
+      "sha256": "386be9b78fcb0d5a271e908479368e53e0ea569becc33bb8c375a12ea091703b"
+    },
+    {
+      "path": "docs/img/config-exportar-importar.png",
+      "size": 231617,
+      "sha256": "2dc42ebbf7a348968efb8eb7ecc138d26ec7d96a588bb76e21dab421c962c59d"
+    },
+    {
+      "path": "docs/img/config-ia.png",
+      "size": 114352,
+      "sha256": "2ff4377a3c679adf35c81e93f636c3f7a96f64a8ca653bb7667b0c71df0d17af"
+    },
+    {
+      "path": "docs/img/config-interfaz.png",
+      "size": 252150,
+      "sha256": "83e52b11c14d399097473158bb8d9b5a1773169f5fdc6a9e2c6ecf7be311bbd5"
+    },
+    {
+      "path": "docs/img/config-notificaciones.png",
+      "size": 692778,
+      "sha256": "238adda5ca1e689b1cac65c867ed5367407ba96490d159753022a029d239c7d6"
+    },
+    {
+      "path": "docs/img/config-procesos.png",
+      "size": 647664,
+      "sha256": "601405a09533961309a25d2575f5f0ba74c5bdf6e1ba176650796c2deca08f15"
+    },
+    {
+      "path": "docs/img/config-redes.png",
+      "size": 327117,
+      "sha256": "04f7260b6cd13f3dff908f6296f65b3c7e83e78d6f9c10f4817aec1c8f654f52"
+    },
+    {
+      "path": "docs/img/config-seguridad.png",
+      "size": 527237,
+      "sha256": "bd239ec48f377b27e7971ed1c48ce8e4e3cfdf380dd31c9a41b8f21074517aca"
+    },
+    {
+      "path": "docs/img/config-sistema-salud.png",
+      "size": 756816,
+      "sha256": "b303a87ae1ff2f54fab564496020b92f7be2b392a34b4175c380c044a83a624c"
+    },
+    {
+      "path": "docs/img/config-syncthing-control.png",
+      "size": 166590,
+      "sha256": "8a3553d557abbb9f533562c5d3fb64817e3401e06ea5e98bba5d15d00aedc9e0"
+    },
+    {
+      "path": "docs/img/dashboard.png",
+      "size": 647559,
+      "sha256": "be62234a0b1d11bc1c7e6de35ab70e084acc39fb7f7c18e92e0d875379fb9c2c"
+    },
+    {
+      "path": "docs/img/hosts-alertas.png",
+      "size": 1556809,
+      "sha256": "6fd53d132ef08dc828b5a81f10cbe3228f276cef0e718dc2369604014a2f235e"
+    },
+    {
+      "path": "docs/img/hosts-ejecuciones.png",
+      "size": 1264656,
+      "sha256": "c11ee449a95fc7dd32b376596339dd89c072417538160ac412f897b738f18037"
+    },
+    {
+      "path": "docs/img/hosts-mapa.png",
+      "size": 701199,
+      "sha256": "4efb427b3ee88ee55ef9c4f9e9cca121fc801a1be1032446c1d04a0750305ec9"
+    },
+    {
+      "path": "docs/img/hosts-tabla.png",
+      "size": 1218343,
+      "sha256": "26e72297af1c7ec108e23042a94bc941a5c196fc9c04248f26b78631dbf1667a"
+    },
+    {
+      "path": "docs/img/infra-aplicaciones.png",
+      "size": 1381792,
+      "sha256": "91a57e0f95cc8c2b64fd6721158fb079c905a9b19e4a5bf6b99e56f3faec5d8d"
+    },
+    {
+      "path": "docs/img/infra-automatizaciones.png",
+      "size": 1158197,
+      "sha256": "b49f5bec8b91806977e680fc969242a318c67fc24e30d602fcecf04fa064a793"
+    },
+    {
+      "path": "docs/img/infra-syncthing.png",
+      "size": 1837333,
+      "sha256": "3609e961382224a8e7f3cc5fcf476f2c61e4336faa31a8dd5035d2d11f6ff19a"
+    },
+    {
+      "path": "docs/img/login.png",
+      "size": 151367,
+      "sha256": "24456d1f08b296afcf454610c2cc92f691bb06887caf1783d16b083e74d8d5dd"
+    },
+    {
       "path": "scripts/smoke_system_health.sh",
       "size": 5253,
       "sha256": "c79e6a6bf60c56c1717aafec8ba391d8f3628f49c7fc802cca1feb55a4f3387a"
@@ -493,7 +618,7 @@
     {
       "severity": "WARN",
       "path": "app/config.py",
-      "line": 162,
+      "line": 163,
       "pattern": "localhost_url",
       "sample": "\"ai_ollama_url\":       os.getenv(\"OLLAMA_URL\",     \"http://localhost:11434\"),"
     },
@@ -975,6 +1100,55 @@
     },
     {
       "severity": "WARN",
+      "path": "docs/USER_MANUAL.md",
+      "line": 373,
+      "pattern": "secret_word",
+      "sample": "4. Copiar el token generado."
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/USER_MANUAL.md",
+      "line": 374,
+      "pattern": "secret_word",
+      "sample": "5. Guardar el token en el host remoto de forma segura."
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/USER_MANUAL.md",
+      "line": 376,
+      "pattern": "secret_word",
+      "sample": "El token solo debe mostrarse al crear o rotar."
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/USER_MANUAL.md",
+      "line": 388,
+      "pattern": "secret_word",
+      "sample": "El instalador puede pedir el token de forma interactiva."
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/USER_MANUAL.md",
+      "line": 579,
+      "pattern": "secret_word",
+      "sample": "- revisar permisos de ficheros de token de agentes."
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/USER_MANUAL.md",
+      "line": 590,
+      "pattern": "localhost_url",
+      "sample": "curl -k https://127.0.0.1:9909/api/system/healthz"
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/USER_MANUAL.md",
+      "line": 620,
+      "pattern": "secret_word",
+      "sample": "- token correcto;"
+    },
+    {
+      "severity": "WARN",
       "path": "docs/CONFIGURATION.md",
       "line": 18,
       "pattern": "secret_word",
@@ -1333,217 +1507,217 @@
     {
       "severity": "WARN",
       "path": "app/routers/hosts.py",
-      "line": 575,
+      "line": 583,
       "pattern": "secret_word",
       "sample": "token    = request.cookies.get(SESSION_COOKIE)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/hosts.py",
-      "line": 577,
+      "line": 585,
       "pattern": "secret_word",
       "sample": "username = validate_session(DB_PATH, token) if enabled else None"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scans.py",
-      "line": 135,
+      "line": 136,
       "pattern": "secret_word",
       "sample": "Devuelve el webhook Discord efectivo para un canal lógico."
     },
     {
       "severity": "WARN",
       "path": "app/routers/scans.py",
-      "line": 159,
-      "pattern": "secret_word",
-      "sample": "webhook = discord_webhook_for_channel(channel)"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/scans.py",
       "line": 160,
       "pattern": "secret_word",
-      "sample": "if not webhook:"
+      "sample": "webhook = discord_webhook_for_channel(channel)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scans.py",
       "line": 161,
       "pattern": "secret_word",
+      "sample": "if not webhook:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scans.py",
+      "line": 162,
+      "pattern": "secret_word",
       "sample": "return False, f\"No hay discord webhook configurado para canal {channel or 'alerts'}\""
     },
     {
       "severity": "WARN",
       "path": "app/routers/scans.py",
-      "line": 165,
+      "line": 166,
       "pattern": "secret_word",
       "sample": "webhook, data=data,"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scans.py",
-      "line": 232,
+      "line": 233,
       "pattern": "secret_word",
       "sample": "token = _vapid_jwt(sub[\"endpoint\"], vapid_pub, vapid_priv)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scans.py",
-      "line": 233,
+      "line": 234,
       "pattern": "secret_word",
       "sample": "if token:"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scans.py",
-      "line": 234,
+      "line": 235,
       "pattern": "secret_word",
       "sample": "headers[\"Authorization\"] = f\"vapid t={token},k={vapid_pub}\""
     },
     {
       "severity": "WARN",
       "path": "app/routers/scans.py",
-      "line": 1058,
+      "line": 1114,
       "pattern": "localhost_url",
       "sample": "ollama_url = _cfg(\"ollama_url\", \"http://localhost:11434\")"
     },
     {
       "severity": "WARN",
       "path": "app/routers/config_api.py",
-      "line": 315,
+      "line": 316,
       "pattern": "secret_word",
       "sample": "\"discord_webhook\": \"Webhook Discord legacy\","
     },
     {
       "severity": "WARN",
       "path": "app/routers/config_api.py",
-      "line": 316,
+      "line": 317,
       "pattern": "secret_word",
       "sample": "\"discord_webhook_info\": \"Webhook Discord informativo\","
     },
     {
       "severity": "WARN",
       "path": "app/routers/config_api.py",
-      "line": 317,
+      "line": 318,
       "pattern": "secret_word",
       "sample": "\"discord_webhook_alerts\": \"Webhook Discord alertas\","
     },
     {
       "severity": "WARN",
       "path": "app/routers/config_api.py",
-      "line": 643,
+      "line": 644,
       "pattern": "secret_word",
       "sample": "api_key = cfg(\"ai_gemini_key\", \"\").strip()"
     },
     {
       "severity": "WARN",
       "path": "app/routers/config_api.py",
-      "line": 645,
+      "line": 646,
       "pattern": "secret_word",
       "sample": "if not api_key:"
     },
     {
       "severity": "WARN",
       "path": "app/routers/config_api.py",
-      "line": 647,
+      "line": 648,
       "pattern": "secret_word",
       "sample": "url = f\"https://generativelanguage.googleapis.com/v1beta/models/{urllib.parse.quote(model)}:generateContent?key={urllib.parse.quote(api_key)}\""
     },
     {
       "severity": "WARN",
       "path": "app/routers/config_api.py",
-      "line": 655,
+      "line": 656,
       "pattern": "secret_word",
       "sample": "api_key = cfg(\"ai_mistral_key\", \"\").strip()"
     },
     {
       "severity": "WARN",
       "path": "app/routers/config_api.py",
-      "line": 657,
+      "line": 658,
       "pattern": "secret_word",
       "sample": "if not api_key:"
     },
     {
       "severity": "WARN",
       "path": "app/routers/config_api.py",
-      "line": 661,
+      "line": 662,
       "pattern": "secret_word",
       "sample": "req = urllib.request.Request(url, data=payload, headers={\"Content-Type\": \"application/json\", \"Authorization\": f\"Bearer {api_key}\"}, method=\"POST\")"
     },
     {
       "severity": "WARN",
       "path": "app/routers/config_api.py",
-      "line": 667,
+      "line": 668,
       "pattern": "localhost_url",
       "sample": "base_url = (cfg(\"ai_ollama_url\", \"http://localhost:11434\") or \"http://localhost:11434\").rstrip(\"/\")"
     },
     {
       "severity": "WARN",
       "path": "app/routers/config_api.py",
-      "line": 695,
+      "line": 696,
       "pattern": "secret_word",
       "sample": "webhook = discord_webhook_for_channel(channel)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/config_api.py",
-      "line": 696,
+      "line": 697,
       "pattern": "secret_word",
       "sample": "if not webhook:"
     },
     {
       "severity": "WARN",
       "path": "app/routers/config_api.py",
-      "line": 698,
+      "line": 699,
       "pattern": "secret_word",
       "sample": "return JSONResponse({\"ok\": False, \"error\": f\"No hay webhook Discord {label} configurado\"}, status_code=400)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/config_api.py",
-      "line": 725,
+      "line": 726,
       "pattern": "secret_word",
       "sample": "password = cfg(\"smtp_pass\",  \"\")"
     },
     {
       "severity": "WARN",
       "path": "app/routers/config_api.py",
-      "line": 742,
-      "pattern": "secret_word",
-      "sample": "if user and password:"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/config_api.py",
       "line": 743,
       "pattern": "secret_word",
-      "sample": "s.login(user, password)"
+      "sample": "if user and password:"
     },
     {
       "severity": "WARN",
       "path": "app/routers/config_api.py",
-      "line": 750,
+      "line": 744,
       "pattern": "secret_word",
-      "sample": "if user and password:"
+      "sample": "s.login(user, password)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/config_api.py",
       "line": 751,
       "pattern": "secret_word",
+      "sample": "if user and password:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/config_api.py",
+      "line": 752,
+      "pattern": "secret_word",
       "sample": "s.login(user, password)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/config_api.py",
-      "line": 755,
+      "line": 756,
       "pattern": "secret_word",
       "sample": "if user and password:"
     },
     {
       "severity": "WARN",
       "path": "app/routers/config_api.py",
-      "line": 756,
+      "line": 757,
       "pattern": "secret_word",
       "sample": "s.login(user, password)"
     },

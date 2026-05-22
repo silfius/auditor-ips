@@ -278,6 +278,7 @@ def api_put_settings(request: Request, payload: Dict[str, Any] = Body(...)):
             "accent_color2": "Color secundario",
             "page_title": "Título de página",
             "frontend_refresh_interval_seconds": "Refresco frontend",
+            "host_offline_grace_seconds": "Gracia host offline",
             "frontend_dashboard_refresh_interval_seconds": "Refresco dashboard",
             "frontend_history_limit": "Límite histórico frontend",
             "frontend_detail_history_limit": "Límite histórico detalle frontend",
