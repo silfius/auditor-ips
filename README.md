@@ -19,7 +19,7 @@ El desarrollo principal se mantiene en un repositorio privado y este repositorio
 - Wake-on-LAN para equipos configurados.
 - Alertas y eventos.
 - Exportaciones.
-- Automatizaciones.
+- Automatizaciones y control de procesos.
 - Configuración de seguridad y usuarios admin.
 - Control de servicios auxiliares cuando estén configurados.
 - Integraciones opcionales según despliegue.
