@@ -2,13 +2,28 @@
 #  auth_middleware.py  —  Auditor IPs  — Sesión 5+
 #  Multi-usuario admin + Sesiones cookie + Audit Log semántico
 # ═══════════════════════════════════════════════════════════
-import os, sqlite3, secrets, hashlib, json
+import os
+import re, sqlite3, secrets, hashlib, json
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 
 from fastapi import Request
 
-SESSION_COOKIE    = "auditor_session"
+def _safe_cookie_suffix(value: str) -> str:
+    cleaned = re.sub(r"[^A-Za-z0-9_]+", "_", (value or "").strip())
+    cleaned = cleaned.strip("_")
+    return cleaned[:48] or "default"
+
+
+_session_cookie_name = os.getenv("SESSION_COOKIE_NAME", "").strip()
+_auditor_instance_id = os.getenv("AUDITOR_INSTANCE_ID", "").strip()
+
+if _session_cookie_name:
+    SESSION_COOKIE = _session_cookie_name
+elif _auditor_instance_id:
+    SESSION_COOKIE = "auditor_session_" + _safe_cookie_suffix(_auditor_instance_id)
+else:
+    SESSION_COOKIE = "auditor_session"
 SESSION_TTL_HOURS = int(os.getenv("SESSION_TTL_HOURS", "8"))
 _AUDIT_SKIP_IPS: set = set(os.getenv("AUDIT_SKIP_IPS", "").split(",")) - {""}
 

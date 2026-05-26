@@ -760,6 +760,7 @@ def init_db() -> None:
             host_name    TEXT    NOT NULL DEFAULT 'Local',
             script_name  TEXT    NOT NULL,
             reason       TEXT    NOT NULL DEFAULT '',
+            control_type TEXT    NOT NULL DEFAULT 'controlled_incident',
             created_at   TEXT    NOT NULL,
             observed_start_time TEXT NOT NULL DEFAULT '',
             cleared_at   TEXT,
@@ -776,7 +777,45 @@ def init_db() -> None:
         )
         if not column_exists(conn, "script_controlled_stops", "observed_start_time"):
             conn.execute("ALTER TABLE script_controlled_stops ADD COLUMN observed_start_time TEXT NOT NULL DEFAULT ''")
+        if not column_exists(conn, "script_controlled_stops", "control_type"):
+            conn.execute("ALTER TABLE script_controlled_stops ADD COLUMN control_type TEXT NOT NULL DEFAULT 'controlled_incident'")
 
+        # Historial operativo de automatizaciones.
+        # Guarda eventos acotados y, cuando procede, una muestra saneada del log.
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS script_execution_events (
+            id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+            at                    TEXT    NOT NULL,
+            host_name             TEXT    NOT NULL DEFAULT 'Local',
+            script_name           TEXT    NOT NULL,
+            instance_key          TEXT    NOT NULL DEFAULT '',
+            event_type            TEXT    NOT NULL,
+            state                 TEXT    NOT NULL DEFAULT '',
+            raw_state             TEXT    NOT NULL DEFAULT '',
+            exit_code             TEXT    NOT NULL DEFAULT '',
+            reason                TEXT    NOT NULL DEFAULT '',
+            control_type          TEXT    NOT NULL DEFAULT '',
+            controlled_stop_id    INTEGER,
+            observed_start_time   TEXT    NOT NULL DEFAULT '',
+            log_excerpt           TEXT    NOT NULL DEFAULT '',
+            log_excerpt_truncated INTEGER NOT NULL DEFAULT 0,
+            log_excerpt_lines     INTEGER NOT NULL DEFAULT 0,
+            log_excerpt_bytes     INTEGER NOT NULL DEFAULT 0,
+            log_source            TEXT    NOT NULL DEFAULT ''
+        )
+        """)
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_script_execution_events_at "
+            "ON script_execution_events(at DESC)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_script_execution_events_script "
+            "ON script_execution_events(host_name, script_name, at DESC)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_script_execution_events_type "
+            "ON script_execution_events(event_type, at DESC)"
+        )
 
         # Agentes remotos de Automatizaciones — tokens por host y auditoría mínima.
         # No guardamos tokens en claro: solo hash SHA-256 de tokens de alta entropía.

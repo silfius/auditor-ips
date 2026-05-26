@@ -19,7 +19,7 @@ El desarrollo principal se mantiene en un repositorio privado y este repositorio
 - Wake-on-LAN para equipos configurados.
 - Alertas y eventos.
 - Exportaciones.
-- Automatizaciones y control de procesos.
+- Automatizaciones.
 - Configuración de seguridad y usuarios admin.
 - Control de servicios auxiliares cuando estén configurados.
 - Integraciones opcionales según despliegue.
@@ -54,8 +54,21 @@ cd auditor-ips
 Ejecuta el instalador:
 
 ```bash
-python3 scripts/install_auditor.py --target-dir /opt/auditor-ips
+python3 scripts/install_auditor.py
 ```
+
+### Instalación de usuario o instalación de sistema
+
+El instalador usa por defecto el directorio del clon actual. Esta opción es la recomendada para la mayoría de usuarios porque no requiere crear carpetas en `/opt` ni usar permisos de administrador para preparar la ruta.
+
+Si quieres instalar Auditor IPs como aplicación de sistema en `/opt/auditor-ips`, fuerza ese modo explícitamente:
+
+```bash
+sudo python3 scripts/install_auditor.py --system-install
+```
+
+Usa instalación de sistema si quieres una ruta estándar y persistente administrada como servicio. Usa instalación en carpeta de usuario/clon para pruebas, primeras instalaciones o entornos donde quieras poder limpiar todo fácilmente.
+
 
 El instalador te guiará por:
 
@@ -73,7 +86,6 @@ Ejemplo para pruebas o despliegues controlados:
 
 ```bash
 python3 scripts/install_auditor.py \
-  --target-dir /opt/auditor-ips \
   --repo-url https://github.com/silfius/auditor-ips.git \
   --branch main \
   --port 9909 \
@@ -141,7 +153,7 @@ auditor-agent-send-status nombre_script completed 0 "mensaje opcional" /ruta/al/
 Entrar en la instalación:
 
 ```bash
-cd /opt/auditor-ips
+cd auditor-ips
 ```
 
 Ver estado:
@@ -181,7 +193,7 @@ Cambia `9909` por el puerto que hayas configurado.
 En una instalación existente:
 
 ```bash
-cd /opt/auditor-ips
+cd auditor-ips
 git pull --ff-only
 docker compose build
 docker compose up -d

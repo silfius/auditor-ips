@@ -4797,6 +4797,7 @@
             <option value="error">Con errores</option>
             <option value="missed">Missed / Stalled</option>
             <option value="unknown">Desconocido</option>
+            <option value="controlled">Controladas</option>
           </select>
           <div class="input-group input-group-sm" style="width:auto;min-width:250px;max-width:100%" title="Ordenar scripts">
             <span class="input-group-text"><i class="bi bi-sort-down me-1"></i>Ordenar por</span>
@@ -4819,6 +4820,10 @@
 
           <button class="btn btn-sm btn-outline-info" id="sp-btn-help" title="Ayuda y documentación">
             <i class="bi bi-question-circle me-1"></i>Ayuda
+          </button>
+
+          <button class="btn btn-sm btn-outline-secondary" id="sp-btn-history" title="Historial de ejecuciones e incidencias">
+            <i class="bi bi-clock-history me-1"></i>Historial
           </button>
           <div class="btn-group btn-group-sm" role="group">
             <button class="btn btn-outline-secondary active" id="sp-btn-cards" title="Vista fichas">
@@ -4865,8 +4870,7 @@
         </div>
       </div>
       <div id="sp-host-summary" class="mb-4"></div>
-
-      <div class="row" id="sp-cards">
+<div class="row" id="sp-cards">
         <div class="col-12 text-center py-5">
           <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando…</span></div>
         </div>
@@ -4904,6 +4908,111 @@
                   <i class="bi bi-gear me-1"></i>Modificar en Configuración
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal de historial de ejecuciones e incidencias -->
+      <div class="modal fade" id="sp-history-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <div>
+                <h5 class="modal-title mb-0">
+                  <i class="bi bi-clock-history me-2"></i>Historial de ejecuciones e incidencias
+                </h5>
+                <div class="small text-muted">
+                  Eventos registrados por alertas, incidencias controladas y reactivaciones. Los extractos de log se guardan acotados y saneados.
+                </div>
+              </div>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+              <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
+                <input type="search" class="form-control form-control-sm" id="sp-history-search"
+                       placeholder="Filtrar por script, host o motivo" style="width:260px;max-width:100%">
+                <select class="form-select form-select-sm" id="sp-history-type" style="width:auto">
+                  <option value="">Todos los eventos</option>
+                  <option value="controlled_incident_marked">Incidencias controladas</option>
+                  <option value="controlled_incident_cleared">Reactivaciones</option>
+                  <option value="alert_fired">Alertas enviadas</option>
+                </select>
+                <select class="form-select form-select-sm" id="sp-history-sort" style="width:auto">
+                  <option value="at_desc">Fecha ↓</option>
+                  <option value="at_asc">Fecha ↑</option>
+                  <option value="script_asc">Script A-Z</option>
+                  <option value="state_desc">Estado</option>
+                  <option value="type_asc">Tipo</option>
+                </select>
+                <button class="btn btn-sm btn-outline-secondary" id="sp-history-refresh" type="button">
+                  <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
+                </button>
+              </div>
+
+              <div id="sp-history-table-wrap" class="table-responsive">
+                <div class="small text-muted">Cargando historial…</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal para marcar incidencia controlada -->
+      <div class="modal fade" id="sp-controlled-incident-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <div>
+                <h5 class="modal-title mb-0"><i class="bi bi-shield-check me-2"></i>Marcar incidencia controlada</h5>
+                <div class="small text-muted" id="sp-controlled-incident-subtitle">Selecciona tipo y motivo.</div>
+              </div>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+              <label class="form-label small-muted mb-1" for="sp-controlled-incident-type">Tipo</label>
+              <select class="form-select form-select-sm mb-3" id="sp-controlled-incident-type">
+                <option value="">Selecciona tipo…</option>
+                <option value="controlled_stop">Parada controlada</option>
+                <option value="controlled_error">Error controlado</option>
+                <option value="controlled_stalled">Stalled controlado</option>
+                <option value="controlled_missed">Missed controlado</option>
+                <option value="false_positive">Falso positivo</option>
+                <option value="maintenance">Mantenimiento</option>
+                <option value="other">Otro</option>
+              </select>
+
+              <label class="form-label small-muted mb-1" for="sp-controlled-incident-reason">Motivo</label>
+              <textarea class="form-control form-control-sm" id="sp-controlled-incident-reason" rows="4"
+                        placeholder="Ej: error revisado; fallo externo asumido; se relanza manualmente mañana."></textarea>
+              <div class="small text-muted mt-2">
+                Se guardará el motivo, el tipo y una muestra acotada del log si existe.
+              </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+              <button type="button" class="btn btn-info btn-sm" id="sp-controlled-incident-confirm">
+                <i class="bi bi-shield-check me-1"></i>Guardar incidencia controlada
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal para ver extracto de log del historial -->
+      <div class="modal fade" id="sp-history-log-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <div>
+                <h5 class="modal-title mb-0"><i class="bi bi-file-text me-2"></i>Extracto de log</h5>
+                <div class="small text-muted" id="sp-history-log-subtitle">Muestra acotada guardada en historial</div>
+              </div>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+              <pre id="sp-history-log-body" class="mb-0 p-3 rounded"
+                   style="max-height:65vh;overflow:auto;background:rgba(0,0,0,.25);font-size:.78rem;white-space:pre-wrap"></pre>
             </div>
           </div>
         </div>
@@ -5846,7 +5955,7 @@ window._secondaryNetworks = {{ secondary_nets | default([]) | tojson | safe }};
 <script src="/static/js/quality.js?v=20260518_v4_i18n_timezone_final2"></script>
 <script src="/static/js/config.js?v=20260521_doc_consolidation_public_clean1"></script>
 <script src="/static/js/auth.js?v=20260518_v4_i18n_timezone_final1"></script>
-<script src="/static/js/scripts.js?v=20260521_v4_automation_schedule_modal_controlled_stop3"></script>
+<script src="/static/js/scripts.js?v=20260525_v4_automation_controlled_incidents_history4"></script>
 <script src="/static/js/active_processes_topbar.js?v=20260518_v4_i18n_timezone_final1"></script>
 
   <style>

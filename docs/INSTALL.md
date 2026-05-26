@@ -2,7 +2,7 @@
 
 ## Alcance
 
-Instalación manual inicial de Auditor IPs V4 desde repositorio público.
+Instalación manual inicial de Auditor IPs V4 desde repositorio público. Por defecto se instala/configura en el clon actual; `/opt/auditor-ips` solo se usa con `--system-install`.
 
 Se incluye una base inicial de instalador guiado. Mientras se completa el
 instalador definitivo, tambien se mantiene el procedimiento manual con Docker
@@ -20,7 +20,7 @@ Compose.
 ## Instalador guiado
 
 ```bash
-python3 scripts/install_auditor.py --target-dir /opt/auditor-ips
+python3 scripts/install_auditor.py
 ```
 
 Validacion sin arranque:

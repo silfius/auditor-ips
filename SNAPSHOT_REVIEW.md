@@ -5,7 +5,7 @@ Este snapshot ha sido generado de forma local y no ha sido publicado.
 ## Resultado del escaneo ligero
 
 - Hallazgos HIGH: 0
-- Hallazgos WARN: 286
+- Hallazgos WARN: 288
 
 Los hallazgos WARN pueden corresponder a documentación o nombres de variables.
 Los hallazgos HIGH deben bloquear la publicación hasta revisión.
@@ -22,9 +22,9 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 
 ## Hallazgos
 
-- `WARN` `README.md:120` `secret_word` — 3. Copia el token mostrado una sola vez.
-- `WARN` `README.md:127` `secret_word` — --token-file /ruta/segura/token.txt \
-- `WARN` `README.md:174` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
+- `WARN` `README.md:132` `secret_word` — 3. Copia el token mostrado una sola vez.
+- `WARN` `README.md:139` `secret_word` — --token-file /ruta/segura/token.txt \
+- `WARN` `README.md:186` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
 - `WARN` `app/host_classification.py:175` `secret_word` — for token in tokens:
 - `WARN` `app/host_classification.py:176` `secret_word` — token_norm = _norm_text(token)
 - `WARN` `app/host_classification.py:177` `secret_word` — token_compact = _compact_text(token)
@@ -40,24 +40,24 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/test_endpoints.py:8` `localhost_url` — python test_endpoints.py --base https://localhost:8088
 - `WARN` `app/test_endpoints.py:22` `localhost_url` — parser.add_argument("--base",           default="https://localhost:8088")
 - `WARN` `app/test_endpoints.py:110` `secret_word` — request("POST", "/api/auth/login",   body={"username":"x","password":"x"},
-- `WARN` `app/auth_middleware.py:17` `secret_word` — def hash_password(password: str, salt: Optional[bytes] = None) -> str:
-- `WARN` `app/auth_middleware.py:20` `secret_word` — dk = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 310_000)
-- `WARN` `app/auth_middleware.py:24` `secret_word` — def verify_password(password: str, stored: str) -> bool:
-- `WARN` `app/auth_middleware.py:27` `secret_word` — return secrets.compare_digest(stored, hash_password(password, bytes.fromhex(salt_hex)))
-- `WARN` `app/auth_middleware.py:51` `secret_word` — token      TEXT PRIMARY KEY,
-- `WARN` `app/auth_middleware.py:96` `secret_word` — def create_user(db_path: str, username: str, password: str) -> dict:
-- `WARN` `app/auth_middleware.py:100` `secret_word` — if not password or len(password) < 8:
-- `WARN` `app/auth_middleware.py:106` `secret_word` — (username, hash_password(password), datetime.now(timezone.utc).isoformat())
-- `WARN` `app/auth_middleware.py:138` `secret_word` — token = secrets.token_urlsafe(32)
-- `WARN` `app/auth_middleware.py:143` `secret_word` — (token,user_id,username,created_at,expires_at,ip,user_agent) VALUES(?,?,?,?,?,?,?)""",
-- `WARN` `app/auth_middleware.py:144` `secret_word` — (token, user_id, username, now.isoformat(), exp.isoformat(), ip, ua[:200]))
-- `WARN` `app/auth_middleware.py:146` `secret_word` — return token
-- `WARN` `app/auth_middleware.py:149` `secret_word` — def validate_session(db_path: str, token: Optional[str]) -> Optional[str]:
-- `WARN` `app/auth_middleware.py:151` `secret_word` — if not token:
-- `WARN` `app/auth_middleware.py:157` `secret_word` — "SELECT username FROM auth_sessions WHERE token=? AND expires_at>?", (token, now)
-- `WARN` `app/auth_middleware.py:164` `secret_word` — def destroy_session(db_path: str, token: str) -> None:
-- `WARN` `app/auth_middleware.py:166` `secret_word` — c.execute("DELETE FROM auth_sessions WHERE token=?", (token,))
-- `WARN` `app/auth_middleware.py:184` `secret_word` — rows = c.execute("""SELECT token,username,created_at,expires_at,ip,user_agent
+- `WARN` `app/auth_middleware.py:32` `secret_word` — def hash_password(password: str, salt: Optional[bytes] = None) -> str:
+- `WARN` `app/auth_middleware.py:35` `secret_word` — dk = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 310_000)
+- `WARN` `app/auth_middleware.py:39` `secret_word` — def verify_password(password: str, stored: str) -> bool:
+- `WARN` `app/auth_middleware.py:42` `secret_word` — return secrets.compare_digest(stored, hash_password(password, bytes.fromhex(salt_hex)))
+- `WARN` `app/auth_middleware.py:66` `secret_word` — token      TEXT PRIMARY KEY,
+- `WARN` `app/auth_middleware.py:111` `secret_word` — def create_user(db_path: str, username: str, password: str) -> dict:
+- `WARN` `app/auth_middleware.py:115` `secret_word` — if not password or len(password) < 8:
+- `WARN` `app/auth_middleware.py:121` `secret_word` — (username, hash_password(password), datetime.now(timezone.utc).isoformat())
+- `WARN` `app/auth_middleware.py:153` `secret_word` — token = secrets.token_urlsafe(32)
+- `WARN` `app/auth_middleware.py:158` `secret_word` — (token,user_id,username,created_at,expires_at,ip,user_agent) VALUES(?,?,?,?,?,?,?)""",
+- `WARN` `app/auth_middleware.py:159` `secret_word` — (token, user_id, username, now.isoformat(), exp.isoformat(), ip, ua[:200]))
+- `WARN` `app/auth_middleware.py:161` `secret_word` — return token
+- `WARN` `app/auth_middleware.py:164` `secret_word` — def validate_session(db_path: str, token: Optional[str]) -> Optional[str]:
+- `WARN` `app/auth_middleware.py:166` `secret_word` — if not token:
+- `WARN` `app/auth_middleware.py:172` `secret_word` — "SELECT username FROM auth_sessions WHERE token=? AND expires_at>?", (token, now)
+- `WARN` `app/auth_middleware.py:179` `secret_word` — def destroy_session(db_path: str, token: str) -> None:
+- `WARN` `app/auth_middleware.py:181` `secret_word` — c.execute("DELETE FROM auth_sessions WHERE token=?", (token,))
+- `WARN` `app/auth_middleware.py:199` `secret_word` — rows = c.execute("""SELECT token,username,created_at,expires_at,ip,user_agent
 - `WARN` `app/database.py:285` `secret_word` — api_key TEXT NOT NULL DEFAULT '',
 - `WARN` `scripts/install_auditor_agent.py:40` `localhost_url` — AUDITOR_URL="${AUDITOR_URL:-https://127.0.0.1:9909}"
 - `WARN` `scripts/install_auditor_agent.py:81` `secret_word` — url, token, host, script, status, exit_code, now, duration, progress, step_label, log_json, verify_tls = sys.argv[1:]
@@ -86,11 +86,11 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `scripts/install_auditor_agent.py:400` `secret_word` — token = read_token(args)
 - `WARN` `scripts/install_auditor_agent.py:416` `secret_word` — config_file, helper_path = write_config(args, server_url, host_name, token)
 - `WARN` `scripts/install_auditor_agent.py:421` `secret_word` — send_test_status(server_url, host_name, token, args.verify_tls)
-- `WARN` `scripts/install_auditor.py:122` `secret_word` — if any(token in raw for token in ["debian", "ubuntu", "linuxmint", "raspbian"]):
-- `WARN` `scripts/install_auditor.py:124` `secret_word` — if any(token in raw for token in ["arch", "manjaro", "endeavouros"]):
-- `WARN` `scripts/install_auditor.py:504` `localhost_url` — f"curl -k https://127.0.0.1:{effective_port}/api/system/healthz",
-- `WARN` `scripts/install_auditor.py:668` `localhost_url` — f"curl -k https://127.0.0.1:{port}/api/system/healthz",
-- `WARN` `scripts/install_auditor.py:762` `localhost_url` — healthz_url = f"https://127.0.0.1:{port}/api/system/healthz"
+- `WARN` `scripts/install_auditor.py:124` `secret_word` — if any(token in raw for token in ["debian", "ubuntu", "linuxmint", "raspbian"]):
+- `WARN` `scripts/install_auditor.py:126` `secret_word` — if any(token in raw for token in ["arch", "manjaro", "endeavouros"]):
+- `WARN` `scripts/install_auditor.py:586` `localhost_url` — f"curl -k https://127.0.0.1:{effective_port}/api/system/healthz",
+- `WARN` `scripts/install_auditor.py:750` `localhost_url` — f"curl -k https://127.0.0.1:{port}/api/system/healthz",
+- `WARN` `scripts/install_auditor.py:846` `localhost_url` — healthz_url = f"https://127.0.0.1:{port}/api/system/healthz"
 - `WARN` `scripts/smoke_system_health.sh:15` `localhost_url` — #   AUDITOR_BASE_URL=https://127.0.0.1:9909 ./LOCAL/scripts/smoke_system_health.sh
 - `WARN` `scripts/smoke_system_health.sh:18` `localhost_url` — BASE_URL="${AUDITOR_BASE_URL:-${1:-https://127.0.0.1:9909}}"
 - `WARN` `scripts/smoke_system_health.sh:153` `secret_word` — "password": os.environ.get("AUDITOR_SMOKE_PASS", ""),
@@ -99,32 +99,32 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `docs/INSTALL.md:66` `localhost_url` — AUDITOR_BASE_URL=https://127.0.0.1:9909 scripts/smoke_system_health.sh
 - `WARN` `docs/TROUBLESHOOTING.md:21` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
 - `WARN` `docs/BACKUP_RESTORE.md:30` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
-- `WARN` `docs/USER_MANUAL.md:373` `secret_word` — 4. Copiar el token generado.
-- `WARN` `docs/USER_MANUAL.md:374` `secret_word` — 5. Guardar el token en el host remoto de forma segura.
-- `WARN` `docs/USER_MANUAL.md:376` `secret_word` — El token solo debe mostrarse al crear o rotar.
-- `WARN` `docs/USER_MANUAL.md:388` `secret_word` — El instalador puede pedir el token de forma interactiva.
-- `WARN` `docs/USER_MANUAL.md:579` `secret_word` — - revisar permisos de ficheros de token de agentes.
-- `WARN` `docs/USER_MANUAL.md:590` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
-- `WARN` `docs/USER_MANUAL.md:620` `secret_word` — - token correcto;
+- `WARN` `docs/USER_MANUAL.md:394` `secret_word` — 4. Copiar el token generado.
+- `WARN` `docs/USER_MANUAL.md:395` `secret_word` — 5. Guardar el token en el host remoto de forma segura.
+- `WARN` `docs/USER_MANUAL.md:397` `secret_word` — El token solo debe mostrarse al crear o rotar.
+- `WARN` `docs/USER_MANUAL.md:409` `secret_word` — El instalador puede pedir el token de forma interactiva.
+- `WARN` `docs/USER_MANUAL.md:600` `secret_word` — - revisar permisos de ficheros de token de agentes.
+- `WARN` `docs/USER_MANUAL.md:611` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
+- `WARN` `docs/USER_MANUAL.md:641` `secret_word` — - token correcto;
 - `WARN` `docs/CONFIGURATION.md:18` `secret_word` — - `DISCORD_WEBHOOK_URL`: webhook opcional de Discord.
 - `WARN` `docs/UPGRADE.md:19` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
 - `WARN` `app/templates/index.html:4656` `secret_word` — Las alertas se evalúan tras cada escaneo. Acción: Discord webhook (si configurado).
-- `WARN` `app/templates/index.html:6515` `secret_word` — <input type="password" id="loginModalPass" class="form-control form-control-sm"
-- `WARN` `app/templates/index.html:6516` `secret_word` — placeholder="Contraseña" autocomplete="current-password">
-- `WARN` `app/templates/index.html:7267` `secret_word` — Si no configuras webhook de alertas, se conserva el webhook legacy anterior como fallback.
-- `WARN` `app/templates/index.html:7273` `secret_word` — <input id="cfgDiscordInfo" type="password" class="form-control form-control-sm" placeholder="https://discord.com/api/webhooks/...">
-- `WARN` `app/templates/index.html:7279` `secret_word` — Si no hay webhook informativo, usar el canal de alertas como fallback
-- `WARN` `app/templates/index.html:7290` `secret_word` — <input id="cfgDiscordAlerts" type="password" class="form-control form-control-sm" placeholder="https://discord.com/api/webhooks/...">
-- `WARN` `app/templates/index.html:7351` `secret_word` — <input id="cfgSmtpPass" type="password" class="form-control form-control-sm" placeholder="contraseña o app password">
-- `WARN` `app/templates/index.html:7914` `secret_word` — <input id="cfgAiGeminiKey" type="password" class="form-control form-control-sm" placeholder="AIzaSy…">
-- `WARN` `app/templates/index.html:7929` `secret_word` — <input id="cfgAiMistralKey" type="password" class="form-control form-control-sm" placeholder="…">
-- `WARN` `app/templates/index.html:8606` `secret_word` — <input id="newUserPw" type="password" class="form-control form-control-sm" placeholder="mín. 8 caracteres" style="max-width:180px">
-- `WARN` `app/templates/index.html:8617` `secret_word` — <input id="cpCurrentPw" type="password" class="form-control form-control-sm" placeholder="Actual" style="max-width:170px">
-- `WARN` `app/templates/index.html:8621` `secret_word` — <input id="cpNewPw" type="password" class="form-control form-control-sm" placeholder="Nueva" style="max-width:170px">
-- `WARN` `app/templates/index.html:8625` `secret_word` — <input id="cpNewPw2" type="password" class="form-control form-control-sm" placeholder="Repetir" style="max-width:170px">
-- `WARN` `app/templates/index.html:9354` `secret_word` — El token se muestra solo al crear o rotar el agente.
-- `WARN` `app/templates/index.html:9423` `secret_word` — Copia este token ahora. No se volverá a mostrar.
-- `WARN` `app/templates/index.html:9439` `secret_word` — <th>Token</th>
+- `WARN` `app/templates/index.html:6624` `secret_word` — <input type="password" id="loginModalPass" class="form-control form-control-sm"
+- `WARN` `app/templates/index.html:6625` `secret_word` — placeholder="Contraseña" autocomplete="current-password">
+- `WARN` `app/templates/index.html:7376` `secret_word` — Si no configuras webhook de alertas, se conserva el webhook legacy anterior como fallback.
+- `WARN` `app/templates/index.html:7382` `secret_word` — <input id="cfgDiscordInfo" type="password" class="form-control form-control-sm" placeholder="https://discord.com/api/webhooks/...">
+- `WARN` `app/templates/index.html:7388` `secret_word` — Si no hay webhook informativo, usar el canal de alertas como fallback
+- `WARN` `app/templates/index.html:7399` `secret_word` — <input id="cfgDiscordAlerts" type="password" class="form-control form-control-sm" placeholder="https://discord.com/api/webhooks/...">
+- `WARN` `app/templates/index.html:7460` `secret_word` — <input id="cfgSmtpPass" type="password" class="form-control form-control-sm" placeholder="contraseña o app password">
+- `WARN` `app/templates/index.html:8023` `secret_word` — <input id="cfgAiGeminiKey" type="password" class="form-control form-control-sm" placeholder="AIzaSy…">
+- `WARN` `app/templates/index.html:8038` `secret_word` — <input id="cfgAiMistralKey" type="password" class="form-control form-control-sm" placeholder="…">
+- `WARN` `app/templates/index.html:8715` `secret_word` — <input id="newUserPw" type="password" class="form-control form-control-sm" placeholder="mín. 8 caracteres" style="max-width:180px">
+- `WARN` `app/templates/index.html:8726` `secret_word` — <input id="cpCurrentPw" type="password" class="form-control form-control-sm" placeholder="Actual" style="max-width:170px">
+- `WARN` `app/templates/index.html:8730` `secret_word` — <input id="cpNewPw" type="password" class="form-control form-control-sm" placeholder="Nueva" style="max-width:170px">
+- `WARN` `app/templates/index.html:8734` `secret_word` — <input id="cpNewPw2" type="password" class="form-control form-control-sm" placeholder="Repetir" style="max-width:170px">
+- `WARN` `app/templates/index.html:9463` `secret_word` — El token se muestra solo al crear o rotar el agente.
+- `WARN` `app/templates/index.html:9532` `secret_word` — Copia este token ahora. No se volverá a mostrar.
+- `WARN` `app/templates/index.html:9548` `secret_word` — <th>Token</th>
 - `WARN` `app/templates/login.html:437` `secret_word` — <input type="password" id="setupPassword" class="form-control" placeholder="••••••••" autocomplete="new-password">
 - `WARN` `app/templates/login.html:445` `secret_word` — <input type="password" id="setupPassword2" class="form-control" placeholder="••••••••" autocomplete="new-password">
 - `WARN` `app/templates/login.html:472` `secret_word` — <input type="password" id="loginPassword" class="form-control" placeholder="••••••••"
@@ -189,38 +189,38 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/routers/config_api.py:756` `secret_word` — if user and password:
 - `WARN` `app/routers/config_api.py:757` `secret_word` — s.login(user, password)
 - `WARN` `app/routers/scripts_status.py:78` `localhost_url` — _ENV_OLLAMA_URL    = os.getenv("OLLAMA_URL",      "http://localhost:11434")
-- `WARN` `app/routers/scripts_status.py:1177` `secret_word` — def _automation_agent_token_hash(token: str) -> str:
-- `WARN` `app/routers/scripts_status.py:1178` `secret_word` — return hashlib.sha256(str(token or "").encode("utf-8")).hexdigest()
-- `WARN` `app/routers/scripts_status.py:1185` `secret_word` — def _automation_agent_token_prefix(token: str) -> str:
-- `WARN` `app/routers/scripts_status.py:1186` `secret_word` — return str(token or "")[:10]
-- `WARN` `app/routers/scripts_status.py:1200` `secret_word` — return str(request.headers.get("x-automation-agent-token") or "").strip()
-- `WARN` `app/routers/scripts_status.py:1262` `secret_word` — token = _automation_agent_extract_token(request)
-- `WARN` `app/routers/scripts_status.py:1263` `secret_word` — if not token:
-- `WARN` `app/routers/scripts_status.py:1264` `secret_word` — _automation_agent_audit(host_name, request, "auth_failed", False, "token ausente")
-- `WARN` `app/routers/scripts_status.py:1265` `secret_word` — raise HTTPException(status_code=403, detail="Token de agente inválido")
-- `WARN` `app/routers/scripts_status.py:1274` `secret_word` — incoming_hash = _automation_agent_token_hash(token)
-- `WARN` `app/routers/scripts_status.py:1278` `secret_word` — _automation_agent_audit(host_name, request, "auth_failed", False, "token de host inválido")
-- `WARN` `app/routers/scripts_status.py:1279` `secret_word` — raise HTTPException(status_code=403, detail="Token de agente inválido")
-- `WARN` `app/routers/scripts_status.py:1281` `secret_word` — # Compatibilidad con bloque anterior: token global.
-- `WARN` `app/routers/scripts_status.py:1284` `secret_word` — _automation_agent_audit(host_name, request, "auth_failed", False, "sin token global ni agente registrado")
-- `WARN` `app/routers/scripts_status.py:1287` `secret_word` — if not secrets.compare_digest(token, expected):
-- `WARN` `app/routers/scripts_status.py:1288` `secret_word` — _automation_agent_audit(host_name, request, "auth_failed", False, "token global inválido")
-- `WARN` `app/routers/scripts_status.py:1289` `secret_word` — raise HTTPException(status_code=403, detail="Token de agente inválido")
-- `WARN` `app/routers/scripts_status.py:1366` `secret_word` — """Crea un agente y devuelve el token una sola vez."""
-- `WARN` `app/routers/scripts_status.py:1378` `secret_word` — token = _automation_agent_new_token()
-- `WARN` `app/routers/scripts_status.py:1389` `secret_word` — _automation_agent_token_hash(token),
-- `WARN` `app/routers/scripts_status.py:1390` `secret_word` — _automation_agent_token_prefix(token),
-- `WARN` `app/routers/scripts_status.py:1403` `secret_word` — "token": token,
-- `WARN` `app/routers/scripts_status.py:1404` `secret_word` — "token_prefix": _automation_agent_token_prefix(token),
-- `WARN` `app/routers/scripts_status.py:1405` `secret_word` — "warning": "Guarda este token ahora; no se volverá a mostrar.",
-- `WARN` `app/routers/scripts_status.py:1452` `secret_word` — """Rota el token del agente y devuelve el nuevo token una sola vez."""
-- `WARN` `app/routers/scripts_status.py:1454` `secret_word` — token = _automation_agent_new_token()
-- `WARN` `app/routers/scripts_status.py:1465` `secret_word` — _automation_agent_token_hash(token),
-- `WARN` `app/routers/scripts_status.py:1466` `secret_word` — _automation_agent_token_prefix(token),
-- `WARN` `app/routers/scripts_status.py:1473` `secret_word` — _automation_agent_audit(host_name, request, "agent_token_rotated", True, {"token_prefix": _automation_agent_token_prefix(token)})
-- `WARN` `app/routers/scripts_status.py:1477` `secret_word` — "token": token,
-- `WARN` `app/routers/scripts_status.py:1478` `secret_word` — "token_prefix": _automation_agent_token_prefix(token),
-- `WARN` `app/routers/scripts_status.py:1479` `secret_word` — "warning": "Guarda este token ahora; no se volverá a mostrar.",
-- `WARN` `app/routers/scripts_status.py:1534` `secret_word` — - protegida por token global legado o token específico por host;
-- ... 86 hallazgos adicionales no listados.
+- `WARN` `app/routers/scripts_status.py:619` `secret_word` — "password", "passwd", "token", "secret", "authorization:",
+- `WARN` `app/routers/scripts_status.py:620` `secret_word` — "x-automation-agent-token", "webhook", "api_key", "apikey",
+- `WARN` `app/routers/scripts_status.py:1358` `secret_word` — def _automation_agent_token_hash(token: str) -> str:
+- `WARN` `app/routers/scripts_status.py:1359` `secret_word` — return hashlib.sha256(str(token or "").encode("utf-8")).hexdigest()
+- `WARN` `app/routers/scripts_status.py:1366` `secret_word` — def _automation_agent_token_prefix(token: str) -> str:
+- `WARN` `app/routers/scripts_status.py:1367` `secret_word` — return str(token or "")[:10]
+- `WARN` `app/routers/scripts_status.py:1381` `secret_word` — return str(request.headers.get("x-automation-agent-token") or "").strip()
+- `WARN` `app/routers/scripts_status.py:1443` `secret_word` — token = _automation_agent_extract_token(request)
+- `WARN` `app/routers/scripts_status.py:1444` `secret_word` — if not token:
+- `WARN` `app/routers/scripts_status.py:1445` `secret_word` — _automation_agent_audit(host_name, request, "auth_failed", False, "token ausente")
+- `WARN` `app/routers/scripts_status.py:1446` `secret_word` — raise HTTPException(status_code=403, detail="Token de agente inválido")
+- `WARN` `app/routers/scripts_status.py:1455` `secret_word` — incoming_hash = _automation_agent_token_hash(token)
+- `WARN` `app/routers/scripts_status.py:1459` `secret_word` — _automation_agent_audit(host_name, request, "auth_failed", False, "token de host inválido")
+- `WARN` `app/routers/scripts_status.py:1460` `secret_word` — raise HTTPException(status_code=403, detail="Token de agente inválido")
+- `WARN` `app/routers/scripts_status.py:1462` `secret_word` — # Compatibilidad con bloque anterior: token global.
+- `WARN` `app/routers/scripts_status.py:1465` `secret_word` — _automation_agent_audit(host_name, request, "auth_failed", False, "sin token global ni agente registrado")
+- `WARN` `app/routers/scripts_status.py:1468` `secret_word` — if not secrets.compare_digest(token, expected):
+- `WARN` `app/routers/scripts_status.py:1469` `secret_word` — _automation_agent_audit(host_name, request, "auth_failed", False, "token global inválido")
+- `WARN` `app/routers/scripts_status.py:1470` `secret_word` — raise HTTPException(status_code=403, detail="Token de agente inválido")
+- `WARN` `app/routers/scripts_status.py:1547` `secret_word` — """Crea un agente y devuelve el token una sola vez."""
+- `WARN` `app/routers/scripts_status.py:1559` `secret_word` — token = _automation_agent_new_token()
+- `WARN` `app/routers/scripts_status.py:1570` `secret_word` — _automation_agent_token_hash(token),
+- `WARN` `app/routers/scripts_status.py:1571` `secret_word` — _automation_agent_token_prefix(token),
+- `WARN` `app/routers/scripts_status.py:1584` `secret_word` — "token": token,
+- `WARN` `app/routers/scripts_status.py:1585` `secret_word` — "token_prefix": _automation_agent_token_prefix(token),
+- `WARN` `app/routers/scripts_status.py:1586` `secret_word` — "warning": "Guarda este token ahora; no se volverá a mostrar.",
+- `WARN` `app/routers/scripts_status.py:1633` `secret_word` — """Rota el token del agente y devuelve el nuevo token una sola vez."""
+- `WARN` `app/routers/scripts_status.py:1635` `secret_word` — token = _automation_agent_new_token()
+- `WARN` `app/routers/scripts_status.py:1646` `secret_word` — _automation_agent_token_hash(token),
+- `WARN` `app/routers/scripts_status.py:1647` `secret_word` — _automation_agent_token_prefix(token),
+- `WARN` `app/routers/scripts_status.py:1654` `secret_word` — _automation_agent_audit(host_name, request, "agent_token_rotated", True, {"token_prefix": _automation_agent_token_prefix(token)})
+- `WARN` `app/routers/scripts_status.py:1658` `secret_word` — "token": token,
+- `WARN` `app/routers/scripts_status.py:1659` `secret_word` — "token_prefix": _automation_agent_token_prefix(token),
+- ... 88 hallazgos adicionales no listados.
 
