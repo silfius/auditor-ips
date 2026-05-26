@@ -19,6 +19,7 @@ import json
 import os
 import platform
 import re
+import secrets
 import shutil
 import socket
 import subprocess
@@ -30,7 +31,8 @@ from pathlib import Path
 
 DEFAULT_REPO_URL = "https://github.com/silfius/auditor-ips.git"
 DEFAULT_BRANCH = "main"
-DEFAULT_TARGET_DIR = "/opt/auditor-ips"
+DEFAULT_TARGET_DIR = ""
+DEFAULT_SYSTEM_TARGET_DIR = "/opt/auditor-ips"
 DEFAULT_PORT = "9909"
 DEFAULT_TLS_DNS = "auditips.local"
 DEFAULT_CONTAINER_NAME = "auditor_ips"
@@ -197,6 +199,44 @@ def default_scan_cidr() -> str:
 
 
 
+
+def default_target_dir(args: argparse.Namespace) -> Path:
+    if args.target_dir:
+        return Path(args.target_dir).expanduser().resolve()
+
+    if getattr(args, "system_install", False):
+        return Path(DEFAULT_SYSTEM_TARGET_DIR).expanduser().resolve()
+
+    cwd = Path.cwd().resolve()
+    if (cwd / "app").exists():
+        installer_markers = [
+            cwd / "scripts" / "install_auditor.py",
+            cwd / "DOC_ONLINE" / "scripts" / "install_auditor.py",
+            cwd / ".env.example",
+            cwd / "docker-compose.yml.example",
+        ]
+        if any(marker.exists() for marker in installer_markers):
+            return cwd
+
+    return (Path.home() / "auditor-ips").expanduser().resolve()
+
+
+def sanitize_instance_id(value: str) -> str:
+    cleaned = re.sub(r"[^A-Za-z0-9_.-]+", "_", (value or "").strip())
+    cleaned = cleaned.strip("._-")
+    return cleaned[:64] or ""
+
+
+def generate_instance_id(container_name: str) -> str:
+    base = sanitize_instance_id(container_name) or DEFAULT_CONTAINER_NAME
+    return f"{base}_{secrets.token_hex(4)}"
+
+
+def cookie_name_from_instance(instance_id: str) -> str:
+    suffix = re.sub(r"[^A-Za-z0-9_]+", "_", (instance_id or "").strip())
+    suffix = suffix.strip("_")[:48] or secrets.token_hex(4)
+    return f"auditor_session_{suffix}"
+
 def sanitize_container_name(value: str) -> str:
     # Devuelve un nombre de contenedor compatible sin ocultar la eleccion del usuario.
     cleaned = re.sub(r"[^A-Za-z0-9_.-]+", "_", value.strip())
@@ -260,7 +300,15 @@ def clone_or_update_repo(repo_url: str, branch: str, target_dir: Path, dry_run: 
         return
 
     if target_dir.exists() and any(target_dir.iterdir()):
-        raise RuntimeError(f"La ruta destino existe y no es un repo Git vacio: {target_dir}")
+        source_markers = [
+            target_dir / "app",
+            target_dir / ".env.example",
+            target_dir / "docker-compose.yml.example",
+        ]
+        if all(marker.exists() for marker in source_markers):
+            log("Fuentes existentes detectadas sin .git. Se usa la carpeta actual sin clonar.")
+            return
+        raise RuntimeError(f"La ruta destino existe y no es un repo Git vacio ni una copia valida de Auditor IPs: {target_dir}")
 
     ensure_parent(target_dir.parent, dry_run)
     if dry_run:
@@ -301,6 +349,8 @@ def show_effective_config_summary(target_dir: Path, repo_url: str, branch: str, 
         ("Rama", branch),
         ("Puerto", effective_config.get("PORT", "")),
         ("Contenedor", effective_config.get("AUDITOR_CONTAINER_NAME", "")),
+        ("Instance ID", effective_config.get("AUDITOR_INSTANCE_ID", "")),
+        ("Cookie sesión", effective_config.get("SESSION_COOKIE_NAME", "")),
         ("TLS DNS", effective_config.get("TLS_CERT_DNS", "")),
         ("TLS IP", effective_config.get("TLS_CERT_IP", "")),
         ("SERVER_IP", effective_config.get("SERVER_IP", "")),
@@ -318,9 +368,15 @@ def write_local_config(target_dir: Path, args: argparse.Namespace, assume_yes: b
     env_template_path = target_dir / ".env.example"
     compose_template_path = target_dir / "docker-compose.yml.example"
     if not env_template_path.exists():
-        raise RuntimeError(f"No existe plantilla .env.example en {target_dir}")
+        if dry_run:
+            log(f"DRY-RUN plantilla .env.example no encontrada todavía en {target_dir}")
+        else:
+            raise RuntimeError(f"No existe plantilla .env.example en {target_dir}")
     if not compose_template_path.exists():
-        raise RuntimeError(f"No existe plantilla docker-compose.yml.example en {target_dir}")
+        if dry_run:
+            log(f"DRY-RUN plantilla docker-compose.yml.example no encontrada todavía en {target_dir}")
+        else:
+            raise RuntimeError(f"No existe plantilla docker-compose.yml.example en {target_dir}")
 
     detected_ip = default_server_ip()
     detected_cidr = default_scan_cidr()
@@ -344,6 +400,26 @@ def write_local_config(target_dir: Path, args: argparse.Namespace, assume_yes: b
     container_name = sanitize_container_name(container_name_raw)
     if container_name != container_name_raw:
         log(f"WARN: nombre de contenedor normalizado a {container_name}")
+
+    existing_env = read_env_file(target_dir / ".env")
+    default_instance_id = (
+        sanitize_instance_id(args.instance_id)
+        or sanitize_instance_id(existing_env.get("AUDITOR_INSTANCE_ID", ""))
+        or generate_instance_id(container_name)
+    )
+    instance_id = sanitize_instance_id(
+        ask(
+            "Identificador unico de instancia AUDITOR_INSTANCE_ID",
+            default_instance_id,
+            assume_yes,
+            "Debe ser estable y distinto por instalacion. Evita que varias instancias se pisen la cookie de sesion.",
+        )
+    )
+    session_cookie_name = (
+        args.session_cookie_name.strip()
+        or existing_env.get("SESSION_COOKIE_NAME", "").strip()
+        or cookie_name_from_instance(instance_id)
+    )
     tls_dns = ask(
         "DNS local para certificado",
         args.tls_dns,
@@ -393,6 +469,8 @@ def write_local_config(target_dir: Path, args: argparse.Namespace, assume_yes: b
 
     env_overrides = {
         "AUDITOR_CONTAINER_NAME": container_name,
+        "AUDITOR_INSTANCE_ID": instance_id,
+        "SESSION_COOKIE_NAME": session_cookie_name,
         "PORT": port,
         "DB_PATH": "/data/auditor.db",
         "DATA_DIR": data_dir,
@@ -416,10 +494,10 @@ def write_local_config(target_dir: Path, args: argparse.Namespace, assume_yes: b
     if env_path.exists() and not args.force_config:
         log(".env ya existe. No se sobrescribe.")
     else:
-        rendered_env = render_env(env_template_path.read_text(), env_overrides)
         if dry_run:
             log(f"DRY-RUN escribir {env_path}")
         else:
+            rendered_env = render_env(env_template_path.read_text(), env_overrides)
             env_path.write_text(rendered_env)
             try:
                 env_path.chmod(0o600)
@@ -465,6 +543,8 @@ def write_install_state(target_dir: Path, args: argparse.Namespace, dry_run: boo
         "git_head": git_head,
         "target_dir": str(target_dir),
         "container_name": effective_container_name,
+        "auditor_instance_id": effective_config.get("AUDITOR_INSTANCE_ID", ""),
+        "session_cookie_name": effective_config.get("SESSION_COOKIE_NAME", ""),
         "port": effective_port,
         "tls_cert_ip": effective_config.get("TLS_CERT_IP", ""),
         "tls_cert_dns": effective_config.get("TLS_CERT_DNS", ""),
@@ -485,6 +565,8 @@ def write_install_state(target_dir: Path, args: argparse.Namespace, dry_run: boo
         f"- Ruta: {target_dir}",
         f"- Puerto: {effective_port}",
         f"- Contenedor: {effective_container_name}",
+        f"- Instance ID: {effective_config.get('AUDITOR_INSTANCE_ID', '')}",
+        f"- Cookie sesión: {effective_config.get('SESSION_COOKIE_NAME', '')}",
         f"- TLS DNS: {effective_config.get('TLS_CERT_DNS', '')}",
         f"- TLS IP: {effective_config.get('TLS_CERT_IP', '')}",
         f"- Red principal: {effective_config.get('SCAN_CIDR', '')}",
@@ -708,6 +790,8 @@ def run_upgrade(args: argparse.Namespace, target_dir: Path) -> int:
     show_effective_config_summary(target_dir, args.repo_url, args.branch, {
         "PORT": port,
         "AUDITOR_CONTAINER_NAME": env_values.get("AUDITOR_CONTAINER_NAME", args.container_name),
+        "AUDITOR_INSTANCE_ID": env_values.get("AUDITOR_INSTANCE_ID", ""),
+        "SESSION_COOKIE_NAME": env_values.get("SESSION_COOKIE_NAME", ""),
         "TLS_CERT_DNS": env_values.get("TLS_CERT_DNS", ""),
         "TLS_CERT_IP": env_values.get("TLS_CERT_IP", ""),
         "SERVER_IP": env_values.get("SERVER_IP", ""),
@@ -781,9 +865,12 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Instalador servidor V4 de Auditor IPs.")
     parser.add_argument("--repo-url", default=DEFAULT_REPO_URL)
     parser.add_argument("--branch", default=DEFAULT_BRANCH)
-    parser.add_argument("--target-dir", default=DEFAULT_TARGET_DIR)
+    parser.add_argument("--target-dir", default=DEFAULT_TARGET_DIR, help="Directorio de instalación. Por defecto usa el clon actual si se ejecuta desde él; si no, ~/auditor-ips.")
+    parser.add_argument("--system-install", action="store_true", help="Usa /opt/auditor-ips como destino de sistema. Normalmente requiere sudo.")
     parser.add_argument("--port", default=DEFAULT_PORT)
     parser.add_argument("--container-name", default=DEFAULT_CONTAINER_NAME)
+    parser.add_argument("--instance-id", default="", help="Identificador único y estable de esta instalación.")
+    parser.add_argument("--session-cookie-name", default="", help="Nombre explícito de cookie de sesión. Si se omite, se deriva de AUDITOR_INSTANCE_ID.")
     parser.add_argument("--tls-dns", default=DEFAULT_TLS_DNS)
     parser.add_argument("--tls-ip", default="")
     parser.add_argument("--server-ip", default="")
@@ -804,7 +891,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    target_dir = Path(args.target_dir).expanduser().resolve()
+    target_dir = default_target_dir(args)
 
     section(
         "Auditor IPs - instalador servidor V4",

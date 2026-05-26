@@ -118,6 +118,27 @@ cd auditor-ips
 python3 scripts/install_auditor.py
 ```
 
+#### Instalación de usuario frente a instalación de sistema
+
+Por defecto, si ejecutas el instalador desde un clon del repositorio, Auditor IPs se configura en ese propio directorio. Esta es la opción recomendada para primeras instalaciones, pruebas, instalaciones de usuario y entornos donde no quieres usar `sudo`.
+
+La instalación de sistema en `/opt/auditor-ips` queda reservada para casos en los que quieras tratar Auditor IPs como una aplicación del sistema, separada de la carpeta de trabajo del usuario. Normalmente requiere permisos de administrador y debe solicitarse de forma explícita:
+
+```bash
+sudo python3 scripts/install_auditor.py --system-install
+```
+
+Ventajas de instalar en la carpeta del usuario/clon:
+- no requiere permisos de administrador para crear la ruta;
+- facilita pruebas y limpieza completa de entornos temporales;
+- evita dejar restos en `/opt`.
+
+Ventajas de instalación de sistema:
+- ruta estándar para servicios persistentes;
+- separación clara respecto a descargas o clones temporales;
+- útil si varios usuarios administran el servidor.
+
+
 El instalador guía la configuración básica:
 
 - ruta de instalación;

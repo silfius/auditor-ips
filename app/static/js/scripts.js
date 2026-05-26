@@ -73,7 +73,7 @@ $(function () {
   function spStateGroup(s) {
     const state = String(s?.state || 'unknown');
     if (state === 'missed' || state === 'stalled') return 'missed';
-    if (state === 'controlled_stop') return 'unknown';
+    if (state === 'controlled_stop') return 'controlled';
     if (['ok', 'running', 'error'].includes(state)) return state;
     return 'unknown';
   }
@@ -157,6 +157,7 @@ $(function () {
       error: 'Con errores',
       missed: 'Missed / Stalled',
       unknown: 'Desconocido',
+      controlled: 'Controladas',
     };
     if (spStateFilter && spStateFilter !== 'all') {
       parts.push(`Estado: ${stateLabels[spStateFilter] || spStateFilter}`);
@@ -177,6 +178,135 @@ $(function () {
 
     $('#sp-active-filters').text(parts.length ? parts.join(' · ') : 'Sin filtros activos');
     $('#sp-btn-clear-filters').prop('disabled', !parts.length);
+  }
+
+  let spExecutionHistory = [];
+
+  function spHistoryEventLabel(type) {
+    const map = {
+      controlled_incident_marked: 'Incidencia controlada',
+      controlled_incident_cleared: 'Vigilancia reactivada',
+      alert_fired: 'Alerta enviada',
+    };
+    return map[type] || type || 'Evento';
+  }
+
+  function spControlTypeLabel(type) {
+    const map = {
+      controlled_stop: 'Parada controlada',
+      controlled_error: 'Error controlado',
+      controlled_stalled: 'Stalled controlado',
+      controlled_missed: 'Missed controlado',
+      false_positive: 'Falso positivo',
+      maintenance: 'Mantenimiento',
+      other: 'Otro',
+      controlled_incident: 'Incidencia controlada',
+    };
+    return map[type] || type || '—';
+  }
+
+  function spHistoryStateBadge(state, rawState) {
+    const s = String(state || rawState || '').toLowerCase();
+    return spStateBadge(s || 'unknown');
+  }
+
+  function spHistoryFilteredSorted() {
+    const q = String($('#sp-history-search').val() || '').trim().toLowerCase();
+    const type = String($('#sp-history-type').val() || '').trim();
+    const sort = String($('#sp-history-sort').val() || 'at_desc');
+
+    let items = [...(spExecutionHistory || [])];
+    if (type) items = items.filter(x => String(x.event_type || '') === type);
+    if (q) {
+      items = items.filter(x => {
+        const hay = [
+          x.host_name, x.script_name, x.event_type, x.state, x.raw_state,
+          x.exit_code, x.reason, x.observed_start_time, x.log_source
+        ].map(v => String(v || '').toLowerCase()).join(' ');
+        return hay.includes(q);
+      });
+    }
+
+    const collator = new Intl.Collator(navigator.language || 'es', { numeric: true, sensitivity: 'base' });
+    const ts = x => Date.parse(String(x.at || '').replace(' ', 'T')) || 0;
+    items.sort((a, b) => {
+      if (sort === 'at_asc') return ts(a) - ts(b);
+      if (sort === 'script_asc') return collator.compare(String(a.script_name || ''), String(b.script_name || ''))
+        || collator.compare(String(a.host_name || ''), String(b.host_name || ''));
+      if (sort === 'state_desc') return collator.compare(String(b.state || b.raw_state || ''), String(a.state || a.raw_state || ''))
+        || (ts(b) - ts(a));
+      if (sort === 'type_asc') return collator.compare(spHistoryEventLabel(a.event_type), spHistoryEventLabel(b.event_type))
+        || (ts(b) - ts(a));
+      return ts(b) - ts(a);
+    });
+    return items;
+  }
+
+  function spRenderExecutionHistory() {
+    const wrap = document.getElementById('sp-history-table-wrap');
+    if (!wrap) return;
+
+    const items = spHistoryFilteredSorted();
+    if (!items.length) {
+      wrap.innerHTML = '<div class="small text-muted">Sin eventos de historial con los filtros actuales.</div>';
+      return;
+    }
+
+    wrap.innerHTML = `
+      <table class="table table-sm align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Host</th>
+            <th>Script</th>
+            <th>Evento</th>
+            <th>Estado</th>
+            <th>Motivo / detalle</th>
+            <th class="text-end">Log</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map(ev => {
+            const hasLog = ev.has_log_excerpt || ev.log_excerpt;
+            const typeText = ev.control_type ? spControlTypeLabel(ev.control_type) : '';
+            return `
+              <tr>
+                <td class="small text-nowrap">${esc(fmtDate(ev.at))}</td>
+                <td class="small">${esc(ev.host_name || 'Local')}</td>
+                <td class="small font-monospace">${esc(ev.script_name || '—')}</td>
+                <td class="small">${esc(spHistoryEventLabel(ev.event_type))}</td>
+                <td>${spHistoryStateBadge(ev.state, ev.raw_state)}</td>
+                <td class="small" style="min-width:220px">
+                  ${typeText ? `<span class="badge bg-info text-dark me-1">${esc(typeText)}</span>` : ''}
+                  ${esc(ev.reason || '—')}
+                  ${ev.log_excerpt_truncated ? '<span class="badge bg-warning text-dark ms-1">log recortado</span>' : ''}
+                </td>
+                <td class="small text-end text-nowrap">
+                  ${hasLog ? `<button class="btn btn-sm btn-outline-secondary sp-history-log-btn" data-event-id="${esc(ev.id)}">
+                    <i class="bi bi-file-text me-1"></i>Ver log
+                  </button>` : '—'}
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  async function spLoadExecutionHistory(includeLog) {
+    const wrap = document.getElementById('sp-history-table-wrap');
+    if (wrap) wrap.innerHTML = '<div class="small text-muted">Cargando historial…</div>';
+    try {
+      const url = `/api/scripts/execution-events?limit=200&include_log=${includeLog ? 'true' : 'false'}`;
+      const res = await fetch(url, { cache: 'no-store' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.ok === false) throw new Error(data.detail || data.error || `HTTP ${res.status}`);
+      spExecutionHistory = Array.isArray(data.items) ? data.items : [];
+      spRenderExecutionHistory();
+    } catch (e) {
+      if (wrap) wrap.innerHTML = `<div class="alert alert-warning py-2 small mb-0">No se pudo cargar el historial: ${esc(e.message || e)}</div>`;
+    }
   }
 
   function spRenderCurrentView() {
@@ -223,7 +353,7 @@ $(function () {
       error:   '<span class="badge bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>Error</span>',
       stalled: '<span class="badge bg-warning text-dark"><i class="bi bi-clock-history me-1"></i>Stalled</span>',
       missed:  '<span class="badge bg-warning text-dark"><i class="bi bi-clock-history me-1"></i>Missed</span>',
-      controlled_stop: '<span class="badge bg-info text-dark"><i class="bi bi-pause-circle me-1"></i>Parada controlada</span>',
+      controlled_stop: '<span class="badge bg-info text-dark"><i class="bi bi-shield-check me-1"></i>Incidencia controlada</span>',
     };
     return map[state] || '<span class="badge bg-secondary">Desconocido</span>';
   }
@@ -444,27 +574,27 @@ $(function () {
         <div class="border rounded p-2">
           ${script?.controlled_stop ? `
             <div class="alert alert-info py-2 small mb-2">
-              <div class="fw-semibold">Parada controlada activa</div>
+              <div class="fw-semibold">Incidencia controlada activa</div>
               <div>Desde: ${esc(fmtDate(script.controlled_stop_at))}</div>
+              <div>Tipo: ${esc(spControlTypeLabel(script.controlled_stop_type))}</div>
               <div>Motivo: ${esc(script.controlled_stop_reason || '—')}</div>
-              <div class="mt-1">Mientras esté activa, Auditor IPs conserva el estado real como raw_state pero no dispara alertas por stalled/running_long/error de esta instancia.</div>
+              <div class="mt-1">Mientras esté activa, Auditor IPs conserva el estado real como raw_state, guarda trazabilidad y no repite alertas por error/stalled/running_long de esta instancia.</div>
             </div>
           ` : `
             <div class="small text-muted mb-2">
-              Marca una parada controlada si el script se ha detenido a medias y quieres evitar falsos stalled hasta la próxima ejecución real.
+              Marca la incidencia como controlada si ya has revisado el error, stalled o parada y quieres evitar nuevas alertas para esta ejecución concreta.
             </div>
           `}
-          <label class="form-label small-muted mb-1" for="sp-controlled-stop-reason">Motivo</label>
-          <input type="text" class="form-control form-control-sm mb-2" id="sp-controlled-stop-reason"
-                 value="${esc(script?.controlled_stop_reason || '')}"
-                 placeholder="Ej: parada manual por mantenimiento">
           <div class="d-flex gap-2 flex-wrap">
             <button class="btn btn-outline-info btn-sm" id="sp-controlled-stop-mark" type="button">
-              <i class="bi bi-pause-circle me-1"></i>Marcar parada controlada
+              <i class="bi bi-shield-check me-1"></i>Marcar incidencia controlada
             </button>
             <button class="btn btn-outline-success btn-sm" id="sp-controlled-stop-clear" type="button" ${script?.controlled_stop ? '' : 'disabled'}>
               <i class="bi bi-play-circle me-1"></i>Reactivar vigilancia normal
             </button>
+          </div>
+          <div class="small text-muted mt-2">
+            Al marcarla se abrirá un modal para elegir el tipo e indicar el motivo.
           </div>
         </div>
       </div>
@@ -521,15 +651,23 @@ $(function () {
     }
   }
 
-  async function spSetControlledStop(mark) {
+  async function spSetControlledStop(mark, incidentPayload) {
     const key = spScheduleCurrentKey;
     const script = spFindScriptByKey(key);
     if (!script) return;
 
     const name = String(script.name || '');
     const host = spScriptHost(script);
-    const reason = ($('#sp-controlled-stop-reason').val() || '').trim()
-      || 'Parada controlada marcada desde Auditor IPs';
+    const reason = String(incidentPayload?.reason || '').trim();
+    const controlType = String(incidentPayload?.control_type || '').trim();
+    if (mark && !controlType) {
+      window.showToast?.('Selecciona el tipo de incidencia controlada', 'warning');
+      return;
+    }
+    if (mark && !reason) {
+      window.showToast?.('Indica un motivo para marcar la incidencia como controlada', 'warning');
+      return;
+    }
 
     const url = `/api/scripts/controlled-stops/${encodeURIComponent(name)}?host=${encodeURIComponent(host)}`;
 
@@ -540,14 +678,16 @@ $(function () {
         body: mark ? JSON.stringify({
           host_name: host,
           reason,
+          control_type: controlType,
           start_time: script.start_time || script.last_run || ''
         }) : undefined,
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || data.ok === false) throw new Error(data.error || data.detail || `HTTP ${res.status}`);
 
-      window.showToast?.(mark ? '✓ Parada controlada marcada' : '✓ Vigilancia normal reactivada', 'success');
+      window.showToast?.(mark ? '✓ Incidencia marcada como controlada' : '✓ Vigilancia normal reactivada', 'success');
       await spRefreshScheduleModalAfterChange(key);
+      await spLoadExecutionHistory(true);
     } catch (e) {
       window.showToast?.('✗ ' + (e.message || e), 'danger');
     }
@@ -1032,12 +1172,100 @@ $(function () {
     spOpenScheduleModal($(this).data('key') || $(this).data('name'));
   });
 
+  let spControlledIncidentTargetKey = null;
+
+  function spReadControlledIncidentType() {
+    const el = document.getElementById('sp-controlled-incident-type');
+    if (!el) return '';
+
+    const raw = String(el.value || '').trim();
+    if (raw) return raw;
+
+    const selectedText = String(el.options?.[el.selectedIndex]?.text || '').trim().toLowerCase();
+    const byText = {
+      'parada controlada': 'controlled_stop',
+      'error controlado': 'controlled_error',
+      'stalled controlado': 'controlled_stalled',
+      'missed controlado': 'controlled_missed',
+      'falso positivo': 'false_positive',
+      'mantenimiento': 'maintenance',
+      'otro': 'other',
+    };
+    return byText[selectedText] || '';
+  }
+
+  function spOpenControlledIncidentModal() {
+    spControlledIncidentTargetKey = spScheduleCurrentKey;
+    const script = spFindScriptByKey(spControlledIncidentTargetKey);
+    if (!script) return;
+
+    $('#sp-controlled-incident-subtitle').text(`${spScriptHost(script)} / ${script.cfg_label || script.name || 'Automatización'}`);
+    $('#sp-controlled-incident-type').val('');
+    $('#sp-controlled-incident-reason').val('');
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('sp-controlled-incident-modal')).show();
+    setTimeout(() => $('#sp-controlled-incident-type').trigger('focus'), 150);
+  }
+
+  function spOpenHistoryLogModal(eventId) {
+    const id = Number(eventId);
+    const ev = (spExecutionHistory || []).find(x => Number(x.id) === id);
+    if (!ev) {
+      window.showToast?.('No se encontró el evento de historial', 'warning');
+      return;
+    }
+    if (!ev.log_excerpt) {
+      spLoadExecutionHistory(true).then(() => spOpenHistoryLogModal(eventId));
+      return;
+    }
+
+    $('#sp-history-log-subtitle').text(`${fmtDate(ev.at)} · ${ev.host_name || 'Local'} / ${ev.script_name || '—'} · ${spHistoryEventLabel(ev.event_type)}`);
+    $('#sp-history-log-body').text(ev.log_excerpt || '(sin muestra de log)');
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('sp-history-log-modal')).show();
+  }
+
   $(document).on('click', '#sp-controlled-stop-mark', function () {
-    spSetControlledStop(true);
+    spOpenControlledIncidentModal();
   });
 
   $(document).on('click', '#sp-controlled-stop-clear', function () {
     spSetControlledStop(false);
+  });
+
+  $(document).on('input change', '#sp-history-search,#sp-history-type,#sp-history-sort', function () {
+    spRenderExecutionHistory();
+  });
+
+  $(document).on('click', '#sp-btn-history', function () {
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('sp-history-modal')).show();
+    spLoadExecutionHistory(true);
+  });
+
+  $(document).on('click', '#sp-history-refresh', function () {
+    spLoadExecutionHistory(true);
+  });
+
+  $(document).on('click', '#sp-controlled-incident-confirm', async function () {
+    const controlType = spReadControlledIncidentType();
+    const reason = String($('#sp-controlled-incident-reason').val() || '').trim();
+
+    if (!controlType) {
+      window.showToast?.('Selecciona el tipo de incidencia controlada', 'warning');
+      $('#sp-controlled-incident-type').focus();
+      return;
+    }
+    if (!reason) {
+      window.showToast?.('Indica un motivo para marcar la incidencia como controlada', 'warning');
+      $('#sp-controlled-incident-reason').focus();
+      return;
+    }
+
+    spScheduleCurrentKey = spControlledIncidentTargetKey || spScheduleCurrentKey;
+    await spSetControlledStop(true, { control_type: controlType, reason });
+    bootstrap.Modal.getInstance(document.getElementById('sp-controlled-incident-modal'))?.hide();
+  });
+
+  $(document).on('click', '.sp-history-log-btn', function () {
+    spOpenHistoryLogModal(this.dataset.eventId);
   });
 
   $(document).on('click', '#sp-schedule-config-btn', function () {

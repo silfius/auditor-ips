@@ -513,6 +513,7 @@ def _controlled_stop_active_row(host_name: str, script_name: str):
                 host_name    TEXT    NOT NULL DEFAULT 'Local',
                 script_name  TEXT    NOT NULL,
                 reason       TEXT    NOT NULL DEFAULT '',
+                control_type TEXT    NOT NULL DEFAULT 'controlled_incident',
                 created_at   TEXT    NOT NULL,
                 observed_start_time TEXT NOT NULL DEFAULT '',
                 cleared_at   TEXT,
@@ -523,12 +524,14 @@ def _controlled_stop_active_row(host_name: str, script_name: str):
                 cols = [r["name"] for r in conn.execute("PRAGMA table_info(script_controlled_stops)").fetchall()]
                 if "observed_start_time" not in cols:
                     conn.execute("ALTER TABLE script_controlled_stops ADD COLUMN observed_start_time TEXT NOT NULL DEFAULT ''")
+                if "control_type" not in cols:
+                    conn.execute("ALTER TABLE script_controlled_stops ADD COLUMN control_type TEXT NOT NULL DEFAULT 'controlled_incident'")
             except Exception:
                 pass
 
             return conn.execute(
                 """
-                SELECT id, host_name, script_name, reason, created_at, observed_start_time
+                SELECT id, host_name, script_name, reason, control_type, created_at, observed_start_time
                 FROM script_controlled_stops
                 WHERE host_name=? AND script_name=? AND cleared_at IS NULL
                 ORDER BY id DESC
@@ -557,6 +560,183 @@ def _clear_controlled_stop(host_name: str, script_name: str, reason: str) -> Non
                 ),
             )
     except Exception:
+        pass
+
+
+def _ensure_script_execution_events_table(conn) -> None:
+    conn.execute("""
+    CREATE TABLE IF NOT EXISTS script_execution_events (
+        id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+        at                    TEXT    NOT NULL,
+        host_name             TEXT    NOT NULL DEFAULT 'Local',
+        script_name           TEXT    NOT NULL,
+        instance_key          TEXT    NOT NULL DEFAULT '',
+        event_type            TEXT    NOT NULL,
+        state                 TEXT    NOT NULL DEFAULT '',
+        raw_state             TEXT    NOT NULL DEFAULT '',
+        exit_code             TEXT    NOT NULL DEFAULT '',
+        reason                TEXT    NOT NULL DEFAULT '',
+        control_type          TEXT    NOT NULL DEFAULT '',
+        controlled_stop_id    INTEGER,
+        observed_start_time   TEXT    NOT NULL DEFAULT '',
+        log_excerpt           TEXT    NOT NULL DEFAULT '',
+        log_excerpt_truncated INTEGER NOT NULL DEFAULT 0,
+        log_excerpt_lines     INTEGER NOT NULL DEFAULT 0,
+        log_excerpt_bytes     INTEGER NOT NULL DEFAULT 0,
+        log_source            TEXT    NOT NULL DEFAULT ''
+    )
+    """)
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_script_execution_events_at "
+        "ON script_execution_events(at DESC)"
+    )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_script_execution_events_script "
+        "ON script_execution_events(host_name, script_name, at DESC)"
+    )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_script_execution_events_type "
+        "ON script_execution_events(event_type, at DESC)"
+    )
+    _ensure_script_execution_events_columns(conn)
+
+
+def _ensure_script_execution_events_columns(conn) -> None:
+    try:
+        cols = [r["name"] for r in conn.execute("PRAGMA table_info(script_execution_events)").fetchall()]
+        if "control_type" not in cols:
+            conn.execute("ALTER TABLE script_execution_events ADD COLUMN control_type TEXT NOT NULL DEFAULT ''")
+    except Exception:
+        pass
+
+
+def _sanitize_log_excerpt(text: str) -> str:
+    """
+    Saneado conservador para no persistir secretos obvios en muestras de log.
+    No sustituye una revisión manual si se publica o comparte el contenido.
+    """
+    sensitive_markers = (
+        "password", "passwd", "token", "secret", "authorization:",
+        "x-automation-agent-token", "webhook", "api_key", "apikey",
+        "cookie", "session=", "bearer "
+    )
+    safe_lines = []
+    for raw in str(text or "").splitlines():
+        line = str(raw)
+        lower = line.lower()
+        if any(marker in lower for marker in sensitive_markers):
+            line = "[línea omitida por posible dato sensible]"
+        if len(line) > 1000:
+            line = line[:1000] + " …[línea recortada]"
+        safe_lines.append(line)
+    return "\n".join(safe_lines).strip()
+
+
+def _script_log_excerpt(script_name: str, host_name: str, item: dict | None = None, lines: int = 200, max_bytes: int = 65536) -> dict:
+    text = ""
+    source = ""
+
+    try:
+        if item and isinstance(item.get("last_log_lines"), list) and item.get("last_log_lines"):
+            text = "\n".join(str(x) for x in item.get("last_log_lines", [])[-lines:])
+            source = "status.last_log_lines"
+    except Exception:
+        text = ""
+        source = ""
+
+    if not text:
+        try:
+            log_path = _find_log_file(script_name, host_name)
+            if log_path:
+                text = _tail_file(log_path, lines=min(max(lines, 20), 500))
+                source = str(log_path)
+        except Exception:
+            text = ""
+            source = ""
+
+    safe = _sanitize_log_excerpt(text)
+    truncated = False
+    raw_bytes = safe.encode("utf-8", errors="replace")
+    if len(raw_bytes) > max_bytes:
+        safe = raw_bytes[-max_bytes:].decode("utf-8", errors="replace")
+        truncated = True
+
+    return {
+        "excerpt": safe,
+        "truncated": truncated,
+        "lines": len(safe.splitlines()) if safe else 0,
+        "bytes": len(safe.encode("utf-8", errors="replace")),
+        "source": source,
+    }
+
+
+def _record_script_execution_event(
+    event_type: str,
+    host_name: str,
+    script_name: str,
+    item: dict | None = None,
+    reason: str = "",
+    control_type: str = "",
+    controlled_stop_id: int | None = None,
+    log_lines: int = 200,
+) -> None:
+    try:
+        host_name = _alert_host_name(host_name)
+        script_name = str(script_name or "").strip()
+        if not script_name:
+            return
+
+        item = item or {}
+        state = str(item.get("state") or item.get("status") or "").strip().lower()
+        raw_state = str(item.get("raw_state") or "").strip().lower()
+        exit_code = "" if item.get("exit_code") is None else str(item.get("exit_code"))[:40]
+        observed_start_time = _item_controlled_stop_start_key(item)
+
+        should_capture_log = (
+            event_type in {"controlled_incident_marked", "alert_fired"}
+            or state in {"error", "failed", "missed", "stalled"}
+            or raw_state in {"error", "failed", "missed", "stalled"}
+        )
+        log = _script_log_excerpt(script_name, host_name, item=item, lines=log_lines) if should_capture_log else {
+            "excerpt": "",
+            "truncated": False,
+            "lines": 0,
+            "bytes": 0,
+            "source": "",
+        }
+
+        with db() as conn:
+            _ensure_script_execution_events_table(conn)
+            conn.execute(
+                """
+                INSERT INTO script_execution_events
+                    (at, host_name, script_name, instance_key, event_type, state, raw_state,
+                     exit_code, reason, control_type, controlled_stop_id, observed_start_time,
+                     log_excerpt, log_excerpt_truncated, log_excerpt_lines, log_excerpt_bytes, log_source)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    datetime.now(_local_tzinfo()).strftime("%Y-%m-%d %H:%M:%S"),
+                    host_name,
+                    script_name,
+                    _script_instance_key(host_name, script_name),
+                    str(event_type or "event")[:80],
+                    state[:40],
+                    raw_state[:40],
+                    exit_code,
+                    str(reason or "")[:1000],
+                    str(control_type or "")[:80],
+                    controlled_stop_id,
+                    str(observed_start_time or "")[:80],
+                    log["excerpt"],
+                    1 if log["truncated"] else 0,
+                    int(log["lines"] or 0),
+                    int(log["bytes"] or 0),
+                    str(log["source"] or "")[:500],
+                ),
+            )
+    except Exception:
+        # El historial no debe romper el flujo operativo ni el envío de alertas.
         pass
 
 
@@ -614,6 +794,7 @@ def _apply_controlled_stop_override(item: dict) -> bool:
     item["controlled_stop"] = True
     item["controlled_stop_id"] = row["id"]
     item["controlled_stop_reason"] = str(row["reason"] or "")
+    item["controlled_stop_type"] = str(row["control_type"] or "controlled_incident")
     item["controlled_stop_at"] = created_at
     item["controlled_stop_observed_start_time"] = observed_start_time
     item["raw_state"] = raw_state
@@ -1885,13 +2066,56 @@ def get_controlled_stops(active_only: bool = True):
         where = "WHERE cleared_at IS NULL" if active_only else ""
         rows = conn.execute(
             f"""
-            SELECT id, host_name, script_name, reason, created_at, observed_start_time, cleared_at, cleared_reason
+            SELECT id, host_name, script_name, reason, control_type, created_at, observed_start_time, cleared_at, cleared_reason
             FROM script_controlled_stops
             {where}
             ORDER BY COALESCE(cleared_at, created_at) DESC, id DESC
             LIMIT 500
             """
         ).fetchall()
+    return {"ok": True, "items": [dict(r) for r in rows]}
+
+
+@router.get("/api/scripts/execution-events")
+def get_script_execution_events(
+    host: str = Query("", max_length=120),
+    script_name: str = Query("", max_length=160),
+    event_type: str = Query("", max_length=80),
+    limit: int = Query(200, ge=1, le=500),
+    include_log: bool = False,
+):
+    """Historial operativo de automatizaciones con extracto de log opcional."""
+    with db() as conn:
+        _ensure_script_execution_events_table(conn)
+        where = []
+        params = []
+        if host:
+            where.append("host_name=?")
+            params.append(_alert_host_name(host))
+        if script_name:
+            where.append("script_name=?")
+            params.append(str(script_name).strip())
+        if event_type:
+            where.append("event_type=?")
+            params.append(str(event_type).strip())
+
+        sql_where = ("WHERE " + " AND ".join(where)) if where else ""
+        log_col = "log_excerpt" if include_log else "'' AS log_excerpt"
+        rows = conn.execute(
+            f"""
+            SELECT id, at, host_name, script_name, instance_key, event_type,
+                   state, raw_state, exit_code, reason, control_type, controlled_stop_id,
+                   observed_start_time, {log_col},
+                   CASE WHEN COALESCE(log_excerpt, '') <> '' THEN 1 ELSE 0 END AS has_log_excerpt,
+                   log_excerpt_truncated, log_excerpt_lines, log_excerpt_bytes, log_source
+            FROM script_execution_events
+            {sql_where}
+            ORDER BY at DESC, id DESC
+            LIMIT ?
+            """,
+            (*params, int(limit)),
+        ).fetchall()
+
     return {"ok": True, "items": [dict(r) for r in rows]}
 
 
@@ -1904,17 +2128,24 @@ async def mark_controlled_stop(
     """Marca una parada controlada para suprimir falsos stalled/running_long hasta la próxima ejecución real."""
     payload = await request.json()
     host_name = _alert_host_name(payload.get("host_name") or host)
-    reason = str(payload.get("reason") or "Parada controlada marcada desde Auditor IPs").strip()
+    reason = str(payload.get("reason") or "").strip()
+    control_type = str(payload.get("control_type") or "").strip()
+    if not control_type:
+        raise HTTPException(status_code=400, detail="Selecciona el tipo de incidencia controlada")
+    if not reason:
+        raise HTTPException(status_code=400, detail="Indica un motivo para marcar la incidencia como controlada")
 
+    matched_item = None
     observed_start_time = str(payload.get("start_time") or "").strip()
-    if not observed_start_time:
-        try:
-            for item in get_scripts_status():
-                if str(item.get("name") or "") == str(script_name or "") and _alert_host_name(item.get("host_name")) == host_name:
+    try:
+        for item in get_scripts_status():
+            if str(item.get("name") or "") == str(script_name or "") and _alert_host_name(item.get("host_name")) == host_name:
+                matched_item = item
+                if not observed_start_time:
                     observed_start_time = _item_controlled_stop_start_key(item)
-                    break
-        except Exception:
-            observed_start_time = ""
+                break
+    except Exception:
+        observed_start_time = observed_start_time or ""
 
     now = datetime.now(_local_tzinfo()).strftime("%Y-%m-%d %H:%M:%S")
 
@@ -1925,6 +2156,7 @@ async def mark_controlled_stop(
             host_name    TEXT    NOT NULL DEFAULT 'Local',
             script_name  TEXT    NOT NULL,
             reason       TEXT    NOT NULL DEFAULT '',
+            control_type TEXT    NOT NULL DEFAULT 'controlled_incident',
             created_at   TEXT    NOT NULL,
             observed_start_time TEXT NOT NULL DEFAULT '',
             cleared_at   TEXT,
@@ -1946,20 +2178,35 @@ async def mark_controlled_stop(
             """,
             (now, "replaced_by_new_controlled_stop", host_name, script_name),
         )
-        conn.execute(
+        cur = conn.execute(
             """
             INSERT INTO script_controlled_stops
-                (host_name, script_name, reason, created_at, observed_start_time)
-            VALUES (?, ?, ?, ?, ?)
+                (host_name, script_name, reason, control_type, created_at, observed_start_time)
+            VALUES (?, ?, ?, ?, ?, ?)
             """,
-            (host_name, script_name, reason[:500], now, observed_start_time),
+            (host_name, script_name, reason[:500], control_type[:80], now, observed_start_time),
         )
+        control_id = cur.lastrowid
+
+    _record_script_execution_event(
+        "controlled_incident_marked",
+        host_name,
+        script_name,
+        item=matched_item,
+        reason=reason[:500],
+        control_type=control_type[:80],
+        controlled_stop_id=control_id,
+        log_lines=200,
+    )
 
     return {
         "ok": True,
+        "control_id": control_id,
+        "log_excerpt_saved": True,
         "host_name": host_name,
         "script_name": script_name,
         "reason": reason[:500],
+        "control_type": control_type[:80],
         "created_at": now,
         "observed_start_time": observed_start_time,
         "instance_key": _script_instance_key(host_name, script_name),
@@ -1968,9 +2215,26 @@ async def mark_controlled_stop(
 
 @router.delete("/api/scripts/controlled-stops/{script_name}")
 def clear_controlled_stop(script_name: str, host: str = Query("Local", max_length=120)):
-    """Reactiva la vigilancia normal eliminando la parada controlada activa."""
+    """Reactiva la vigilancia normal eliminando la incidencia controlada activa."""
     host_name = _alert_host_name(host)
+    matched_item = None
+    try:
+        for item in get_scripts_status():
+            if str(item.get("name") or "") == str(script_name or "") and _alert_host_name(item.get("host_name")) == host_name:
+                matched_item = item
+                break
+    except Exception:
+        matched_item = None
+
     _clear_controlled_stop(host_name, script_name, "manual_clear")
+    _record_script_execution_event(
+        "controlled_incident_cleared",
+        host_name,
+        script_name,
+        item=matched_item,
+        reason="manual_clear",
+        log_lines=80,
+    )
     return {"ok": True, "host_name": host_name, "script_name": script_name, "instance_key": _script_instance_key(host_name, script_name)}
 
 
@@ -2183,6 +2447,14 @@ def check_script_alerts() -> int:
         full_msg = "\n\n".join(msgs)
         header   = f"🔔 **Alerta de proceso — Auditor IPs**\n"
         _send_script_alert(header + full_msg)
+        _record_script_execution_event(
+            "alert_fired",
+            host_name,
+            name,
+            item=s,
+            reason=full_msg,
+            log_lines=200,
+        )
         fired += 1
 
         # Actualizar last_fired

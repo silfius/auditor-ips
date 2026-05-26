@@ -13,6 +13,8 @@ services:
     environment:
       PORT: ${PORT:-9909}
       DB_PATH: ${DB_PATH:-/data/auditor.db}
+      AUDITOR_INSTANCE_ID: ${AUDITOR_INSTANCE_ID:-}
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-}
 
       # TLS local. Ajustar en .env según IP/DNS de cada instalación.
       TLS_CERT_IP: ${TLS_CERT_IP:-}
