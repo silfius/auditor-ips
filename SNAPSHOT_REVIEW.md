@@ -5,7 +5,7 @@ Este snapshot ha sido generado de forma local y no ha sido publicado.
 ## Resultado del escaneo ligero
 
 - Hallazgos HIGH: 0
-- Hallazgos WARN: 288
+- Hallazgos WARN: 303
 
 Los hallazgos WARN pueden corresponder a documentación o nombres de variables.
 Los hallazgos HIGH deben bloquear la publicación hasta revisión.
@@ -40,24 +40,39 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/test_endpoints.py:8` `localhost_url` — python test_endpoints.py --base https://localhost:8088
 - `WARN` `app/test_endpoints.py:22` `localhost_url` — parser.add_argument("--base",           default="https://localhost:8088")
 - `WARN` `app/test_endpoints.py:110` `secret_word` — request("POST", "/api/auth/login",   body={"username":"x","password":"x"},
-- `WARN` `app/auth_middleware.py:32` `secret_word` — def hash_password(password: str, salt: Optional[bytes] = None) -> str:
-- `WARN` `app/auth_middleware.py:35` `secret_word` — dk = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 310_000)
-- `WARN` `app/auth_middleware.py:39` `secret_word` — def verify_password(password: str, stored: str) -> bool:
-- `WARN` `app/auth_middleware.py:42` `secret_word` — return secrets.compare_digest(stored, hash_password(password, bytes.fromhex(salt_hex)))
-- `WARN` `app/auth_middleware.py:66` `secret_word` — token      TEXT PRIMARY KEY,
-- `WARN` `app/auth_middleware.py:111` `secret_word` — def create_user(db_path: str, username: str, password: str) -> dict:
-- `WARN` `app/auth_middleware.py:115` `secret_word` — if not password or len(password) < 8:
-- `WARN` `app/auth_middleware.py:121` `secret_word` — (username, hash_password(password), datetime.now(timezone.utc).isoformat())
-- `WARN` `app/auth_middleware.py:153` `secret_word` — token = secrets.token_urlsafe(32)
-- `WARN` `app/auth_middleware.py:158` `secret_word` — (token,user_id,username,created_at,expires_at,ip,user_agent) VALUES(?,?,?,?,?,?,?)""",
-- `WARN` `app/auth_middleware.py:159` `secret_word` — (token, user_id, username, now.isoformat(), exp.isoformat(), ip, ua[:200]))
-- `WARN` `app/auth_middleware.py:161` `secret_word` — return token
-- `WARN` `app/auth_middleware.py:164` `secret_word` — def validate_session(db_path: str, token: Optional[str]) -> Optional[str]:
-- `WARN` `app/auth_middleware.py:166` `secret_word` — if not token:
-- `WARN` `app/auth_middleware.py:172` `secret_word` — "SELECT username FROM auth_sessions WHERE token=? AND expires_at>?", (token, now)
-- `WARN` `app/auth_middleware.py:179` `secret_word` — def destroy_session(db_path: str, token: str) -> None:
-- `WARN` `app/auth_middleware.py:181` `secret_word` — c.execute("DELETE FROM auth_sessions WHERE token=?", (token,))
-- `WARN` `app/auth_middleware.py:199` `secret_word` — rows = c.execute("""SELECT token,username,created_at,expires_at,ip,user_agent
+- `WARN` `app/auth_middleware.py:40` `secret_word` — def set_session_cookie(response, token: str, max_age: Optional[int] = None) -> None:
+- `WARN` `app/auth_middleware.py:44` `secret_word` — token,
+- `WARN` `app/auth_middleware.py:65` `secret_word` — def hash_password(password: str, salt: Optional[bytes] = None) -> str:
+- `WARN` `app/auth_middleware.py:68` `secret_word` — dk = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 310_000)
+- `WARN` `app/auth_middleware.py:72` `secret_word` — def verify_password(password: str, stored: str) -> bool:
+- `WARN` `app/auth_middleware.py:75` `secret_word` — return secrets.compare_digest(stored, hash_password(password, bytes.fromhex(salt_hex)))
+- `WARN` `app/auth_middleware.py:80` `secret_word` — def session_storage_key(token: str) -> str:
+- `WARN` `app/auth_middleware.py:81` `secret_word` — """Clave persistida de sesión: nunca guardamos el token de cookie en claro."""
+- `WARN` `app/auth_middleware.py:82` `secret_word` — return hashlib.sha256((token or "").encode("utf-8")).hexdigest()
+- `WARN` `app/auth_middleware.py:108` `secret_word` — token      TEXT PRIMARY KEY,
+- `WARN` `app/auth_middleware.py:153` `secret_word` — def create_user(db_path: str, username: str, password: str) -> dict:
+- `WARN` `app/auth_middleware.py:157` `secret_word` — if not password or len(password) < 8:
+- `WARN` `app/auth_middleware.py:163` `secret_word` — (username, hash_password(password), datetime.now(timezone.utc).isoformat())
+- `WARN` `app/auth_middleware.py:195` `secret_word` — token = secrets.token_urlsafe(32)
+- `WARN` `app/auth_middleware.py:196` `secret_word` — token_key = session_storage_key(token)
+- `WARN` `app/auth_middleware.py:201` `secret_word` — (token,user_id,username,created_at,expires_at,ip,user_agent) VALUES(?,?,?,?,?,?,?)""",
+- `WARN` `app/auth_middleware.py:204` `secret_word` — return token
+- `WARN` `app/auth_middleware.py:207` `secret_word` — def validate_session(db_path: str, token: Optional[str]) -> Optional[str]:
+- `WARN` `app/auth_middleware.py:209` `secret_word` — if not token:
+- `WARN` `app/auth_middleware.py:213` `secret_word` — token_key = session_storage_key(token)
+- `WARN` `app/auth_middleware.py:216` `secret_word` — "SELECT username FROM auth_sessions WHERE token=? AND expires_at>?", (token_key, now)
+- `WARN` `app/auth_middleware.py:221` `secret_word` — # Compatibilidad temporal: sesiones antiguas guardaban el token en claro.
+- `WARN` `app/auth_middleware.py:223` `secret_word` — if not _looks_like_session_storage_key(token):
+- `WARN` `app/auth_middleware.py:225` `secret_word` — "SELECT username FROM auth_sessions WHERE token=? AND expires_at>?", (token, now)
+- `WARN` `app/auth_middleware.py:229` `secret_word` — c.execute("UPDATE auth_sessions SET token=? WHERE token=?", (token_key, token))
+- `WARN` `app/auth_middleware.py:231` `secret_word` — c.execute("DELETE FROM auth_sessions WHERE token=?", (token,))
+- `WARN` `app/auth_middleware.py:239` `secret_word` — def destroy_session(db_path: str, token: str) -> None:
+- `WARN` `app/auth_middleware.py:240` `secret_word` — token_key = session_storage_key(token)
+- `WARN` `app/auth_middleware.py:242` `secret_word` — c.execute("DELETE FROM auth_sessions WHERE token IN (?,?)", (token_key, token))
+- `WARN` `app/auth_middleware.py:260` `secret_word` — rows = c.execute("""SELECT token,username,created_at,expires_at,ip,user_agent
+- `WARN` `app/auth_middleware.py:266` `secret_word` — token_prefix = str(item.get("token") or "")[:8]
+- `WARN` `app/auth_middleware.py:268` `secret_word` — # Compatibilidad frontend: auth.js usa s.token.substring(0,8).
+- `WARN` `app/auth_middleware.py:269` `secret_word` — item["token"] = token_prefix
 - `WARN` `app/database.py:285` `secret_word` — api_key TEXT NOT NULL DEFAULT '',
 - `WARN` `scripts/install_auditor_agent.py:40` `localhost_url` — AUDITOR_URL="${AUDITOR_URL:-https://127.0.0.1:9909}"
 - `WARN` `scripts/install_auditor_agent.py:81` `secret_word` — url, token, host, script, status, exit_code, now, duration, progress, step_label, log_json, verify_tls = sys.argv[1:]
@@ -207,20 +222,5 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/routers/scripts_status.py:1465` `secret_word` — _automation_agent_audit(host_name, request, "auth_failed", False, "sin token global ni agente registrado")
 - `WARN` `app/routers/scripts_status.py:1468` `secret_word` — if not secrets.compare_digest(token, expected):
 - `WARN` `app/routers/scripts_status.py:1469` `secret_word` — _automation_agent_audit(host_name, request, "auth_failed", False, "token global inválido")
-- `WARN` `app/routers/scripts_status.py:1470` `secret_word` — raise HTTPException(status_code=403, detail="Token de agente inválido")
-- `WARN` `app/routers/scripts_status.py:1547` `secret_word` — """Crea un agente y devuelve el token una sola vez."""
-- `WARN` `app/routers/scripts_status.py:1559` `secret_word` — token = _automation_agent_new_token()
-- `WARN` `app/routers/scripts_status.py:1570` `secret_word` — _automation_agent_token_hash(token),
-- `WARN` `app/routers/scripts_status.py:1571` `secret_word` — _automation_agent_token_prefix(token),
-- `WARN` `app/routers/scripts_status.py:1584` `secret_word` — "token": token,
-- `WARN` `app/routers/scripts_status.py:1585` `secret_word` — "token_prefix": _automation_agent_token_prefix(token),
-- `WARN` `app/routers/scripts_status.py:1586` `secret_word` — "warning": "Guarda este token ahora; no se volverá a mostrar.",
-- `WARN` `app/routers/scripts_status.py:1633` `secret_word` — """Rota el token del agente y devuelve el nuevo token una sola vez."""
-- `WARN` `app/routers/scripts_status.py:1635` `secret_word` — token = _automation_agent_new_token()
-- `WARN` `app/routers/scripts_status.py:1646` `secret_word` — _automation_agent_token_hash(token),
-- `WARN` `app/routers/scripts_status.py:1647` `secret_word` — _automation_agent_token_prefix(token),
-- `WARN` `app/routers/scripts_status.py:1654` `secret_word` — _automation_agent_audit(host_name, request, "agent_token_rotated", True, {"token_prefix": _automation_agent_token_prefix(token)})
-- `WARN` `app/routers/scripts_status.py:1658` `secret_word` — "token": token,
-- `WARN` `app/routers/scripts_status.py:1659` `secret_word` — "token_prefix": _automation_agent_token_prefix(token),
-- ... 88 hallazgos adicionales no listados.
+- ... 103 hallazgos adicionales no listados.
 

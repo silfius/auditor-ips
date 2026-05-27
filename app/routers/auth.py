@@ -31,6 +31,8 @@ from auth_middleware import (
     get_client_ip,
     SESSION_COOKIE,
     SESSION_TTL_HOURS,
+    set_session_cookie,
+    delete_session_cookie,
 )
 from config import cfg, DB_PATH, login_check_and_record, login_retry_after
 from database import db
@@ -180,7 +182,7 @@ async def api_initial_setup_confirm(request: Request):
                 """INSERT INTO auth_sessions
                    (token,user_id,username,created_at,expires_at,ip,user_agent)
                    VALUES(?,?,?,?,?,?,?)""",
-                (token, user_id, username, now, expires_at, ip, ua),
+                (_am.session_storage_key(token), user_id, username, now, expires_at, ip, ua),
             )
             conn.execute("UPDATE auth_users SET last_login=? WHERE id=?", (now, user_id))
 
@@ -205,14 +207,10 @@ async def api_initial_setup_confirm(request: Request):
         return JSONResponse({"ok": False, "error": f"No se pudo confirmar la configuración inicial: {exc}"}, status_code=500)
 
     response = JSONResponse({"ok": True, "next": "/"})
-    response.set_cookie(
-        globals().get("SESSION_COOKIE", "auditor_session"),
+    set_session_cookie(
+        response,
         token,
-        httponly=True,
-        secure=True,
-        samesite="lax",
         max_age=ttl_hours * 3600,
-        path="/",
     )
     return response
 
@@ -333,14 +331,7 @@ async def api_auth_login(request: Request):
     )
 
     resp = JSONResponse({"ok": True, "username": username})
-    resp.set_cookie(
-        SESSION_COOKIE,
-        token,
-        httponly=True,
-        secure=True,
-        samesite="strict",
-        max_age=SESSION_TTL_HOURS * 3600,
-    )
+    set_session_cookie(resp, token)
     return resp
 
 
@@ -362,7 +353,7 @@ def api_auth_logout(request: Request):
         )
 
     resp = JSONResponse({"ok": True})
-    resp.delete_cookie(SESSION_COOKIE)
+    delete_session_cookie(resp)
     return resp
 
 
