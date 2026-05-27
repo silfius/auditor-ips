@@ -1,11 +1,11 @@
 {
   "repo_name": "auditor-ips",
-  "generated_at": "2026-05-26T17:00:21.640283+00:00",
+  "generated_at": "2026-05-27T05:38:41.427344+00:00",
   "source_root": "<internal-source-redacted>",
-  "snapshot_dir": "auditor-ips-20260526-190020",
+  "snapshot_dir": "auditor-ips-20260527-073839",
   "files_count": 110,
   "high_findings_count": 0,
-  "warn_findings_count": 288,
+  "warn_findings_count": 303,
   "files": [
     {
       "path": "app/scan_scheduler.py",
@@ -89,8 +89,8 @@
     },
     {
       "path": "app/auth_middleware.py",
-      "size": 12335,
-      "sha256": "6a844870d2f6a872ceed5cabda15825d9dfbd888aff27a93a92fec64a35e7253"
+      "size": 15154,
+      "sha256": "18bc6ba581fafe3b399f44896aacd4a9c9ae5ea843445e1210430d5798ca134f"
     },
     {
       "path": "app/utils.py",
@@ -334,8 +334,8 @@
     },
     {
       "path": "app/routers/auth.py",
-      "size": 21406,
-      "sha256": "0d980b49f1016c0a8b7a92a70b30027f1228c83a6f3dec3bcb8d6f6ac4c21db4"
+      "size": 21203,
+      "sha256": "3a8471001070b308f6667237b0114cad730ea44eded1292af4050019deec7836"
     },
     {
       "path": ".env.example",
@@ -344,8 +344,8 @@
     },
     {
       "path": "docker-compose.yml.example",
-      "size": 924,
-      "sha256": "a9b41ac47dde28b52c7e1a6c8a72e02ed376070ff91b05494d7881b13cd90446"
+      "size": 1047,
+      "sha256": "5102bda40913f355ffb2e40a498fd20f01f1a37ff312d498386d029958cca6a6"
     },
     {
       "path": ".gitignore",
@@ -688,128 +688,233 @@
     {
       "severity": "WARN",
       "path": "app/auth_middleware.py",
-      "line": 32,
+      "line": 40,
+      "pattern": "secret_word",
+      "sample": "def set_session_cookie(response, token: str, max_age: Optional[int] = None) -> None:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 44,
+      "pattern": "secret_word",
+      "sample": "token,"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 65,
       "pattern": "secret_word",
       "sample": "def hash_password(password: str, salt: Optional[bytes] = None) -> str:"
     },
     {
       "severity": "WARN",
       "path": "app/auth_middleware.py",
-      "line": 35,
+      "line": 68,
       "pattern": "secret_word",
       "sample": "dk = hashlib.pbkdf2_hmac(\"sha256\", password.encode(), salt, 310_000)"
     },
     {
       "severity": "WARN",
       "path": "app/auth_middleware.py",
-      "line": 39,
+      "line": 72,
       "pattern": "secret_word",
       "sample": "def verify_password(password: str, stored: str) -> bool:"
     },
     {
       "severity": "WARN",
       "path": "app/auth_middleware.py",
-      "line": 42,
+      "line": 75,
       "pattern": "secret_word",
       "sample": "return secrets.compare_digest(stored, hash_password(password, bytes.fromhex(salt_hex)))"
     },
     {
       "severity": "WARN",
       "path": "app/auth_middleware.py",
-      "line": 66,
+      "line": 80,
+      "pattern": "secret_word",
+      "sample": "def session_storage_key(token: str) -> str:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 81,
+      "pattern": "secret_word",
+      "sample": "\"\"\"Clave persistida de sesión: nunca guardamos el token de cookie en claro.\"\"\""
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 82,
+      "pattern": "secret_word",
+      "sample": "return hashlib.sha256((token or \"\").encode(\"utf-8\")).hexdigest()"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 108,
       "pattern": "secret_word",
       "sample": "token      TEXT PRIMARY KEY,"
     },
     {
       "severity": "WARN",
       "path": "app/auth_middleware.py",
-      "line": 111,
+      "line": 153,
       "pattern": "secret_word",
       "sample": "def create_user(db_path: str, username: str, password: str) -> dict:"
     },
     {
       "severity": "WARN",
       "path": "app/auth_middleware.py",
-      "line": 115,
+      "line": 157,
       "pattern": "secret_word",
       "sample": "if not password or len(password) < 8:"
     },
     {
       "severity": "WARN",
       "path": "app/auth_middleware.py",
-      "line": 121,
+      "line": 163,
       "pattern": "secret_word",
       "sample": "(username, hash_password(password), datetime.now(timezone.utc).isoformat())"
     },
     {
       "severity": "WARN",
       "path": "app/auth_middleware.py",
-      "line": 153,
+      "line": 195,
       "pattern": "secret_word",
       "sample": "token = secrets.token_urlsafe(32)"
     },
     {
       "severity": "WARN",
       "path": "app/auth_middleware.py",
-      "line": 158,
+      "line": 196,
+      "pattern": "secret_word",
+      "sample": "token_key = session_storage_key(token)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 201,
       "pattern": "secret_word",
       "sample": "(token,user_id,username,created_at,expires_at,ip,user_agent) VALUES(?,?,?,?,?,?,?)\"\"\","
     },
     {
       "severity": "WARN",
       "path": "app/auth_middleware.py",
-      "line": 159,
-      "pattern": "secret_word",
-      "sample": "(token, user_id, username, now.isoformat(), exp.isoformat(), ip, ua[:200]))"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/auth_middleware.py",
-      "line": 161,
+      "line": 204,
       "pattern": "secret_word",
       "sample": "return token"
     },
     {
       "severity": "WARN",
       "path": "app/auth_middleware.py",
-      "line": 164,
+      "line": 207,
       "pattern": "secret_word",
       "sample": "def validate_session(db_path: str, token: Optional[str]) -> Optional[str]:"
     },
     {
       "severity": "WARN",
       "path": "app/auth_middleware.py",
-      "line": 166,
+      "line": 209,
       "pattern": "secret_word",
       "sample": "if not token:"
     },
     {
       "severity": "WARN",
       "path": "app/auth_middleware.py",
-      "line": 172,
+      "line": 213,
+      "pattern": "secret_word",
+      "sample": "token_key = session_storage_key(token)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 216,
+      "pattern": "secret_word",
+      "sample": "\"SELECT username FROM auth_sessions WHERE token=? AND expires_at>?\", (token_key, now)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 221,
+      "pattern": "secret_word",
+      "sample": "# Compatibilidad temporal: sesiones antiguas guardaban el token en claro."
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 223,
+      "pattern": "secret_word",
+      "sample": "if not _looks_like_session_storage_key(token):"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 225,
       "pattern": "secret_word",
       "sample": "\"SELECT username FROM auth_sessions WHERE token=? AND expires_at>?\", (token, now)"
     },
     {
       "severity": "WARN",
       "path": "app/auth_middleware.py",
-      "line": 179,
+      "line": 229,
       "pattern": "secret_word",
-      "sample": "def destroy_session(db_path: str, token: str) -> None:"
+      "sample": "c.execute(\"UPDATE auth_sessions SET token=? WHERE token=?\", (token_key, token))"
     },
     {
       "severity": "WARN",
       "path": "app/auth_middleware.py",
-      "line": 181,
+      "line": 231,
       "pattern": "secret_word",
       "sample": "c.execute(\"DELETE FROM auth_sessions WHERE token=?\", (token,))"
     },
     {
       "severity": "WARN",
       "path": "app/auth_middleware.py",
-      "line": 199,
+      "line": 239,
+      "pattern": "secret_word",
+      "sample": "def destroy_session(db_path: str, token: str) -> None:"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 240,
+      "pattern": "secret_word",
+      "sample": "token_key = session_storage_key(token)"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 242,
+      "pattern": "secret_word",
+      "sample": "c.execute(\"DELETE FROM auth_sessions WHERE token IN (?,?)\", (token_key, token))"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 260,
       "pattern": "secret_word",
       "sample": "rows = c.execute(\"\"\"SELECT token,username,created_at,expires_at,ip,user_agent"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 266,
+      "pattern": "secret_word",
+      "sample": "token_prefix = str(item.get(\"token\") or \"\")[:8]"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 268,
+      "pattern": "secret_word",
+      "sample": "# Compatibilidad frontend: auth.js usa s.token.substring(0,8)."
+    },
+    {
+      "severity": "WARN",
+      "path": "app/auth_middleware.py",
+      "line": 269,
+      "pattern": "secret_word",
+      "sample": "item[\"token\"] = token_prefix"
     },
     {
       "severity": "WARN",
@@ -1976,196 +2081,196 @@
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 109,
+      "line": 111,
       "pattern": "secret_word",
       "sample": "password = str(payload.get(\"password\") or \"\")"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 114,
+      "line": 116,
       "pattern": "secret_word",
       "sample": "if len(password) < 8:"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 116,
+      "line": 118,
       "pattern": "secret_word",
       "sample": "if password != password2:"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 134,
+      "line": 136,
       "pattern": "secret_word",
       "sample": "token = secrets.token_urlsafe(32)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 172,
+      "line": 174,
       "pattern": "secret_word",
       "sample": "(username, hash_password(password), now),"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 181,
+      "line": 183,
       "pattern": "secret_word",
       "sample": "(token,user_id,username,created_at,expires_at,ip,user_agent)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 183,
+      "line": 185,
       "pattern": "secret_word",
-      "sample": "(token, user_id, username, now, expires_at, ip, ua),"
+      "sample": "(_am.session_storage_key(token), user_id, username, now, expires_at, ip, ua),"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 192,
+      "line": 194,
       "pattern": "secret_word",
       "sample": "now, ip, username, token[:10],"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 210,
+      "line": 212,
       "pattern": "secret_word",
       "sample": "token,"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 223,
+      "line": 221,
       "pattern": "secret_word",
       "sample": "token = request.cookies.get(SESSION_COOKIE)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 224,
+      "line": 222,
       "pattern": "secret_word",
       "sample": "if validate_session(DB_PATH, token):"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 246,
+      "line": 244,
       "pattern": "secret_word",
       "sample": "token = request.cookies.get(SESSION_COOKIE)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 247,
+      "line": 245,
       "pattern": "secret_word",
       "sample": "username = validate_session(DB_PATH, token) if enabled else None"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 270,
+      "line": 268,
       "pattern": "secret_word",
       "sample": "password = (payload.get(\"password\") or \"\").strip()"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 294,
+      "line": 292,
       "pattern": "secret_word",
       "sample": "if not user or not _am.verify_password(password, user[\"password_hash\"]):"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 325,
+      "line": 323,
       "pattern": "secret_word",
       "sample": "token = create_session(DB_PATH, user[\"id\"], username, ip, ua)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 332,
+      "line": 330,
       "pattern": "secret_word",
       "sample": "session_token=token,"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 338,
+      "line": 334,
       "pattern": "secret_word",
-      "sample": "token,"
+      "sample": "set_session_cookie(resp, token)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 349,
+      "line": 340,
       "pattern": "secret_word",
       "sample": "token = request.cookies.get(SESSION_COOKIE)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 351,
+      "line": 342,
       "pattern": "secret_word",
       "sample": "username = validate_session(DB_PATH, token)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 353,
+      "line": 344,
       "pattern": "secret_word",
       "sample": "if token:"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 354,
+      "line": 345,
       "pattern": "secret_word",
       "sample": "destroy_session(DB_PATH, token)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 361,
+      "line": 352,
       "pattern": "secret_word",
       "sample": "session_token=token,"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 387,
+      "line": 378,
       "pattern": "secret_word",
       "sample": "password = (payload.get(\"password\") or \"\").strip()"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 392,
+      "line": 383,
       "pattern": "secret_word",
       "sample": "result = create_user(DB_PATH, username, password)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 423,
+      "line": 414,
       "pattern": "secret_word",
       "sample": "@router.post(\"/api/auth/change-password\")"
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 464,
+      "line": 455,
       "pattern": "secret_word",
       "sample": "\"SELECT token FROM auth_sessions WHERE token LIKE ?\","
     },
     {
       "severity": "WARN",
       "path": "app/routers/auth.py",
-      "line": 469,
+      "line": 460,
       "pattern": "secret_word",
       "sample": "destroy_session(DB_PATH, row[\"token\"])"
     },

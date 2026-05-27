@@ -25,7 +25,40 @@ elif _auditor_instance_id:
 else:
     SESSION_COOKIE = "auditor_session"
 SESSION_TTL_HOURS = int(os.getenv("SESSION_TTL_HOURS", "8"))
+SESSION_COOKIE_PATH = "/"
+SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "1").strip().lower() not in {"0", "false", "no", "off"}
+SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "strict").strip().lower()
+if SESSION_COOKIE_SAMESITE not in {"strict", "lax", "none"}:
+    SESSION_COOKIE_SAMESITE = "strict"
+if SESSION_COOKIE_SAMESITE == "none" and not SESSION_COOKIE_SECURE:
+    # SameSite=None exige Secure en navegadores modernos; preferimos modo seguro por defecto.
+    SESSION_COOKIE_SAMESITE = "strict"
+
 _AUDIT_SKIP_IPS: set = set(os.getenv("AUDIT_SKIP_IPS", "").split(",")) - {""}
+
+
+def set_session_cookie(response, token: str, max_age: Optional[int] = None) -> None:
+    """Emite la cookie de sesión con atributos endurecidos y homogéneos."""
+    response.set_cookie(
+        SESSION_COOKIE,
+        token,
+        httponly=True,
+        secure=SESSION_COOKIE_SECURE,
+        samesite=SESSION_COOKIE_SAMESITE,
+        max_age=max_age if max_age is not None else SESSION_TTL_HOURS * 3600,
+        path=SESSION_COOKIE_PATH,
+    )
+
+
+def delete_session_cookie(response) -> None:
+    """Borra la cookie de sesión usando el mismo path que al emitirla."""
+    response.delete_cookie(
+        SESSION_COOKIE,
+        path=SESSION_COOKIE_PATH,
+        secure=SESSION_COOKIE_SECURE,
+        httponly=True,
+        samesite=SESSION_COOKIE_SAMESITE,
+    )
 
 
 # ── PBKDF2 ─────────────────────────────────────────────────
@@ -42,6 +75,15 @@ def verify_password(password: str, stored: str) -> bool:
         return secrets.compare_digest(stored, hash_password(password, bytes.fromhex(salt_hex)))
     except Exception:
         return False
+
+
+def session_storage_key(token: str) -> str:
+    """Clave persistida de sesión: nunca guardamos el token de cookie en claro."""
+    return hashlib.sha256((token or "").encode("utf-8")).hexdigest()
+
+
+def _looks_like_session_storage_key(value: str) -> bool:
+    return bool(re.fullmatch(r"[0-9a-f]{64}", str(value or "")))
 
 
 # ── DB ──────────────────────────────────────────────────────
@@ -151,12 +193,13 @@ def delete_user(db_path: str, user_id: int) -> dict:
 # ── Sessions ────────────────────────────────────────────────
 def create_session(db_path: str, user_id: int, username: str, ip: str, ua: str) -> str:
     token = secrets.token_urlsafe(32)
+    token_key = session_storage_key(token)
     now   = datetime.now(timezone.utc)
     exp   = now + timedelta(hours=SESSION_TTL_HOURS)
     with _conn(db_path) as c:
         c.execute("""INSERT INTO auth_sessions
             (token,user_id,username,created_at,expires_at,ip,user_agent) VALUES(?,?,?,?,?,?,?)""",
-            (token, user_id, username, now.isoformat(), exp.isoformat(), ip, ua[:200]))
+            (token_key, user_id, username, now.isoformat(), exp.isoformat(), ip, ua[:200]))
         c.execute("UPDATE auth_users SET last_login=? WHERE id=?", (now.isoformat(), user_id))
     return token
 
@@ -167,18 +210,36 @@ def validate_session(db_path: str, token: Optional[str]) -> Optional[str]:
         return None
     try:
         now = datetime.now(timezone.utc).isoformat()
+        token_key = session_storage_key(token)
         with _conn(db_path) as c:
             row = c.execute(
-                "SELECT username FROM auth_sessions WHERE token=? AND expires_at>?", (token, now)
+                "SELECT username FROM auth_sessions WHERE token=? AND expires_at>?", (token_key, now)
             ).fetchone()
-        return row["username"] if row else None
+            if row:
+                return row["username"]
+
+            # Compatibilidad temporal: sesiones antiguas guardaban el token en claro.
+            # No aceptar un hash persistido como cookie reutilizable.
+            if not _looks_like_session_storage_key(token):
+                legacy = c.execute(
+                    "SELECT username FROM auth_sessions WHERE token=? AND expires_at>?", (token, now)
+                ).fetchone()
+                if legacy:
+                    try:
+                        c.execute("UPDATE auth_sessions SET token=? WHERE token=?", (token_key, token))
+                    except sqlite3.IntegrityError:
+                        c.execute("DELETE FROM auth_sessions WHERE token=?", (token,))
+                    return legacy["username"]
+
+        return None
     except Exception:
         return None
 
 
 def destroy_session(db_path: str, token: str) -> None:
+    token_key = session_storage_key(token)
     with _conn(db_path) as c:
-        c.execute("DELETE FROM auth_sessions WHERE token=?", (token,))
+        c.execute("DELETE FROM auth_sessions WHERE token IN (?,?)", (token_key, token))
 
 
 def purge_expired_sessions(db_path: str) -> None:
@@ -198,7 +259,16 @@ def list_active_sessions(db_path: str) -> list:
     with _conn(db_path) as c:
         rows = c.execute("""SELECT token,username,created_at,expires_at,ip,user_agent
             FROM auth_sessions WHERE expires_at>? ORDER BY created_at DESC""", (now,)).fetchall()
-    return [dict(r) for r in rows]
+
+    sessions = []
+    for r in rows:
+        item = dict(r)
+        token_prefix = str(item.get("token") or "")[:8]
+        item["token_prefix"] = token_prefix
+        # Compatibilidad frontend: auth.js usa s.token.substring(0,8).
+        item["token"] = token_prefix
+        sessions.append(item)
+    return sessions
 
 
 # ── Audit Log ───────────────────────────────────────────────
