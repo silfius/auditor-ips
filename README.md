@@ -76,6 +76,7 @@ El instalador te guiará por:
 - nombre del contenedor;
 - datos TLS locales;
 - red principal a auditar;
+- DNS opcionales para Docker, útiles si tu red usa DNS local para resolver nombres de hosts;
 - rutas locales de datos y exportaciones;
 - construcción de la imagen Docker;
 - arranque opcional del servicio.
@@ -94,6 +95,8 @@ python3 scripts/install_auditor.py \
   --tls-ip 192.168.1.253 \
   --server-ip 192.168.1.253 \
   --scan-cidr 192.168.1.0/24 \
+  --docker-dns "192.168.1.1,192.168.1.10" \
+  --docker-dns-search "lan,home" \
   --data-dir ./data \
   --exports-dir ./exports \
   --yes \
@@ -108,6 +111,20 @@ python3 scripts/install_auditor.py \
   --yes \
   --no-start
 ```
+
+## DNS para Docker
+
+Durante la instalación, el asistente muestra las DNS detectadas en el host y propone las que puede usar Docker. Esto ayuda a que Auditor IPs resuelva nombres locales de equipos cuando la red usa un router DNS, Pi-hole, DNS corporativa o dominio local.
+
+Puedes aceptar las DNS sugeridas, dejarlas vacías o indicar valores manuales:
+
+```bash
+python3 scripts/install_auditor.py \
+  --docker-dns "192.168.1.1,192.168.1.10" \
+  --docker-dns-search "lan,home"
+```
+
+El instalador muestra DNS loopback/stub como `127.0.0.53` si existen, pero no las usa como sugerencia automática para Docker. En ese caso conviene usar la IP real del router o servidor DNS LAN.
 
 ## Primer acceso
 

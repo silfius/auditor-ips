@@ -1,11 +1,11 @@
 {
   "repo_name": "auditor-ips",
-  "generated_at": "2026-05-27T05:38:41.427344+00:00",
+  "generated_at": "2026-05-27T06:27:10.866584+00:00",
   "source_root": "<internal-source-redacted>",
-  "snapshot_dir": "auditor-ips-20260527-073839",
+  "snapshot_dir": "auditor-ips-20260527-082709",
   "files_count": 110,
   "high_findings_count": 0,
-  "warn_findings_count": 303,
+  "warn_findings_count": 309,
   "files": [
     {
       "path": "app/scan_scheduler.py",
@@ -339,13 +339,13 @@
     },
     {
       "path": ".env.example",
-      "size": 1166,
-      "sha256": "a7323bd0cd878a062068e5678604073c0777523c522d75d8a94aeb4259dda572"
+      "size": 1543,
+      "sha256": "34bc6bc937c988ab656d2d1a1224bbb7c3d2cd3c80b030f429959a6373a1c61d"
     },
     {
       "path": "docker-compose.yml.example",
-      "size": 1047,
-      "sha256": "5102bda40913f355ffb2e40a498fd20f01f1a37ff312d498386d029958cca6a6"
+      "size": 1145,
+      "sha256": "6555c401864b6979d000493ffabc9a1ba46aa6df61b2605c13c548432ae60784"
     },
     {
       "path": ".gitignore",
@@ -354,8 +354,8 @@
     },
     {
       "path": "README.md",
-      "size": 6858,
-      "sha256": "9f7a3f14caa6839898c5fd0176dbcbe8db703b7fb9080d7528388e3d3d0e7db5"
+      "size": 7708,
+      "sha256": "4830e3938147294410984bdbc78a3608a4c0f9c22483f9e0149b4adf1af421b8"
     },
     {
       "path": "LICENSE",
@@ -394,13 +394,13 @@
     },
     {
       "path": "docs/CONFIGURATION.md",
-      "size": 846,
-      "sha256": "02c059c3cda788da4c02dc41ff6a8fc8de84d16f6bac9e4e26ba62d89a9eaf4a"
+      "size": 1001,
+      "sha256": "85d412863da430a0e8bef780c99804d47afa4466ddedcc99afe86ad22b5a39a8"
     },
     {
       "path": "docs/INSTALL.md",
-      "size": 1450,
-      "sha256": "fe50530a5ac703a4b98140b025461ac9f3ef463b7230061b26dd6c9befa2fa97"
+      "size": 1961,
+      "sha256": "683e24cb43ccc29e5c84f78650ac75ff0bceda8e80868805e3fb8aef192d316b"
     },
     {
       "path": "docs/SECURITY.md",
@@ -419,8 +419,8 @@
     },
     {
       "path": "docs/USER_MANUAL.md",
-      "size": 16166,
-      "sha256": "efdbb17e1996a8e45402f365ca505681fc961b74d6fd1324c9fccccdc3e3c1f9"
+      "size": 17105,
+      "sha256": "ec54e274e664eca65ca5f97d1fba051ef26c91d470249bb1fe0130013cc30a1e"
     },
     {
       "path": "docs/img/calidad.png",
@@ -549,8 +549,8 @@
     },
     {
       "path": "scripts/install_auditor.py",
-      "size": 35437,
-      "sha256": "0bd585011a349b643574c3785bed1afb2e9bf66345a9be11342cc612f522a352"
+      "size": 44847,
+      "sha256": "ee49e76509c5b9d5c437acd3b8eccd2f5a7c46c8ebfab120560c7112b3937a49"
     },
     {
       "path": "scripts/install_auditor_agent.py",
@@ -562,21 +562,21 @@
     {
       "severity": "WARN",
       "path": "README.md",
-      "line": 132,
+      "line": 149,
       "pattern": "secret_word",
       "sample": "3. Copia el token mostrado una sola vez."
     },
     {
       "severity": "WARN",
       "path": "README.md",
-      "line": 139,
+      "line": 156,
       "pattern": "secret_word",
       "sample": "--token-file /ruta/segura/token.txt \\"
     },
     {
       "severity": "WARN",
       "path": "README.md",
-      "line": 186,
+      "line": 203,
       "pattern": "localhost_url",
       "sample": "curl -k https://127.0.0.1:9909/api/system/healthz"
     },
@@ -1129,21 +1129,63 @@
     {
       "severity": "WARN",
       "path": "scripts/install_auditor.py",
-      "line": 586,
+      "line": 436,
+      "pattern": "secret_word",
+      "sample": "for token in re.split(r\"\\s+\", payload):"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor.py",
+      "line": 437,
+      "pattern": "secret_word",
+      "sample": "token = token.strip()"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor.py",
+      "line": 438,
+      "pattern": "secret_word",
+      "sample": "if _is_ip_address(token):"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor.py",
+      "line": 439,
+      "pattern": "secret_word",
+      "sample": "dns.append(token)"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor.py",
+      "line": 447,
+      "pattern": "secret_word",
+      "sample": "for token in re.split(r\"[,\\s]+\", payload):"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor.py",
+      "line": 448,
+      "pattern": "secret_word",
+      "sample": "domain = _clean_dns_domain(token)"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor.py",
+      "line": 829,
       "pattern": "localhost_url",
       "sample": "f\"curl -k https://127.0.0.1:{effective_port}/api/system/healthz\","
     },
     {
       "severity": "WARN",
       "path": "scripts/install_auditor.py",
-      "line": 750,
+      "line": 993,
       "pattern": "localhost_url",
       "sample": "f\"curl -k https://127.0.0.1:{port}/api/system/healthz\","
     },
     {
       "severity": "WARN",
       "path": "scripts/install_auditor.py",
-      "line": 846,
+      "line": 1089,
       "pattern": "localhost_url",
       "sample": "healthz_url = f\"https://127.0.0.1:{port}/api/system/healthz\""
     },
@@ -1171,21 +1213,21 @@
     {
       "severity": "WARN",
       "path": "docs/INSTALL.md",
-      "line": 42,
+      "line": 52,
       "pattern": "localhost_url",
       "sample": "curl -k https://127.0.0.1:9909/api/system/healthz"
     },
     {
       "severity": "WARN",
       "path": "docs/INSTALL.md",
-      "line": 60,
+      "line": 71,
       "pattern": "localhost_url",
       "sample": "curl -k https://127.0.0.1:9909/api/system/healthz"
     },
     {
       "severity": "WARN",
       "path": "docs/INSTALL.md",
-      "line": 66,
+      "line": 77,
       "pattern": "localhost_url",
       "sample": "AUDITOR_BASE_URL=https://127.0.0.1:9909 scripts/smoke_system_health.sh"
     },
@@ -1206,56 +1248,56 @@
     {
       "severity": "WARN",
       "path": "docs/USER_MANUAL.md",
-      "line": 394,
+      "line": 419,
       "pattern": "secret_word",
       "sample": "4. Copiar el token generado."
     },
     {
       "severity": "WARN",
       "path": "docs/USER_MANUAL.md",
-      "line": 395,
+      "line": 420,
       "pattern": "secret_word",
       "sample": "5. Guardar el token en el host remoto de forma segura."
     },
     {
       "severity": "WARN",
       "path": "docs/USER_MANUAL.md",
-      "line": 397,
+      "line": 422,
       "pattern": "secret_word",
       "sample": "El token solo debe mostrarse al crear o rotar."
     },
     {
       "severity": "WARN",
       "path": "docs/USER_MANUAL.md",
-      "line": 409,
+      "line": 434,
       "pattern": "secret_word",
       "sample": "El instalador puede pedir el token de forma interactiva."
     },
     {
       "severity": "WARN",
       "path": "docs/USER_MANUAL.md",
-      "line": 600,
+      "line": 625,
       "pattern": "secret_word",
       "sample": "- revisar permisos de ficheros de token de agentes."
     },
     {
       "severity": "WARN",
       "path": "docs/USER_MANUAL.md",
-      "line": 611,
+      "line": 636,
       "pattern": "localhost_url",
       "sample": "curl -k https://127.0.0.1:9909/api/system/healthz"
     },
     {
       "severity": "WARN",
       "path": "docs/USER_MANUAL.md",
-      "line": 641,
+      "line": 666,
       "pattern": "secret_word",
       "sample": "- token correcto;"
     },
     {
       "severity": "WARN",
       "path": "docs/CONFIGURATION.md",
-      "line": 18,
+      "line": 20,
       "pattern": "secret_word",
       "sample": "- `DISCORD_WEBHOOK_URL`: webhook opcional de Discord."
     },

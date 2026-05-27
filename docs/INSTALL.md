@@ -29,6 +29,16 @@ Validacion sin arranque:
 python3 scripts/install_auditor.py --target-dir /tmp/auditor-ips-test --yes --no-start
 ```
 
+## DNS para Docker
+
+El instalador detecta DNS del host y permite configurar `DOCKER_DNS` y `DOCKER_DNS_SEARCH` para que el contenedor resuelva nombres locales:
+
+```bash
+python3 scripts/install_auditor.py --docker-dns "192.168.1.1,192.168.1.10" --docker-dns-search "lan,home"
+```
+
+No se recomienda usar DNS loopback/stub como `127.0.0.53` dentro del contenedor; usa la IP real del router o servidor DNS LAN.
+
 ## Pasos manuales
 
 ```bash
@@ -50,7 +60,8 @@ Edita `.env` antes de arrancar en producción:
 - `DATA_DIR`;
 - `TLS_CERT_IP`;
 - `TLS_CERT_DNS`;
-- `PRIMARY_CIDR`;
+- `PRIMARY_CIDR` / `SCAN_CIDR`;
+- `DOCKER_DNS` y `DOCKER_DNS_SEARCH` si necesitas resolver nombres locales desde Docker;
 - `ADMIN_PASSWORD_HASH`;
 - opciones de notificación.
 
