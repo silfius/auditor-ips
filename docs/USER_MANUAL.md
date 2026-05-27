@@ -146,8 +146,33 @@ El instalador guía la configuración básica:
 - puerto web;
 - nombre del contenedor;
 - red principal;
+- DNS para Docker, detectadas del host y modificables si necesitas resolver nombres locales;
 - certificados TLS;
 - arranque del stack Docker.
+
+
+#### DNS para Docker
+
+Durante la instalación, el asistente muestra las DNS detectadas en el host y propone las que Docker puede usar para resolver nombres locales de equipos.
+
+Esto es útil si tu red usa:
+
+- router DNS local;
+- Pi-hole;
+- DNS corporativa;
+- dominios locales como `lan` o `home`.
+
+El instalador muestra las DNS detectadas y los dominios de búsqueda. Las DNS loopback/stub como `127.0.0.53` pueden aparecer como detectadas, pero no se usan como sugerencia automática para Docker.
+
+También puedes indicarlas manualmente:
+
+```bash
+python3 scripts/install_auditor.py \
+  --docker-dns "192.168.1.1,192.168.1.10" \
+  --docker-dns-search "lan,home"
+```
+
+El resultado queda guardado en `.env` como `DOCKER_DNS` y `DOCKER_DNS_SEARCH`, y el `docker-compose.yml` local se genera con `dns:` y `dns_search:` si hay valores configurados.
 
 ### 4.3 Instalación sin preguntas
 

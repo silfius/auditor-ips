@@ -338,6 +338,209 @@ def render_env(template_text: str, overrides: dict[str, str]) -> str:
 
 
 
+
+def _unique_keep_order(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    out: list[str] = []
+    for value in values:
+        item = str(value or "").strip()
+        if not item or item in seen:
+            continue
+        seen.add(item)
+        out.append(item)
+    return out
+
+
+def split_csv_values(raw: str) -> list[str]:
+    return _unique_keep_order([part.strip() for part in str(raw or "").split(",")])
+
+
+def csv_values(values: list[str]) -> str:
+    return ",".join(_unique_keep_order(values))
+
+
+def _is_ip_address(value: str) -> bool:
+    try:
+        ipaddress.ip_address(str(value or "").strip())
+        return True
+    except ValueError:
+        return False
+
+
+def _is_loopback_dns(value: str) -> bool:
+    item = str(value or "").strip()
+    return item.startswith("127.") or item == "::1"
+
+
+def suggested_docker_dns_values(values: list[str]) -> list[str]:
+    """DNS sugeridas para Docker: excluye loopback/stub que no suele funcionar desde contenedor."""
+    return _unique_keep_order([value for value in values if _is_ip_address(value) and not _is_loopback_dns(value)])
+
+
+def _clean_dns_domain(value: str) -> str:
+    item = str(value or "").strip().strip(".")
+    if not item or item in {"~", "~."}:
+        return ""
+    if item.startswith("~"):
+        item = item[1:].strip(".")
+    if not item:
+        return ""
+
+    lowered = item.lower()
+    if lowered in {"global", "link", "defaultroute", "llmnr", "mdns", "dnssec", "dns"}:
+        return ""
+    if item.isdigit() or _is_ip_address(item):
+        return ""
+
+    if not re.fullmatch(r"[A-Za-z0-9_.-]{1,253}", item):
+        return ""
+    if not any(ch.isalpha() for ch in item):
+        return ""
+    return item
+
+
+def detect_resolv_conf_dns(path: Path = Path("/etc/resolv.conf")) -> dict[str, list[str]]:
+    dns: list[str] = []
+    search: list[str] = []
+    if not path.exists():
+        return {"dns": dns, "search": search}
+    for raw in path.read_text(errors="replace").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split()
+        if not parts:
+            continue
+        key = parts[0].lower()
+        if key == "nameserver" and len(parts) >= 2 and _is_ip_address(parts[1]):
+            dns.append(parts[1])
+        elif key == "search" and len(parts) >= 2:
+            search.extend(filter(None, (_clean_dns_domain(v) for v in parts[1:])))
+        elif key == "domain" and len(parts) >= 2:
+            domain = _clean_dns_domain(parts[1])
+            if domain:
+                search.append(domain)
+    return {"dns": _unique_keep_order(dns), "search": _unique_keep_order(search)}
+
+
+def detect_resolvectl_dns() -> dict[str, list[str]]:
+    dns: list[str] = []
+    search: list[str] = []
+    if not command_exists("resolvectl"):
+        return {"dns": dns, "search": search}
+
+    result = run_cmd(["resolvectl", "dns"], capture=True)
+    if result.returncode == 0:
+        for raw in result.stdout.splitlines():
+            payload = raw.split(":", 1)[1] if ":" in raw else raw
+            for token in re.split(r"\s+", payload):
+                token = token.strip()
+                if _is_ip_address(token):
+                    dns.append(token)
+
+    result = run_cmd(["resolvectl", "domain"], capture=True)
+    if result.returncode == 0:
+        for raw in result.stdout.splitlines():
+            if ":" not in raw:
+                continue
+            payload = raw.split(":", 1)[1]
+            for token in re.split(r"[,\s]+", payload):
+                domain = _clean_dns_domain(token)
+                if domain:
+                    search.append(domain)
+
+    return {"dns": _unique_keep_order(dns), "search": _unique_keep_order(search)}
+
+
+def detect_nmcli_dns() -> dict[str, list[str]]:
+    dns: list[str] = []
+    search: list[str] = []
+    if not command_exists("nmcli"):
+        return {"dns": dns, "search": search}
+
+    result = run_cmd(["nmcli", "-t", "dev", "show"], capture=True)
+    if result.returncode != 0:
+        return {"dns": dns, "search": search}
+
+    for raw in result.stdout.splitlines():
+        if ":" not in raw:
+            continue
+        key, value = raw.split(":", 1)
+        key = key.strip().upper()
+        value = value.strip()
+        if key.startswith("IP4.DNS") and _is_ip_address(value):
+            dns.append(value)
+        elif key.startswith("IP4.DOMAIN"):
+            search.extend(filter(None, (_clean_dns_domain(v) for v in re.split(r"[,\s]+", value))))
+    return {"dns": _unique_keep_order(dns), "search": _unique_keep_order(search)}
+
+
+def detect_host_dns() -> dict[str, object]:
+    sources: list[str] = []
+    notes_list: list[str] = []
+    dns: list[str] = []
+    search: list[str] = []
+
+    for source_name, detector in [
+        ("resolvectl", detect_resolvectl_dns),
+        ("/etc/resolv.conf", detect_resolv_conf_dns),
+        ("nmcli", detect_nmcli_dns),
+    ]:
+        try:
+            detected = detector()
+        except Exception as exc:
+            notes_list.append(f"{source_name}: no se pudo leer ({exc})")
+            continue
+        source_dns = list(detected.get("dns") or [])
+        source_search = list(detected.get("search") or [])
+        if source_dns or source_search:
+            sources.append(source_name)
+            dns.extend(source_dns)
+            search.extend(source_search)
+
+    dns = _unique_keep_order(dns)
+    search = _unique_keep_order(search)
+
+    if any(_is_loopback_dns(item) for item in dns):
+        notes_list.append(
+            "Se detecto DNS loopback/stub. No se usara como valor sugerido para Docker; si hace falta, indica la DNS LAN real del router o servidor DNS."
+        )
+    if not dns:
+        notes_list.append("No se detectaron DNS del host. Docker usara su configuracion por defecto salvo que indiques DNS manuales.")
+
+    return {
+        "dns": dns,
+        "search": search,
+        "sources": _unique_keep_order(sources),
+        "notes": notes_list,
+    }
+
+
+def render_compose(compose_template: str, effective_config: dict[str, str]) -> str:
+    dns_values = split_csv_values(effective_config.get("DOCKER_DNS", ""))
+    search_values = split_csv_values(effective_config.get("DOCKER_DNS_SEARCH", ""))
+
+    if not dns_values and not search_values:
+        return compose_template
+
+    block_lines: list[str] = []
+    if dns_values:
+        block_lines.append("    dns:")
+        for value in dns_values:
+            block_lines.append(f"      - {json.dumps(value)}")
+    if search_values:
+        block_lines.append("    dns_search:")
+        for value in search_values:
+            block_lines.append(f"      - {json.dumps(value)}")
+
+    dns_block = "\n".join(block_lines) + "\n"
+    marker = '    network_mode: "host"\n'
+    if marker in compose_template:
+        return compose_template.replace(marker, marker + dns_block, 1)
+
+    return compose_template.rstrip() + "\n\n# DNS Docker generado por instalador\n" + dns_block
+
+
 def show_effective_config_summary(target_dir: Path, repo_url: str, branch: str, effective_config: dict[str, str]) -> None:
     section(
         "Resumen antes de escribir",
@@ -355,6 +558,8 @@ def show_effective_config_summary(target_dir: Path, repo_url: str, branch: str, 
         ("TLS IP", effective_config.get("TLS_CERT_IP", "")),
         ("SERVER_IP", effective_config.get("SERVER_IP", "")),
         ("SCAN_CIDR", effective_config.get("SCAN_CIDR", "")),
+        ("DNS Docker", effective_config.get("DOCKER_DNS", "")),
+        ("DNS search", effective_config.get("DOCKER_DNS_SEARCH", "")),
         ("DATA_DIR", effective_config.get("DATA_DIR", "")),
         ("EXPORTS_HOST_DIR", effective_config.get("EXPORTS_HOST_DIR", "")),
     ]
@@ -450,6 +655,37 @@ def write_local_config(target_dir: Path, args: argparse.Namespace, assume_yes: b
         "Ejemplo: 192.168.1.0/24.",
     )
 
+    detected_dns = detect_host_dns()
+    detected_dns_values = list(detected_dns.get("dns") or [])
+    detected_dns_csv = csv_values(detected_dns_values)
+    suggested_dns_csv = csv_values(suggested_docker_dns_values(detected_dns_values))
+    detected_dns_search_csv = csv_values(list(detected_dns.get("search") or []))
+
+    section(
+        "DNS para Docker",
+        "Permite que Auditor IPs resuelva nombres locales si tu red usa DNS local. Puedes dejarlo vacio para usar la configuracion por defecto de Docker.",
+    )
+    if detected_dns.get("sources"):
+        note("Fuentes detectadas: " + ", ".join(detected_dns.get("sources") or []))
+    note("DNS detectadas: " + (detected_dns_csv or "(ninguna)"))
+    note("DNS sugeridas para Docker: " + (suggested_dns_csv or "(ninguna)"))
+    note("Dominios de busqueda detectados: " + (detected_dns_search_csv or "(ninguno)"))
+    for dns_note in detected_dns.get("notes") or []:
+        log("WARN: " + str(dns_note))
+
+    docker_dns = ask(
+        "DNS que usara Docker DOCKER_DNS",
+        args.docker_dns or existing_env.get("DOCKER_DNS", "").strip() or suggested_dns_csv,
+        assume_yes,
+        "Lista separada por comas. Ejemplo: 192.168.1.1,192.168.1.10. Vacio = DNS por defecto de Docker.",
+    )
+    docker_dns_search = ask(
+        "Dominios de busqueda DNS DOCKER_DNS_SEARCH",
+        args.docker_dns_search or existing_env.get("DOCKER_DNS_SEARCH", "").strip() or detected_dns_search_csv,
+        assume_yes,
+        "Lista separada por comas. Ejemplo: lan,home. Vacio = sin dns_search especifico.",
+    )
+
     section(
         "Rutas locales",
         "Estas rutas son locales de esta instalacion y no se suben a Git.",
@@ -479,6 +715,8 @@ def write_local_config(target_dir: Path, args: argparse.Namespace, assume_yes: b
         "TLS_CERT_DNS": tls_dns,
         "SERVER_IP": server_ip,
         "SCAN_CIDR": scan_cidr,
+        "DOCKER_DNS": csv_values(split_csv_values(docker_dns)),
+        "DOCKER_DNS_SEARCH": csv_values(split_csv_values(docker_dns_search)),
         "SESSION_TTL_HOURS": str(args.session_ttl_hours),
         "SCAN_RETENTION_DAYS": str(args.scan_retention_days),
     }
@@ -509,9 +747,10 @@ def write_local_config(target_dir: Path, args: argparse.Namespace, assume_yes: b
         log("docker-compose.yml ya existe. No se sobrescribe.")
     else:
         if dry_run:
-            log(f"DRY-RUN copiar {compose_template_path} -> {compose_path}")
+            log(f"DRY-RUN escribir {compose_path} desde {compose_template_path}")
         else:
-            shutil.copy2(compose_template_path, compose_path)
+            rendered_compose = render_compose(compose_template_path.read_text(), env_overrides)
+            compose_path.write_text(rendered_compose)
             log(f"Escrito {compose_path}")
 
     for key in ["DATA_DIR", "EXPORTS_HOST_DIR"]:
@@ -550,6 +789,8 @@ def write_install_state(target_dir: Path, args: argparse.Namespace, dry_run: boo
         "tls_cert_dns": effective_config.get("TLS_CERT_DNS", ""),
         "server_ip": effective_config.get("SERVER_IP", ""),
         "scan_cidr": effective_config.get("SCAN_CIDR", ""),
+        "docker_dns": effective_config.get("DOCKER_DNS", ""),
+        "docker_dns_search": effective_config.get("DOCKER_DNS_SEARCH", ""),
         "data_dir": effective_config.get("DATA_DIR", ""),
         "exports_host_dir": effective_config.get("EXPORTS_HOST_DIR", ""),
         "no_start": bool(args.no_start),
@@ -570,6 +811,8 @@ def write_install_state(target_dir: Path, args: argparse.Namespace, dry_run: boo
         f"- TLS DNS: {effective_config.get('TLS_CERT_DNS', '')}",
         f"- TLS IP: {effective_config.get('TLS_CERT_IP', '')}",
         f"- Red principal: {effective_config.get('SCAN_CIDR', '')}",
+        f"- DNS Docker: {effective_config.get('DOCKER_DNS', '')}",
+        f"- DNS search: {effective_config.get('DOCKER_DNS_SEARCH', '')}",
         "",
         "## Siguientes pasos",
         "",
@@ -875,6 +1118,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--tls-ip", default="")
     parser.add_argument("--server-ip", default="")
     parser.add_argument("--scan-cidr", default="")
+    parser.add_argument("--docker-dns", default="", help="DNS que usara Docker, separadas por coma. Vacio = autodetectar/preguntar.")
+    parser.add_argument("--docker-dns-search", default="", help="Dominios de busqueda DNS para Docker, separados por coma.")
     parser.add_argument("--data-dir", default="./data")
     parser.add_argument("--exports-dir", default="./exports")
     parser.add_argument("--session-ttl-hours", type=int, default=8)

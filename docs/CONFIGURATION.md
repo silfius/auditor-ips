@@ -12,7 +12,9 @@
 - `DATA_DIR`: ruta persistente en el host.
 - `TLS_CERT_IP`: IP incluida en el certificado local.
 - `TLS_CERT_DNS`: nombre DNS incluido en el certificado local.
-- `PRIMARY_CIDR`: red principal a auditar.
+- `PRIMARY_CIDR` / `SCAN_CIDR`: red principal a auditar.
+- `DOCKER_DNS`: DNS que usará Docker, separadas por coma.
+- `DOCKER_DNS_SEARCH`: dominios de búsqueda DNS para Docker, separados por coma.
 - `ADMIN_PASSWORD_HASH`: hash de contraseña de administrador.
 - `SESSION_TTL_HOURS`: duración de sesión.
 - `DISCORD_WEBHOOK_URL`: webhook opcional de Discord.

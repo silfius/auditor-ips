@@ -5,6 +5,7 @@ services:
       dockerfile: dockerfile
     container_name: ${AUDITOR_CONTAINER_NAME:-auditor_ips}
     network_mode: "host"
+    # DNS opcional: el instalador puede insertar aqui dns/dns_search en docker-compose.yml local.
     cap_add:
       - NET_ADMIN
       - NET_RAW
