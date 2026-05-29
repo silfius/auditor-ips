@@ -5,7 +5,7 @@ Este snapshot ha sido generado de forma local y no ha sido publicado.
 ## Resultado del escaneo ligero
 
 - Hallazgos HIGH: 0
-- Hallazgos WARN: 309
+- Hallazgos WARN: 315
 
 Los hallazgos WARN pueden corresponder a documentación o nombres de variables.
 Los hallazgos HIGH deben bloquear la publicación hasta revisión.
@@ -119,6 +119,12 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `docs/INSTALL.md:71` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
 - `WARN` `docs/INSTALL.md:77` `localhost_url` — AUDITOR_BASE_URL=https://127.0.0.1:9909 scripts/smoke_system_health.sh
 - `WARN` `docs/TROUBLESHOOTING.md:21` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
+- `WARN` `docs/SCRIPTS_INTEGRATION.md:33` `internal_path` — /SERVER/Logs_scripts_General/
+- `WARN` `docs/SCRIPTS_INTEGRATION.md:43` `internal_path` — /SERVER/Logs_scripts_General/backup_immich_windows.status.json
+- `WARN` `docs/SCRIPTS_INTEGRATION.md:47` `internal_path` — /SERVER/Logs_scripts_General/SERVERCENTRALWI/backup_immich_windows/backup_immich_windows.status.json
+- `WARN` `docs/SCRIPTS_INTEGRATION.md:375` `internal_path` — python3 -m json.tool /SERVER/Logs_scripts_General/<script_name>.status.json
+- `WARN` `docs/SCRIPTS_INTEGRATION.md:423` `internal_path` — /SERVER/Logs_scripts_General/backup_immich_windows.status.json
+- `WARN` `docs/SCRIPTS_INTEGRATION.md:424` `internal_path` — /SERVER/Logs_scripts_General/SERVERCENTRALWI/backup_immich_windows/backup_immich_windows.status.json
 - `WARN` `docs/BACKUP_RESTORE.md:30` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
 - `WARN` `docs/USER_MANUAL.md:419` `secret_word` — 4. Copiar el token generado.
 - `WARN` `docs/USER_MANUAL.md:420` `secret_word` — 5. Guardar el token en el host remoto de forma segura.
@@ -209,18 +215,12 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/routers/config_api.py:752` `secret_word` — s.login(user, password)
 - `WARN` `app/routers/config_api.py:756` `secret_word` — if user and password:
 - `WARN` `app/routers/config_api.py:757` `secret_word` — s.login(user, password)
-- `WARN` `app/routers/scripts_status.py:78` `localhost_url` — _ENV_OLLAMA_URL    = os.getenv("OLLAMA_URL",      "http://localhost:11434")
-- `WARN` `app/routers/scripts_status.py:619` `secret_word` — "password", "passwd", "token", "secret", "authorization:",
-- `WARN` `app/routers/scripts_status.py:620` `secret_word` — "x-automation-agent-token", "webhook", "api_key", "apikey",
-- `WARN` `app/routers/scripts_status.py:1358` `secret_word` — def _automation_agent_token_hash(token: str) -> str:
-- `WARN` `app/routers/scripts_status.py:1359` `secret_word` — return hashlib.sha256(str(token or "").encode("utf-8")).hexdigest()
-- `WARN` `app/routers/scripts_status.py:1366` `secret_word` — def _automation_agent_token_prefix(token: str) -> str:
-- `WARN` `app/routers/scripts_status.py:1367` `secret_word` — return str(token or "")[:10]
-- `WARN` `app/routers/scripts_status.py:1381` `secret_word` — return str(request.headers.get("x-automation-agent-token") or "").strip()
-- `WARN` `app/routers/scripts_status.py:1443` `secret_word` — token = _automation_agent_extract_token(request)
-- `WARN` `app/routers/scripts_status.py:1444` `secret_word` — if not token:
-- `WARN` `app/routers/scripts_status.py:1445` `secret_word` — _automation_agent_audit(host_name, request, "auth_failed", False, "token ausente")
-- `WARN` `app/routers/scripts_status.py:1446` `secret_word` — raise HTTPException(status_code=403, detail="Token de agente inválido")
-- `WARN` `app/routers/scripts_status.py:1455` `secret_word` — incoming_hash = _automation_agent_token_hash(token)
-- ... 109 hallazgos adicionales no listados.
+- `WARN` `app/routers/scripts_status.py:79` `localhost_url` — _ENV_OLLAMA_URL    = os.getenv("OLLAMA_URL",      "http://localhost:11434")
+- `WARN` `app/routers/scripts_status.py:621` `secret_word` — "password", "passwd", "token", "secret", "authorization:",
+- `WARN` `app/routers/scripts_status.py:622` `secret_word` — "x-automation-agent-token", "webhook", "api_key", "apikey",
+- `WARN` `app/routers/scripts_status.py:1360` `secret_word` — def _automation_agent_token_hash(token: str) -> str:
+- `WARN` `app/routers/scripts_status.py:1361` `secret_word` — return hashlib.sha256(str(token or "").encode("utf-8")).hexdigest()
+- `WARN` `app/routers/scripts_status.py:1368` `secret_word` — def _automation_agent_token_prefix(token: str) -> str:
+- `WARN` `app/routers/scripts_status.py:1369` `secret_word` — return str(token or "")[:10]
+- ... 115 hallazgos adicionales no listados.
 

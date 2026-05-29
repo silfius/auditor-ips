@@ -2476,24 +2476,104 @@ $(function () {
 
   async function _loadPendingScripts(configured) {
     try {
-      const data = await fetch('/api/scripts/status').then(r => r.json()).catch(() => []);
-      const all  = Array.isArray(data) ? data : [];
-      const pending = all.filter(s => !configured.includes(s.name));
+      const data = await fetch('/api/config/scripts/available', { cache: 'no-store' }).then(r => r.json()).catch(() => ({ items: [], files: [] }));
+      const all = Array.isArray(data.items)
+        ? data.items
+        : (Array.isArray(data.files) ? data.files.map(name => ({ name, script_name: name })) : []);
+
+      const configuredSet = new Set((configured || []).map(x => String(x || '')));
+      const pending = all.filter(s => !configuredSet.has(String(s.script_name || s.name || '')));
+
       const $sec  = $('#cfgScriptPendingSection'), $list = $('#cfgScriptPendingList'), $cnt = $('#cfgScriptPendingCount');
       if (!$sec.length) return;
       if (!pending.length) { $sec.hide(); return; }
+
       $sec.show();
       if ($cnt.length) $cnt.text(pending.length);
-      $list.html(pending.map(s =>
-        `<button class="btn btn-outline-secondary btn-sm cfg-script-pick" data-name="${esc(s.name)}">${esc(s.name)}</button>`
-      ).join(''));
-    } catch (_) {}
+      $list.html(pending.map(s => {
+        const name = String(s.script_name || s.name || '');
+        const host = String(s.host_name || 'Local');
+        const cron = String(s.cron_expr || '');
+        const source = String(s.cron_source || '');
+        return `<button class="btn btn-outline-secondary btn-sm cfg-script-pick"
+            data-name="${esc(name)}"
+            data-host="${esc(host)}"
+            data-cron="${esc(cron)}"
+            data-cron-source="${esc(source)}">${esc(name)} · ${esc(host)}</button>`;
+      }).join(''));
+    } catch (e) {
+      console.error('_loadPendingScripts:', e);
+    }
   }
 
   $(document).on('click', '.cfg-script-pick', function () {
-    const name = $(this).data('name');
+    const name = $(this).data('name') || '';
+    const host = $(this).data('host') || 'Local';
+    const cron = $(this).data('cron') || '';
+    const cronSource = $(this).data('cron-source') || '';
+
     $('#cfgScriptName').val(name);
+    $('#cfgScriptHost').val(host);
     $('#cfgScriptLabel').val(name);
+    $('#cfgScriptCron').val(cron);
+    $('#cfgScriptCronSource').val(cronSource);
+    cfgValidateMainCron();
+  });
+
+  $(document).on('click', '#cfgScriptNamePickBtn', async function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const $btn = $(this);
+    const originalHtml = $btn.html();
+    $btn.prop('disabled', true);
+
+    try {
+      const [availableData, cfgData] = await Promise.all([
+        fetch('/api/config/scripts/available', { cache: 'no-store' }).then(r => r.json()).catch(() => ({ items: [], files: [] })),
+        fetch('/api/config/scripts', { cache: 'no-store' }).then(r => r.json()).catch(() => ({ scripts: [] })),
+      ]);
+
+      const items = Array.isArray(availableData.items)
+        ? availableData.items
+        : (Array.isArray(availableData.files) ? availableData.files.map(name => ({ name, script_name: name })) : []);
+
+      const configured = new Set((cfgData.scripts || []).map(s =>
+        `${String(s.host_name || 'Local')}::${String(s.script_name || '')}`
+      ));
+
+      const pending = items.filter(x => {
+        const name = String(x.script_name || x.name || '');
+        const host = String(x.host_name || 'Local');
+        return name && !configured.has(`${host}::${name}`);
+      });
+
+      const next = pending[0];
+
+      if (!next) {
+        window.showToast?.('No hay scripts pendientes de configurar. Los .status.json detectados ya están añadidos.', 'info');
+        return;
+      }
+
+      const name = String(next.script_name || next.name || '');
+      const host = String(next.host_name || 'Local');
+      const cron = String(next.cron_expr || '');
+      const cronSource = String(next.cron_source || '');
+
+      $('#cfgScriptName').val(name);
+      $('#cfgScriptHost').val(host);
+      $('#cfgScriptLabel').val(name);
+      $('#cfgScriptCron').val(cron);
+      $('#cfgScriptCronSource').val(cronSource);
+      cfgValidateMainCron();
+
+      window.showToast?.(`Script pendiente seleccionado: ${name} · ${host}`, 'success');
+    } catch (err) {
+      console.error('cfgScriptNamePickBtn:', err);
+      window.showToast?.('Error cargando scripts detectados: ' + (err.message || err), 'danger');
+    } finally {
+      $btn.prop('disabled', false).html(originalHtml);
+    }
   });
 
   $(document).on('input change', '#cfgScriptCron', cfgValidateMainCron);
@@ -2788,18 +2868,22 @@ $(function () {
 
     const [cfgData, statusData] = await Promise.all([
       fetch('/api/config/scripts', { cache: 'no-store' }).then(r => r.ok ? r.json() : { scripts: [] }).catch(() => ({ scripts: [] })),
-      fetch('/api/scripts/status', { cache: 'no-store' }).then(r => r.ok ? r.json() : []).catch(() => []),
+      fetch('/api/config/scripts/available', { cache: 'no-store' }).then(r => r.ok ? r.json() : { items: [], files: [] }).catch(() => ({ items: [], files: [] })),
     ]);
 
     cfgScriptWizardConfigured = (cfgData.scripts || []).map(s => String(s.script_name || ''));
-    cfgScriptWizardStatus = (Array.isArray(statusData) ? statusData : [])
-      .slice()
-      .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), navigator.language || 'es', { numeric: true, sensitivity: 'base' }));
+    cfgScriptWizardStatus = Array.isArray(statusData.items)
+      ? statusData.items.slice()
+      : (Array.isArray(statusData.files) ? statusData.files.map(name => ({ name, script_name: name })) : []);
+
+    cfgScriptWizardStatus.sort((a, b) =>
+      String(a.script_name || a.name || '').localeCompare(String(b.script_name || b.name || ''), navigator.language || 'es', { numeric: true, sensitivity: 'base' })
+    );
 
     const $sel = $('#cfgScriptWizardSource');
     const opts = ['<option value="">Manual / escribir nuevo nombre</option>'];
     cfgScriptWizardStatus.forEach((s, idx) => {
-      const name = String(s.name || '');
+      const name = String(s.script_name || s.name || '');
       const configured = cfgScriptWizardConfigured.includes(name);
       const host = cfgScriptWizardHost(s);
       opts.push(`<option value="${idx}">${esc(name)} · ${esc(host)}${configured ? ' · ya configurado' : ''}</option>`);
@@ -4277,6 +4361,7 @@ $(function () {
     // Los demás se cargan al hacer click en su tab (lazy)
     $('#doc-roadmap-tab').one('shown.bs.tab', () => _loadDocTab('roadmap', '#doc-roadmap-body'));
     $('#doc-redes-tab').one('shown.bs.tab',   () => _loadDocTab('redes',   '#doc-redes-body'));
+    $('#doc-scripts-tab').one('shown.bs.tab', () => _loadDocTab('scripts', '#doc-scripts-body'));
   }
 
   async function _loadDocTab(name, targetSelector) {
@@ -6355,15 +6440,30 @@ $(document).off('click', '.routerprof-activate').on('click', '.routerprof-activa
       _cfgToggleSection('cfgNetHelpRoute', true);
 
       $networksNavItem.show();
-      $networksPanel.show();
       $routerNavItem.show();
+
+      const activeSection = String($('.cfg-nav-btn.active').data('section') || 'scanner');
+
+      // No forzar visible el panel de Redes durante la limpieza de UI:
+      // debe respetarse siempre el panel elegido por el usuario.
+      if (activeSection === 'networks') {
+        $networksPanel.show();
+      } else {
+        $networksPanel.hide();
+      }
 
       if ($cfgPanels.length && $routerPanel.length && $routerPanel.parent().attr('id') === 'cfgRouterInlineMount') {
         $mount.hide();
         if ($routerPanel.hasClass('cfg-panel-inline')) {
           $routerPanel.removeClass('cfg-panel-inline').addClass('cfg-panel');
         }
-        $routerPanel.appendTo($cfgPanels).hide();
+        $routerPanel.appendTo($cfgPanels);
+      }
+
+      if (activeSection === 'router') {
+        $routerPanel.show();
+      } else if ($routerPanel.hasClass('cfg-panel')) {
+        $routerPanel.hide();
       }
     }
   }

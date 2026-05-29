@@ -991,6 +991,26 @@ $(function () {
           </div>`;
       }
 
+      const stepCurrent = Number(s.step_current || 0);
+      const stepTotal = Number(s.step_total || 0);
+      const stepName = String(s.step_name || '').trim();
+      const progressText = String(s.progress_text || '').trim();
+      const rawPct = Number(s.progress_percent);
+      const stepPct = Number.isFinite(rawPct)
+        ? Math.max(0, Math.min(100, Math.round(rawPct)))
+        : (stepCurrent > 0 && stepTotal > 0 ? Math.max(0, Math.min(100, Math.round((stepCurrent / stepTotal) * 100))) : null);
+      const stepLabel = progressText || (stepCurrent > 0 && stepTotal > 0
+        ? `${stepCurrent}/${stepTotal}${stepName ? ' · ' + stepName : ''}`
+        : stepName);
+      const stepHtml = stepLabel ? `
+            <div class="small mt-1">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="text-muted"><i class="bi bi-list-check me-1"></i>Fase: <strong>${esc(stepLabel)}</strong></span>
+                ${stepPct !== null ? `<span class="text-muted">${stepPct}%</span>` : ''}
+              </div>
+              ${stepPct !== null ? `<div class="progress" style="height:6px"><div class="progress-bar" role="progressbar" style="width:${stepPct}%" aria-valuenow="${stepPct}" aria-valuemin="0" aria-valuemax="100"></div></div>` : ''}
+            </div>` : '';
+
       html += `
       <div class="col-12 col-md-6 col-xl-4 mb-3">
         <div class="card border-0 shadow-sm h-100" style="${accentStyle}">
@@ -1011,6 +1031,7 @@ $(function () {
               <div><i class="bi bi-stopwatch me-1"></i>Duración: <strong>${duration}</strong></div>
               <div><i class="bi bi-clock me-1"></i>Próxima: <strong>${nextRun}</strong></div>
             </div>
+            ${stepHtml}
             ${progressHtml}
             ${errHtml}
             ${watchdogHtml}
