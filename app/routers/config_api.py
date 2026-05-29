@@ -2968,18 +2968,79 @@ def _validate_script_cron_expr(expr: str) -> tuple[bool, str]:
 
 
 
+def _read_status_json_for_config(path: Path) -> dict:
+    """Lee un .status.json para el asistente de Config -> Procesos."""
+    try:
+        data = _json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            data = {}
+    except Exception:
+        data = {}
+
+    fallback_name = path.name.replace(".status.json", "").strip()
+    script_name = str(data.get("script_name") or data.get("name") or data.get("script") or fallback_name).strip()
+    host_name = str(data.get("host_name") or data.get("host") or "Local").strip() or "Local"
+    cron_expr = str(data.get("cron_expr") or "").strip()
+    cron_source = str(data.get("cron_source") or "").strip()
+    status = str(data.get("status") or data.get("state") or "").strip()
+    message = str(data.get("message") or "").strip()
+    updated_at = str(data.get("updated_at") or data.get("heartbeat") or data.get("last_heartbeat") or "").strip()
+
+    try:
+        rel = str(path.relative_to(Path(SCRIPTS_STATUS_DIR)))
+    except Exception:
+        rel = path.name
+
+    return {
+        "script_name": script_name,
+        "name": script_name,
+        "file_name": path.name,
+        "path": rel,
+        "host_name": host_name,
+        "host_source": "status_json",
+        "cron_expr": cron_expr,
+        "cron_source": cron_source,
+        "status": status,
+        "state": status,
+        "message": message,
+        "updated_at": updated_at,
+    }
+
+
+def _iter_status_json_for_config() -> list[dict]:
+    base = Path(SCRIPTS_STATUS_DIR)
+    if not base.is_dir():
+        return []
+
+    found = {}
+    for path in sorted(base.rglob("*.status.json")):
+        item = _read_status_json_for_config(path)
+        name = item.get("script_name") or path.name.replace(".status.json", "")
+        host = item.get("host_name") or "Local"
+        key = f"{host}::{name}"
+
+        # Si existe duplicado raíz + subcarpeta para el mismo host/script,
+        # priorizar el JSON de raíz para compatibilidad con el asistente.
+        previous = found.get(key)
+        if previous is None:
+            found[key] = item
+            continue
+
+        prev_depth = len(Path(previous.get("path") or "").parts)
+        new_depth = len(Path(item.get("path") or "").parts)
+        if new_depth < prev_depth:
+            found[key] = item
+
+    return sorted(found.values(), key=lambda x: ((x.get("host_name") or "").lower(), (x.get("script_name") or "").lower()))
+
+
 @router.get("/api/config/scripts/available")
 def api_scripts_available():
-    """Lista los .status.json disponibles en el volumen (para autocompletar al añadir)."""
+    """Lista los .status.json disponibles para autocompletar/asistente."""
     try:
-        if not os.path.isdir(SCRIPTS_STATUS_DIR):
-            return {"ok": True, "files": []}
-        files = sorted([
-            f.replace(".status.json", "")
-            for f in os.listdir(SCRIPTS_STATUS_DIR)
-            if f.endswith(".status.json")
-        ])
-        return {"ok": True, "files": files}
+        items = _iter_status_json_for_config()
+        files = [item["script_name"] for item in items if item.get("script_name")]
+        return {"ok": True, "files": files, "items": items}
     except Exception as e:
         return JSONResponse(status_code=500, content={"ok": False, "error": str(e)})
 
@@ -3082,32 +3143,47 @@ def api_scripts_reorder(payload: Dict[str, Any] = Body(...)):
 def api_scripts_import_all():
     """
     Importa todos los .status.json del volumen a monitored_scripts (INSERT OR IGNORE).
-    Devuelve cuántos se añadieron y cuántos ya existían.
+    Lee script_name, host_name, cron_expr y cron_source desde el JSON cuando existen.
     """
     try:
         if not os.path.isdir(SCRIPTS_STATUS_DIR):
             return JSONResponse(status_code=404, content={"ok": False, "error": "Directorio no encontrado"})
-        files = sorted([
-            f.replace(".status.json", "")
-            for f in os.listdir(SCRIPTS_STATUS_DIR)
-            if f.endswith(".status.json")
-        ])
+
+        items = _iter_status_json_for_config()
         added, skipped = 0, 0
+
         with db() as conn:
-            existing = {r[0] for r in conn.execute("SELECT script_name FROM monitored_scripts").fetchall()}
-            for i, name in enumerate(files):
-                if name in existing:
+            existing = {
+                (str(r[0] or "").strip(), str(r[1] or "Local").strip() or "Local")
+                for r in conn.execute("SELECT script_name, COALESCE(host_name, 'Local') FROM monitored_scripts").fetchall()
+            }
+
+            for i, item in enumerate(items):
+                name = str(item.get("script_name") or "").strip()
+                if not name:
+                    continue
+
+                host_name = str(item.get("host_name") or "Local").strip() or "Local"
+                if (name, host_name) in existing:
                     skipped += 1
                     continue
+
                 label = name.replace("_", " ").title()
+                cron_expr = str(item.get("cron_expr") or "").strip()
+                cron_source = str(item.get("cron_source") or "").strip()
+                cron_ok, cron_error = _validate_script_cron_expr(cron_expr)
+                if not cron_ok:
+                    cron_expr = ""
+
                 conn.execute(
                     "INSERT OR IGNORE INTO monitored_scripts "
                     "(script_name, label, description, color, active, sort_order, created_at, cron_expr, cron_source, host_name, host_source) "
-                    "VALUES (?, ?, ?, ?, 1, ?, ?, '', '', ?, ?)",
-                    (name, label, "", "", i, utc_now_iso(), "Local", "local_status_dir")
+                    "VALUES (?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?)",
+                    (name, label, "", "", i, utc_now_iso(), cron_expr, cron_source, host_name, "status_json")
                 )
                 added += 1
-        return {"ok": True, "added": added, "skipped": skipped, "total": len(files)}
+
+        return {"ok": True, "added": added, "skipped": skipped, "total": len(items)}
     except Exception as e:
         return JSONResponse(status_code=500, content={"ok": False, "error": str(e)})
 
@@ -3321,6 +3397,7 @@ _DOC_FILES = {
     "checklist":  ["CHECKLIST_CIERRE_BLOQUE.md"],
     "decisiones": ["DECISIONES_Y_ERRORES.md"],
     "redes":      ["configuracion_redes.md", "redes.md"],
+    "scripts":    ["SCRIPTS_INTEGRATION.md", "GUIA_INTEGRACION_SCRIPTS_AUDITOR_IPS.md"],
 }
 
 

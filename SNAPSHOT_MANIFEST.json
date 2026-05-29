@@ -1,11 +1,11 @@
 {
   "repo_name": "auditor-ips",
-  "generated_at": "2026-05-27T06:27:10.866584+00:00",
+  "generated_at": "2026-05-29T19:00:31.684072+00:00",
   "source_root": "<internal-source-redacted>",
-  "snapshot_dir": "auditor-ips-20260527-082709",
-  "files_count": 110,
+  "snapshot_dir": "auditor-ips-20260529-210030",
+  "files_count": 111,
   "high_findings_count": 0,
-  "warn_findings_count": 309,
+  "warn_findings_count": 315,
   "files": [
     {
       "path": "app/scan_scheduler.py",
@@ -114,8 +114,8 @@
     },
     {
       "path": "app/templates/index.html",
-      "size": 493552,
-      "sha256": "807bf606415d5cd373739b8977a4873e0ce136ad6c0cb79aa6d0afa3d806ddeb"
+      "size": 494264,
+      "sha256": "3d64c1b7d242561697bab696aed48c982fb6eaa06f9e5c77c42e8e3529bc175d"
     },
     {
       "path": "app/templates/wol_public.html",
@@ -254,13 +254,13 @@
     },
     {
       "path": "app/static/js/config.js",
-      "size": 311477,
-      "sha256": "708865536bd8a62cd8226b3b2d486ef41ab1efc7bbd6a21aaee47d3fcbbf0d14"
+      "size": 315448,
+      "sha256": "b06882cc3f0d83a81b1cf60c2960853c169aed546139197e57ff2229f946794a"
     },
     {
       "path": "app/static/js/scripts.js",
-      "size": 70866,
-      "sha256": "aef660dce06eab3e84475aa97a634d5deee9afc854253d8b390de76604c2660b"
+      "size": 72221,
+      "sha256": "93a4d1fc997d473aad18d05fc8b3d592a17b219ec99223d081fbf8e19be5c2a9"
     },
     {
       "path": "app/routers/alerts.py",
@@ -319,13 +319,13 @@
     },
     {
       "path": "app/routers/config_api.py",
-      "size": 149157,
-      "sha256": "9f48f5979c7a34ec5f5ced046446f891735d3b3e1511893ca4a3bce0285c8062"
+      "size": 152108,
+      "sha256": "d20c65dca2dad8c9aebc36e6a255210a458d70e2c8c679f720f661839b81b383"
     },
     {
       "path": "app/routers/scripts_status.py",
-      "size": 101803,
-      "sha256": "5631d479fb2fc694179c3d708d7a2cbeeada835f779a8653fbe372e75ce8b28f"
+      "size": 103033,
+      "sha256": "f5919eae9cef92a546f07275bbf865f8ddeb0edaa9db3d75de54147f2f7a6ca7"
     },
     {
       "path": "app/routers/quality.py",
@@ -416,6 +416,11 @@
       "path": "docs/UPGRADE.md",
       "size": 576,
       "sha256": "6da4feda9e4aed70e927e744bfd160461e8677478046f7dfc887a7065e65a569"
+    },
+    {
+      "path": "docs/SCRIPTS_INTEGRATION.md",
+      "size": 11476,
+      "sha256": "2fd4d32d068cb650c380f1e4eee9e8965a97ddc8ae7433782aa310388b3d6fc4"
     },
     {
       "path": "docs/USER_MANUAL.md",
@@ -1240,6 +1245,48 @@
     },
     {
       "severity": "WARN",
+      "path": "docs/SCRIPTS_INTEGRATION.md",
+      "line": 33,
+      "pattern": "internal_path",
+      "sample": "/SERVER/Logs_scripts_General/"
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/SCRIPTS_INTEGRATION.md",
+      "line": 43,
+      "pattern": "internal_path",
+      "sample": "/SERVER/Logs_scripts_General/backup_immich_windows.status.json"
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/SCRIPTS_INTEGRATION.md",
+      "line": 47,
+      "pattern": "internal_path",
+      "sample": "/SERVER/Logs_scripts_General/SERVERCENTRALWI/backup_immich_windows/backup_immich_windows.status.json"
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/SCRIPTS_INTEGRATION.md",
+      "line": 375,
+      "pattern": "internal_path",
+      "sample": "python3 -m json.tool /SERVER/Logs_scripts_General/<script_name>.status.json"
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/SCRIPTS_INTEGRATION.md",
+      "line": 423,
+      "pattern": "internal_path",
+      "sample": "/SERVER/Logs_scripts_General/backup_immich_windows.status.json"
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/SCRIPTS_INTEGRATION.md",
+      "line": 424,
+      "pattern": "internal_path",
+      "sample": "/SERVER/Logs_scripts_General/SERVERCENTRALWI/backup_immich_windows/backup_immich_windows.status.json"
+    },
+    {
+      "severity": "WARN",
       "path": "docs/BACKUP_RESTORE.md",
       "line": 30,
       "pattern": "localhost_url",
@@ -1871,252 +1918,252 @@
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 78,
+      "line": 79,
       "pattern": "localhost_url",
       "sample": "_ENV_OLLAMA_URL    = os.getenv(\"OLLAMA_URL\",      \"http://localhost:11434\")"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 619,
+      "line": 621,
       "pattern": "secret_word",
       "sample": "\"password\", \"passwd\", \"token\", \"secret\", \"authorization:\","
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 620,
+      "line": 622,
       "pattern": "secret_word",
       "sample": "\"x-automation-agent-token\", \"webhook\", \"api_key\", \"apikey\","
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1358,
+      "line": 1360,
       "pattern": "secret_word",
       "sample": "def _automation_agent_token_hash(token: str) -> str:"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1359,
+      "line": 1361,
       "pattern": "secret_word",
       "sample": "return hashlib.sha256(str(token or \"\").encode(\"utf-8\")).hexdigest()"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1366,
+      "line": 1368,
       "pattern": "secret_word",
       "sample": "def _automation_agent_token_prefix(token: str) -> str:"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1367,
+      "line": 1369,
       "pattern": "secret_word",
       "sample": "return str(token or \"\")[:10]"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1381,
+      "line": 1383,
       "pattern": "secret_word",
       "sample": "return str(request.headers.get(\"x-automation-agent-token\") or \"\").strip()"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1443,
+      "line": 1445,
       "pattern": "secret_word",
       "sample": "token = _automation_agent_extract_token(request)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1444,
+      "line": 1446,
       "pattern": "secret_word",
       "sample": "if not token:"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1445,
+      "line": 1447,
       "pattern": "secret_word",
       "sample": "_automation_agent_audit(host_name, request, \"auth_failed\", False, \"token ausente\")"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1446,
+      "line": 1448,
       "pattern": "secret_word",
       "sample": "raise HTTPException(status_code=403, detail=\"Token de agente inválido\")"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1455,
+      "line": 1457,
       "pattern": "secret_word",
       "sample": "incoming_hash = _automation_agent_token_hash(token)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1459,
+      "line": 1461,
       "pattern": "secret_word",
       "sample": "_automation_agent_audit(host_name, request, \"auth_failed\", False, \"token de host inválido\")"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1460,
+      "line": 1462,
       "pattern": "secret_word",
       "sample": "raise HTTPException(status_code=403, detail=\"Token de agente inválido\")"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1462,
+      "line": 1464,
       "pattern": "secret_word",
       "sample": "# Compatibilidad con bloque anterior: token global."
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1465,
+      "line": 1467,
       "pattern": "secret_word",
       "sample": "_automation_agent_audit(host_name, request, \"auth_failed\", False, \"sin token global ni agente registrado\")"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1468,
+      "line": 1470,
       "pattern": "secret_word",
       "sample": "if not secrets.compare_digest(token, expected):"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1469,
+      "line": 1471,
       "pattern": "secret_word",
       "sample": "_automation_agent_audit(host_name, request, \"auth_failed\", False, \"token global inválido\")"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1470,
+      "line": 1472,
       "pattern": "secret_word",
       "sample": "raise HTTPException(status_code=403, detail=\"Token de agente inválido\")"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1547,
+      "line": 1549,
       "pattern": "secret_word",
       "sample": "\"\"\"Crea un agente y devuelve el token una sola vez.\"\"\""
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1559,
+      "line": 1561,
       "pattern": "secret_word",
       "sample": "token = _automation_agent_new_token()"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1570,
+      "line": 1572,
       "pattern": "secret_word",
       "sample": "_automation_agent_token_hash(token),"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1571,
+      "line": 1573,
       "pattern": "secret_word",
       "sample": "_automation_agent_token_prefix(token),"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/scripts_status.py",
-      "line": 1584,
-      "pattern": "secret_word",
-      "sample": "\"token\": token,"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/scripts_status.py",
-      "line": 1585,
-      "pattern": "secret_word",
-      "sample": "\"token_prefix\": _automation_agent_token_prefix(token),"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
       "line": 1586,
       "pattern": "secret_word",
-      "sample": "\"warning\": \"Guarda este token ahora; no se volverá a mostrar.\","
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/scripts_status.py",
-      "line": 1633,
-      "pattern": "secret_word",
-      "sample": "\"\"\"Rota el token del agente y devuelve el nuevo token una sola vez.\"\"\""
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/scripts_status.py",
-      "line": 1635,
-      "pattern": "secret_word",
-      "sample": "token = _automation_agent_new_token()"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/scripts_status.py",
-      "line": 1646,
-      "pattern": "secret_word",
-      "sample": "_automation_agent_token_hash(token),"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/scripts_status.py",
-      "line": 1647,
-      "pattern": "secret_word",
-      "sample": "_automation_agent_token_prefix(token),"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/scripts_status.py",
-      "line": 1654,
-      "pattern": "secret_word",
-      "sample": "_automation_agent_audit(host_name, request, \"agent_token_rotated\", True, {\"token_prefix\": _automation_agent_token_prefix(token)})"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/scripts_status.py",
-      "line": 1658,
-      "pattern": "secret_word",
       "sample": "\"token\": token,"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1659,
+      "line": 1587,
       "pattern": "secret_word",
       "sample": "\"token_prefix\": _automation_agent_token_prefix(token),"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1660,
+      "line": 1588,
       "pattern": "secret_word",
       "sample": "\"warning\": \"Guarda este token ahora; no se volverá a mostrar.\","
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1715,
+      "line": 1635,
+      "pattern": "secret_word",
+      "sample": "\"\"\"Rota el token del agente y devuelve el nuevo token una sola vez.\"\"\""
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1637,
+      "pattern": "secret_word",
+      "sample": "token = _automation_agent_new_token()"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1648,
+      "pattern": "secret_word",
+      "sample": "_automation_agent_token_hash(token),"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1649,
+      "pattern": "secret_word",
+      "sample": "_automation_agent_token_prefix(token),"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1656,
+      "pattern": "secret_word",
+      "sample": "_automation_agent_audit(host_name, request, \"agent_token_rotated\", True, {\"token_prefix\": _automation_agent_token_prefix(token)})"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1660,
+      "pattern": "secret_word",
+      "sample": "\"token\": token,"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1661,
+      "pattern": "secret_word",
+      "sample": "\"token_prefix\": _automation_agent_token_prefix(token),"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1662,
+      "pattern": "secret_word",
+      "sample": "\"warning\": \"Guarda este token ahora; no se volverá a mostrar.\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1717,
       "pattern": "secret_word",
       "sample": "- protegida por token global legado o token específico por host;"
     },
@@ -2508,217 +2555,217 @@
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 3078,
+      "line": 3162,
       "pattern": "secret_word",
       "sample": "function _cfgAgentShowToken(token) {"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 3082,
+      "line": 3166,
       "pattern": "secret_word",
       "sample": "inp.value = token || '';"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 3083,
+      "line": 3167,
       "pattern": "secret_word",
       "sample": "wrap.classList.toggle('d-none', !token);"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 3084,
+      "line": 3168,
       "pattern": "secret_word",
       "sample": "if (token) {"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 3138,
+      "line": 3222,
       "pattern": "secret_word",
       "sample": "<button class=\"btn btn-outline-warning btn-sm py-0 px-2 cfg-agent-rotate\" title=\"${esc(window.t?.('cfg.agent.rotate', 'Rotar token') || 'Rotar token')}\">"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 3196,
+      "line": 3280,
       "pattern": "secret_word",
       "sample": "const token = $('#cfgAgentCreatedToken').val() || '';"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 3197,
+      "line": 3281,
       "pattern": "secret_word",
       "sample": "if (!token) return;"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 3199,
+      "line": 3283,
       "pattern": "secret_word",
       "sample": "await navigator.clipboard.writeText(token);"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 3200,
+      "line": 3284,
       "pattern": "secret_word",
       "sample": "window.showToast?.(window.t?.('cfg.agent.token_copied', 'Token copiado') || 'Token copiado', 'success');"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 3203,
+      "line": 3287,
       "pattern": "secret_word",
       "sample": "window.showToast?.(window.t?.('cfg.agent.token_copy_manual', 'Copia manualmente el token seleccionado') || 'Copia manualmente el token seleccionado', 'warning');"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 3231,
+      "line": 3315,
       "pattern": "secret_word",
       "sample": "_cfgAgentShowMsg(window.t?.('cfg.agent.created', '✓ Agente creado. Copia el token antes de cerrar.') || '✓ Agente creado. Copia el token antes de cerrar.', true);"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 3232,
+      "line": 3316,
       "pattern": "secret_word",
       "sample": "_cfgAgentShowToken(data.token || '');"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 3309,
+      "line": 3393,
       "pattern": "secret_word",
       "sample": "_cfgAgentShowMsg(window.t?.('cfg.agent.rotated', '✓ Token rotado para {host}. Copia el nuevo token.', { host }) || `✓ Token rotado para ${host}. Copia el nuevo token.`, true);"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 3310,
+      "line": 3394,
       "pattern": "secret_word",
       "sample": "_cfgAgentShowToken(data.token || '');"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 3364,
+      "line": 3448,
       "pattern": "secret_word",
       "sample": "$inp.attr('type', $inp.attr('type') === 'password' ? 'text' : 'password');"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 3368,
+      "line": 3452,
       "pattern": "secret_word",
       "sample": "$inp.attr('type', $inp.attr('type') === 'password' ? 'text' : 'password');"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 3381,
+      "line": 3465,
       "pattern": "localhost_url",
       "sample": "ai_ollama_url:    $('#cfgAiOllamaUrl').val()  || 'http://localhost:11434',"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 3746,
+      "line": 3830,
       "pattern": "localhost_url",
       "sample": "if (get('cfgAiOllamaUrl'))   get('cfgAiOllamaUrl').value  = s.ai_ollama_url   || 'http://localhost:11434';"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 4725,
+      "line": 4810,
       "pattern": "secret_word",
       "sample": "'Webhook informativo guardado (oculto). Escribe uno nuevo solo si quieres reemplazarlo.',"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 4727,
+      "line": 4812,
       "pattern": "secret_word",
       "sample": "'Ya hay un webhook informativo guardado. El valor real se oculta por seguridad.'"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 4734,
+      "line": 4819,
       "pattern": "secret_word",
       "sample": "? 'Webhook de alertas guardado (oculto). Escribe uno nuevo solo si quieres reemplazarlo.'"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 4735,
+      "line": 4820,
       "pattern": "secret_word",
       "sample": ": 'Webhook legacy guardado: se usará para alertas. Escribe uno nuevo si quieres separarlo.',"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 4738,
+      "line": 4823,
       "pattern": "secret_word",
       "sample": "? 'Ya hay un webhook de alertas guardado. El valor real se oculta por seguridad.'"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 4739,
+      "line": 4824,
       "pattern": "secret_word",
       "sample": ": (discordLegacyConfigured ? 'Existe un webhook legacy que se conserva como fallback de alertas.' : '')"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 4792,
+      "line": 4877,
       "pattern": "secret_word",
       "sample": ": 'contraseña o app password';"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 4810,
+      "line": 4895,
       "pattern": "localhost_url",
       "sample": "if (_cfgGet('cfgAiOllamaUrl')) _cfgGet('cfgAiOllamaUrl').value = s.ai_ollama_url || 'http://localhost:11434';"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 5174,
+      "line": 5259,
       "pattern": "secret_word",
       "sample": "const show = el.type === 'password';"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 5175,
+      "line": 5260,
       "pattern": "secret_word",
       "sample": "el.type = show ? 'text' : 'password';"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 5292,
+      "line": 5377,
       "pattern": "localhost_url",
       "sample": "ai_ollama_url: $('#cfgAiOllamaUrl').val() || 'http://localhost:11434',"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 5465,
+      "line": 5550,
       "pattern": "secret_word",
       "sample": "const show = $inp.attr('type') === 'password';"
     },
     {
       "severity": "WARN",
       "path": "app/static/js/config.js",
-      "line": 5466,
+      "line": 5551,
       "pattern": "secret_word",
       "sample": "$inp.attr('type', show ? 'text' : 'password');"
     }

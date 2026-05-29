@@ -70,6 +70,7 @@ SCRIPTS_STATUS_DIR         = os.getenv("SCRIPTS_STATUS_DIR", "/data/scripts_stat
 SCRIPTS_AGENT_STATUS_DIR   = os.getenv("SCRIPTS_AGENT_STATUS_DIR", "/data/agent_scripts_status")
 SCRIPTS_PROMPTS_DIR        = os.getenv("SCRIPTS_PROMPTS_DIR", "/data/scripts_prompts")
 SCRIPTS_AUDITDOC_DIR = os.getenv("SCRIPTS_AUDITDOC_DIR", "/data/auditor_docs")
+SCRIPTS_PUBLIC_DOC_DIR = os.getenv("SCRIPTS_PUBLIC_DOC_DIR", "/app/docs")
 
 # ── Fallbacks de entorno (usados antes de que cfg() cargue la BD) ─────────────
 _ENV_PROVIDER     = os.getenv("AI_PROVIDER",    "gemini")
@@ -86,6 +87,7 @@ PROCESS_DOCS = {
     "PROMPT.md",
     "PROMPT para nuevo script.md",
     "PROMPT para dashboard.md",
+    "SCRIPTS_INTEGRATION.md",
 }
 README_DOCS  = {"README.md"}
 ALLOWED_DOCS = PROCESS_DOCS | README_DOCS
@@ -1793,28 +1795,29 @@ def get_scripts_status():
         # Los scripts usan: status, start_time, end_time, error, error_messages
         # El frontend espera: state, last_run, next_run, errors
 
-        # state — exit_code es la fuente de verdad.
-        # "error: true" en el JSON puede aparecer aunque el script completó OK
-        # (p.ej. monitor_end_error con exit_code=0 cuando hay cambios detectados).
-        if "state" not in item:
-            raw_status = item.get("status", "")
-            ec         = item.get("exit_code")
-            if raw_status in ("running", "started"):
-                item["state"] = "running"
-            elif raw_status in ("missed", "stalled", "controlled_stop"):
-                # Mantener estados específicos: la UI los representa de forma diferenciada.
-                item["state"] = raw_status
-            elif raw_status in ("failed", "error"):
-                item["state"] = "error"
-            elif ec is not None and ec != 0:
-                item["state"] = "error"
-            elif ec == 0:
-                # exit_code 0 = OK aunque "error": true pueda contener avisos de log.
-                item["state"] = "ok"
-            elif raw_status == "completed":
-                item["state"] = "ok"
-            else:
-                item["state"] = "unknown"
+        # state — normalizar estados publicados por scripts externos.
+        # Algunos wrappers publican state/status=success; la UI usa ok/error/running/etc.
+        raw_state = str(item.get("state") or "").strip().lower()
+        raw_status = str(item.get("status") or "").strip().lower()
+        effective_status = raw_state or raw_status
+        ec = item.get("exit_code")
+
+        if effective_status in ("running", "started"):
+            item["state"] = "running"
+        elif effective_status in ("missed", "stalled", "controlled_stop"):
+            # Mantener estados específicos: la UI los representa de forma diferenciada.
+            item["state"] = effective_status
+        elif effective_status in ("failed", "error"):
+            item["state"] = "error"
+        elif effective_status in ("success", "ok", "completed"):
+            item["state"] = "ok"
+        elif ec is not None and ec != 0:
+            item["state"] = "error"
+        elif ec == 0:
+            # exit_code 0 = OK aunque "error": true pueda contener avisos de log.
+            item["state"] = "ok"
+        else:
+            item["state"] = "unknown"
 
         # last_run — usar start_time si no hay last_run
         if not item.get("last_run") and item.get("start_time"):
@@ -1906,6 +1909,24 @@ def get_scripts_status():
         # Degradación elegante: si falla la BD, los scripts se muestran sin color/etiqueta
         pass
 
+    # Deduplicar estados físicos duplicados del mismo script lógico.
+    # Caso típico: copia espejo en raíz + copia estructurada por host/script.
+    # La identidad funcional de Automatizaciones es host_name + script_name.
+    dedup = {}
+    for _item in result:
+        _key = _item.get("instance_key") or f"{_item.get('host_name') or 'Local'}::{_item.get('name') or _item.get('script_name') or ''}"
+        if _key not in dedup:
+            dedup[_key] = _item
+            continue
+
+        _prev = dedup[_key]
+        _prev_ts = str(_prev.get("updated_at") or _prev.get("heartbeat") or _prev.get("last_heartbeat") or _prev.get("end_time") or "")
+        _new_ts = str(_item.get("updated_at") or _item.get("heartbeat") or _item.get("last_heartbeat") or _item.get("end_time") or "")
+        if _new_ts > _prev_ts:
+            dedup[_key] = _item
+
+    result = list(dedup.values())
+
     # Reaplicar parada controlada al final: el enriquecimiento de configuración puede
     # reconstruir o pisar campos de estado. Este segundo pase garantiza el estado efectivo.
     for _item in result:
@@ -1926,21 +1947,24 @@ def get_script_log(name: str, lines: int = 100, host: str = Query("", max_length
 
 @router.get("/api/scripts/docs")
 def list_docs():
-    d = Path(SCRIPTS_PROMPTS_DIR)
-    if not d.exists():
-        return []
-    return [
-        {"name": f.name, "size": f.stat().st_size}
-        for f in sorted(d.glob("*.md"))
-        if f.name in PROCESS_DOCS
-    ]
+    docs = []
+    seen = set()
+    for base in [SCRIPTS_PROMPTS_DIR, SCRIPTS_AUDITDOC_DIR, SCRIPTS_PUBLIC_DOC_DIR]:
+        d = Path(base)
+        if not d.exists():
+            continue
+        for f in sorted(d.glob("*.md")):
+            if f.name in PROCESS_DOCS and f.name not in seen:
+                docs.append({"name": f.name, "size": f.stat().st_size})
+                seen.add(f.name)
+    return docs
 
 
 @router.get("/api/scripts/doc/{filename}")
 def get_doc(filename: str):
     if filename not in ALLOWED_DOCS:
         raise HTTPException(status_code=403, detail="Documento no permitido")
-    for base in [SCRIPTS_PROMPTS_DIR, SCRIPTS_AUDITDOC_DIR]:
+    for base in [SCRIPTS_PROMPTS_DIR, SCRIPTS_AUDITDOC_DIR, SCRIPTS_PUBLIC_DOC_DIR]:
         p = Path(base) / filename
         if p.exists():
             return {"name": filename, "content": p.read_text(encoding="utf-8")}

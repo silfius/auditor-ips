@@ -5953,9 +5953,9 @@ window._secondaryNetworks = {{ secondary_nets | default([]) | tojson | safe }};
 <script src="/static/js/dashboard.js?v=20260518_v4_module_gating_foundation1"></script>
 <script src="/static/js/scans.js?v=20260518_v4_i18n_timezone_final1"></script>
 <script src="/static/js/quality.js?v=20260518_v4_i18n_timezone_final2"></script>
-<script src="/static/js/config.js?v=20260521_doc_consolidation_public_clean1"></script>
+<script src="/static/js/config.js?v=20260529_scripts_docs1"></script>
 <script src="/static/js/auth.js?v=20260518_v4_i18n_timezone_final1"></script>
-<script src="/static/js/scripts.js?v=20260525_v4_automation_controlled_incidents_history4"></script>
+<script src="/static/js/scripts.js?v=20260529_script_steps1"></script>
 <script src="/static/js/active_processes_topbar.js?v=20260518_v4_i18n_timezone_final1"></script>
 
   <style>
@@ -9103,7 +9103,7 @@ ip route get 192.168.18.1</code></pre>
                   <div class="input-group input-group-sm">
                     <input type="text" id="cfgScriptName" class="form-control" placeholder="mi_script">
                     <button class="btn btn-outline-secondary dropdown-toggle" type="button"
-                            id="cfgScriptNamePickBtn" title="Seleccionar de los disponibles"
+                            id="cfgScriptNamePickBtn" title="Seleccionar primer .status.json pendiente de configurar"
                             data-bs-toggle="dropdown" aria-expanded="false">
                       <i class="bi bi-folder2-open"></i>
                     </button>
@@ -9615,6 +9615,11 @@ Content-Type: application/json
                   <i class="bi bi-diagram-3 me-1"></i>Config Red Secundaria
                 </button>
               </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="doc-scripts-tab" data-bs-toggle="tab" data-bs-target="#doc-scripts-pane" type="button" style="font-size:.84rem">
+                  <i class="bi bi-terminal me-1"></i>Scripts
+                </button>
+              </li>
             </ul>
 
             <div class="tab-content" id="docsTabContent">
@@ -9633,6 +9638,12 @@ Content-Type: application/json
               <!-- Config Red Secundaria — contenido del panel Redes duplicado aquí -->
               <div class="tab-pane fade" id="doc-redes-pane" role="tabpanel">
                 <div id="doc-redes-body" style="max-height:62vh;overflow-y:auto;font-size:.84rem;line-height:1.7">
+                  <div class="text-center py-4"><div class="spinner-border spinner-border-sm text-info"></div></div>
+                </div>
+              </div>
+              <!-- Integración de scripts externos -->
+              <div class="tab-pane fade" id="doc-scripts-pane" role="tabpanel">
+                <div id="doc-scripts-body" style="max-height:62vh;overflow-y:auto;font-size:.84rem;line-height:1.7">
                   <div class="text-center py-4"><div class="spinner-border spinner-border-sm text-info"></div></div>
                 </div>
               </div>
