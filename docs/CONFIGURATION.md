@@ -1,27 +1,30 @@
 # Configuración
 
-## Ficheros principales
+## Responsabilidades
 
-- `.env`: configuración local y secretos.
-- `docker-compose.yml`: orquestación Docker local.
-- `data/`: persistencia de BD, certificados, logs internos y datos de aplicación.
+El instalador del host configura infraestructura: Docker, red, puerto, almacenamiento y TLS. El asistente web inicial configura administrador, idioma, zona horaria, módulos, retención y notificaciones.
 
-## Variables habituales
+## Ficheros locales
 
-- `PORT`: puerto web.
-- `DATA_DIR`: ruta persistente en el host.
-- `TLS_CERT_IP`: IP incluida en el certificado local.
-- `TLS_CERT_DNS`: nombre DNS incluido en el certificado local.
-- `PRIMARY_CIDR` / `SCAN_CIDR`: red principal a auditar.
-- `DOCKER_DNS`: DNS que usará Docker, separadas por coma.
-- `DOCKER_DNS_SEARCH`: dominios de búsqueda DNS para Docker, separados por coma.
-- `ADMIN_PASSWORD_HASH`: hash de contraseña de administrador.
-- `SESSION_TTL_HOURS`: duración de sesión.
-- `DISCORD_WEBHOOK_URL`: webhook opcional de Discord.
+- `.env`: configuración local y secretos;
+- `docker-compose.yml`: definición generada del runtime;
+- `install_state.json`: estado y hash del Compose generado;
+- `data/`: base, certificados y datos persistentes;
+- `exports/`: exportaciones;
+- `diagnostics/`: paquetes redactados;
+- `upgrade_backups/`: backups previos a upgrades.
 
-## Módulos
+## Variables principales
 
-Auditor IPs incluye módulos de hosts, salud, servicios, automatizaciones,
-Syncthing Control, notificaciones, backup/BD e informes.
+- `PORT`;
+- `DATA_DIR`;
+- `EXPORTS_HOST_DIR`;
+- `BACKUPS_HOST_DIR`;
+- `TLS_CERT_IP` y `TLS_CERT_DNS`;
+- `SERVER_IP`;
+- `NETWORK_INTERFACE`;
+- `SCAN_CIDR`;
+- `DOCKER_DNS` y `DOCKER_DNS_SEARCH`;
+- `AUDITOR_INSTANCE_ID` y `SESSION_COOKIE_NAME`.
 
-Algunas opciones se configuran desde la UI tras iniciar sesión.
+El primer administrador no se configura mediante una contraseña en `.env`; se crea desde el asistente web inicial.

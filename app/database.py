@@ -121,6 +121,11 @@ def init_db() -> None:
         )
         """)
 
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_scans_started_at_global "
+            "ON scans(started_at DESC, id DESC)"
+        )
+
         conn.execute("""
         CREATE TABLE IF NOT EXISTS scans_chart_cache (
             bucket_start   TEXT NOT NULL,
@@ -148,6 +153,10 @@ def init_db() -> None:
             new_value TEXT
         )
         """)
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_host_events_at_global "
+            "ON host_events(at DESC, id DESC)"
+        )
 
         # Migraciones de columnas en hosts
         for col, ddl in [
@@ -265,6 +274,28 @@ def init_db() -> None:
         """)
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_svc_checks ON service_checks(service_id, checked_at DESC)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_service_checks_checked_at_global "
+            "ON service_checks(checked_at DESC, id DESC)"
+        )
+
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS service_daily_rollups (
+            service_id INTEGER NOT NULL,
+            day TEXT NOT NULL,
+            checks_count INTEGER NOT NULL DEFAULT 0,
+            up_count INTEGER NOT NULL DEFAULT 0,
+            latency_sum REAL NOT NULL DEFAULT 0,
+            latency_count INTEGER NOT NULL DEFAULT 0,
+            last_status TEXT NOT NULL DEFAULT '',
+            last_checked_at TEXT NOT NULL DEFAULT '',
+            PRIMARY KEY(service_id, day)
+        )
+        """)
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_service_daily_rollups_day "
+            "ON service_daily_rollups(day DESC, service_id)"
         )
 
         conn.execute("""
@@ -526,6 +557,29 @@ def init_db() -> None:
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_qchk_target ON quality_checks(target_id, checked_at DESC)"
         )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_quality_checks_checked_at_global "
+            "ON quality_checks(checked_at DESC, id DESC)"
+        )
+
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS quality_rollups (
+            target_id INTEGER NOT NULL,
+            bucket_minutes INTEGER NOT NULL,
+            bucket_start TEXT NOT NULL,
+            sample_count INTEGER NOT NULL DEFAULT 0,
+            latency_sum REAL NOT NULL DEFAULT 0,
+            latency_count INTEGER NOT NULL DEFAULT 0,
+            packet_loss_max REAL NOT NULL DEFAULT 0,
+            error_count INTEGER NOT NULL DEFAULT 0,
+            PRIMARY KEY(target_id, bucket_minutes, bucket_start)
+        )
+        """)
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_quality_rollups_bucket "
+            "ON quality_rollups(bucket_minutes, bucket_start, target_id)"
+        )
+
         conn.execute("""
         CREATE TABLE IF NOT EXISTS quality_settings (
             id INTEGER PRIMARY KEY CHECK(id=1),
@@ -859,6 +913,121 @@ def init_db() -> None:
             "CREATE INDEX IF NOT EXISTS idx_automation_agent_events_host "
             "ON automation_agent_events(host_name, at DESC)"
         )
+
+        # PERF-REST: backfill idempotente de rollups persistentes.
+        # Solo se ejecuta cuando la tabla de rollups está vacía; después cada
+        # check mantiene su bucket incrementalmente.
+        quality_rollup_count = conn.execute(
+            "SELECT COUNT(*) FROM quality_rollups"
+        ).fetchone()[0]
+        quality_check_count = conn.execute(
+            "SELECT COUNT(*) FROM quality_checks"
+        ).fetchone()[0]
+        if quality_rollup_count == 0 and quality_check_count > 0:
+            for bucket_minutes in (5, 15, 60):
+                conn.execute(
+                    """
+                    INSERT INTO quality_rollups (
+                        target_id,
+                        bucket_minutes,
+                        bucket_start,
+                        sample_count,
+                        latency_sum,
+                        latency_count,
+                        packet_loss_max,
+                        error_count
+                    )
+                    SELECT
+                        target_id,
+                        ?,
+                        substr(checked_at, 1, 14)
+                            || printf(
+                                '%02d',
+                                CAST(
+                                    CAST(substr(checked_at, 15, 2) AS INTEGER) / ?
+                                    AS INTEGER
+                                ) * ?
+                            )
+                            || ':00+00:00',
+                        COUNT(*),
+                        SUM(COALESCE(latency_ms, 0)),
+                        SUM(CASE WHEN latency_ms IS NOT NULL THEN 1 ELSE 0 END),
+                        MAX(COALESCE(packet_loss, 0)),
+                        SUM(
+                            CASE
+                                WHEN latency_ms IS NULL
+                                  OR LOWER(COALESCE(status, '')) IN (
+                                      'error', 'down', 'timeout'
+                                  )
+                                THEN 1
+                                ELSE 0
+                            END
+                        )
+                    FROM quality_checks
+                    GROUP BY target_id, 3
+                    """,
+                    (bucket_minutes, bucket_minutes, bucket_minutes),
+                )
+
+        service_rollup_count = conn.execute(
+            "SELECT COUNT(*) FROM service_daily_rollups"
+        ).fetchone()[0]
+        service_check_count = conn.execute(
+            "SELECT COUNT(*) FROM service_checks"
+        ).fetchone()[0]
+        if service_rollup_count == 0 and service_check_count > 0:
+            conn.execute(
+                """
+                INSERT INTO service_daily_rollups (
+                    service_id,
+                    day,
+                    checks_count,
+                    up_count,
+                    latency_sum,
+                    latency_count,
+                    last_status,
+                    last_checked_at
+                )
+                SELECT
+                    service_id,
+                    substr(checked_at, 1, 10),
+                    COUNT(*),
+                    SUM(
+                        CASE
+                            WHEN LOWER(COALESCE(status, '')) = 'up'
+                            THEN 1
+                            ELSE 0
+                        END
+                    ),
+                    SUM(COALESCE(latency_ms, 0)),
+                    SUM(CASE WHEN latency_ms IS NOT NULL THEN 1 ELSE 0 END),
+                    '',
+                    MAX(checked_at)
+                FROM service_checks
+                GROUP BY service_id, substr(checked_at, 1, 10)
+                """
+            )
+
+        # Los nuevos índices deben disponer de estadísticas para que SQLite
+        # no conserve planes de escaneo global después de la migración.
+        try:
+            stat_rows = conn.execute(
+                """
+                SELECT idx
+                FROM sqlite_stat1
+                WHERE idx IN (
+                    'idx_quality_checks_checked_at_global',
+                    'idx_service_checks_checked_at_global',
+                    'idx_host_events_at_global',
+                    'idx_scans_started_at_global'
+                )
+                """
+            ).fetchall()
+        except sqlite3.OperationalError:
+            stat_rows = []
+
+        if len(stat_rows) < 4:
+            conn.execute("ANALYZE")
 
     # Auth tables (auth_middleware.py)
     init_auth_tables(DB_PATH)

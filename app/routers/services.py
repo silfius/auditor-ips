@@ -3,9 +3,11 @@ routers/services.py — Auditor IPs
 CRUD de servicios monitorizados, checks TCP/HTTP, info avanzada y scheduler.
 """
 
+import copy
 import json as _json
 import ssl as _ssl
 import threading
+import time
 import urllib.request as _urlreq
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
@@ -20,7 +22,100 @@ from utils import utc_now, utc_now_iso, get_app_tz
 router = APIRouter()
 
 _scheduler_ref: Any = None
-SERVICE_CHECK_LOCK = threading.Lock()
+_SERVICE_RUNNING_LOCK = threading.Lock()
+_SERVICE_RUNNING_IDS: set[int] = set()
+_db_write_lock: threading.Lock = threading.Lock()
+_services_cache_lock = threading.Lock()
+_services_cache: tuple[float, Dict[str, Any]] | None = None
+
+
+def set_db_write_lock(lock: threading.Lock) -> None:
+    global _db_write_lock
+    _db_write_lock = lock
+
+
+def _performance_api_cache_seconds() -> float:
+    try:
+        value = float(cfg("performance_api_cache_seconds", "10") or 10)
+    except Exception:
+        value = 10.0
+    return max(0.0, min(60.0, value))
+
+
+def _invalidate_services_cache() -> None:
+    global _services_cache
+    with _services_cache_lock:
+        _services_cache = None
+
+
+def _service_retention_days() -> int:
+    default_days = 60
+    raw = str(cfg("retention_module_days", "") or "").strip()
+    if raw:
+        try:
+            parsed = _json.loads(raw)
+            if isinstance(parsed, dict):
+                default_days = int(parsed.get("services", default_days))
+        except Exception:
+            pass
+    return max(1, min(3650, int(default_days or 60)))
+
+
+def _upsert_service_daily_rollup(
+    conn,
+    *,
+    service_id: int,
+    checked_at: str,
+    status: str,
+    latency_ms: Any,
+) -> None:
+    day = str(checked_at)[:10]
+    is_up = 1 if str(status or "").lower() == "up" else 0
+    try:
+        latency_value = float(latency_ms) if latency_ms is not None else 0.0
+    except Exception:
+        latency_value = 0.0
+    latency_count = 1 if latency_ms is not None else 0
+
+    conn.execute(
+        """
+        INSERT INTO service_daily_rollups (
+            service_id,
+            day,
+            checks_count,
+            up_count,
+            latency_sum,
+            latency_count,
+            last_status,
+            last_checked_at
+        )
+        VALUES (?, ?, 1, ?, ?, ?, ?, ?)
+        ON CONFLICT(service_id, day)
+        DO UPDATE SET
+            checks_count = checks_count + 1,
+            up_count = up_count + excluded.up_count,
+            latency_sum = latency_sum + excluded.latency_sum,
+            latency_count = latency_count + excluded.latency_count,
+            last_status = CASE
+                WHEN excluded.last_checked_at >= last_checked_at
+                THEN excluded.last_status
+                ELSE last_status
+            END,
+            last_checked_at = MAX(
+                last_checked_at,
+                excluded.last_checked_at
+            )
+        """,
+        (
+            service_id,
+            day,
+            is_up,
+            latency_value,
+            latency_count,
+            str(status or ""),
+            checked_at,
+        ),
+    )
 
 
 def _cfg_timeout_seconds(key: str, fallback: float, min_value: float, max_value: float) -> float:
@@ -268,18 +363,26 @@ def fetch_service_info(svc: dict) -> dict:
 # ══════════════════════════════════════════════════════════════
 
 def run_service_check(service_id: int) -> None:
-    """Ejecuta un check de un servicio y persiste el resultado."""
-    with SERVICE_CHECK_LOCK:
+    """Ejecuta un check sin serializar la red entre servicios distintos."""
+    with _SERVICE_RUNNING_LOCK:
+        if service_id in _SERVICE_RUNNING_IDS:
+            return
+        _SERVICE_RUNNING_IDS.add(service_id)
+
+    try:
         with db() as conn:
-            svc = conn.execute("SELECT * FROM services WHERE id=?", (service_id,)).fetchone()
+            svc = conn.execute(
+                "SELECT * FROM services WHERE id=?",
+                (service_id,),
+            ).fetchone()
         if not svc:
             return
 
-        svc      = dict(svc)
-        host     = svc["host"]
-        port     = svc["port"]
+        svc = dict(svc)
+        host = svc["host"]
+        port = svc["port"]
         protocol = svc["protocol"] or "tcp"
-        now      = utc_now_iso()
+        now = utc_now_iso()
 
         if protocol in ("http", "https"):
             url = svc.get("service_url") or f"{protocol}://{host}:{port}"
@@ -287,71 +390,139 @@ def run_service_check(service_id: int) -> None:
             status = "up" if ok else "down"
         else:
             ok, ms, err = tcp_check(host, port)
-            status = "up" if ok else ("timeout" if err == "timeout" else "down")
+            status = "up" if ok else (
+                "timeout" if err == "timeout" else "down"
+            )
 
         info_dict: dict = {}
-        if ok and svc.get("service_type") and svc["service_type"] != "generic":
+        if (
+            ok
+            and svc.get("service_type")
+            and svc["service_type"] != "generic"
+        ):
             info_dict = fetch_service_info(svc)
         info_json = _json.dumps(info_dict) if info_dict else None
         schedule_state = _service_expected_schedule_state(svc)
 
-        with db() as conn:
-            conn.execute("""
-                INSERT INTO service_checks (service_id, checked_at, status, latency_ms, info, error)
-                VALUES (?,?,?,?,?,?)
-            """, (service_id, now, status, ms, info_json, err))
-            cutoff = (utc_now() - timedelta(days=120)).isoformat()
-            conn.execute("DELETE FROM service_checks WHERE checked_at < ? AND service_id=?",
-                         (cutoff, service_id))
+        # Solo la persistencia se serializa con scans/quality/maintenance.
+        # Las comprobaciones de red se ejecutan en paralelo por servicio.
+        with _db_write_lock:
+            with db() as conn:
+                conn.execute(
+                    """
+                    INSERT INTO service_checks (
+                        service_id,
+                        checked_at,
+                        status,
+                        latency_ms,
+                        info,
+                        error
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (service_id, now, status, ms, info_json, err),
+                )
+                _upsert_service_daily_rollup(
+                    conn,
+                    service_id=service_id,
+                    checked_at=now,
+                    status=status,
+                    latency_ms=ms,
+                )
 
-            prev_row    = conn.execute(
-                "SELECT status FROM service_last_status WHERE service_id=?", (service_id,)
-            ).fetchone()
-            prev_status = prev_row["status"] if prev_row else None
+                prev_row = conn.execute(
+                    """
+                    SELECT status
+                    FROM service_last_status
+                    WHERE service_id=?
+                    """,
+                    (service_id,),
+                ).fetchone()
+                prev_status = prev_row["status"] if prev_row else None
 
-            if schedule_state.get("in_expected_window", True) and prev_status is not None and prev_status != status:
-                emoji = "🟢" if status == "up" else ("🟡" if status == "timeout" else "🔴")
-                msg = (f"{emoji} **Servicio {status.upper()}**: {svc['name']} "
-                       f"(`{svc['host']}:{svc['port']}`)")
-                if status == "up" and ms is not None:
-                    msg += f" · {ms}ms"
-                if err:
-                    msg += f" · {err[:80]}"
-                if cfg("notify_service_down", "1") == "1":
-                    from routers.scans import discord_notify
-                    threading.Thread(
-                        target=discord_notify,
-                        args=(msg,),
-                        kwargs={"channel": "alerts"},
-                        daemon=True,
-                    ).start()
-                if cfg("push_service_down", "1") == "1" and status in ("down", "timeout"):
-                    from routers.scans import send_push_notification
-                    threading.Thread(
-                        target=send_push_notification,
-                        args=(f"Servicio {status.upper()}: {svc['name']}",
-                              f"{svc['host']}:{svc['port']}" + (f" — {err[:60]}" if err else "")),
-                        daemon=True,
-                    ).start()
-                # Email
-                if cfg("notify_email", "0") == "1" and cfg("email_service_down", "1") == "1":
-                    try:
-                        from routers.config_api import send_email
+                if (
+                    schedule_state.get("in_expected_window", True)
+                    and prev_status is not None
+                    and prev_status != status
+                ):
+                    emoji = (
+                        "🟢"
+                        if status == "up"
+                        else ("🟡" if status == "timeout" else "🔴")
+                    )
+                    msg = (
+                        f"{emoji} **Servicio {status.upper()}**: "
+                        f"{svc['name']} (`{svc['host']}:{svc['port']}`)"
+                    )
+                    if status == "up" and ms is not None:
+                        msg += f" · {ms}ms"
+                    if err:
+                        msg += f" · {err[:80]}"
+
+                    if cfg("notify_service_down", "1") == "1":
+                        from routers.scans import discord_notify
+
                         threading.Thread(
-                            target=send_email,
-                            args=(f"⚠️ Servicio {status.upper()} — Auditor IPs", msg),
+                            target=discord_notify,
+                            args=(msg,),
+                            kwargs={"channel": "alerts"},
                             daemon=True,
                         ).start()
-                    except Exception:
-                        pass
 
-            if schedule_state.get("in_expected_window", True):
-                conn.execute("""
-                    INSERT INTO service_last_status (service_id, status, notified_at)
-                    VALUES (?,?,?)
-                    ON CONFLICT(service_id) DO UPDATE
-                        SET status=excluded.status, notified_at=excluded.notified_at
-                """, (service_id, status, now))
+                    if (
+                        cfg("push_service_down", "1") == "1"
+                        and status in ("down", "timeout")
+                    ):
+                        from routers.scans import send_push_notification
+
+                        threading.Thread(
+                            target=send_push_notification,
+                            args=(
+                                f"Servicio {status.upper()}: {svc['name']}",
+                                f"{svc['host']}:{svc['port']}"
+                                + (f" — {err[:60]}" if err else ""),
+                            ),
+                            daemon=True,
+                        ).start()
+
+                    if (
+                        cfg("notify_email", "0") == "1"
+                        and cfg("email_service_down", "1") == "1"
+                    ):
+                        try:
+                            from routers.config_api import send_email
+
+                            threading.Thread(
+                                target=send_email,
+                                args=(
+                                    f"⚠️ Servicio {status.upper()} — Auditor IPs",
+                                    msg,
+                                ),
+                                daemon=True,
+                            ).start()
+                        except Exception:
+                            pass
+
+                if schedule_state.get("in_expected_window", True):
+                    conn.execute(
+                        """
+                        INSERT INTO service_last_status (
+                            service_id,
+                            status,
+                            notified_at
+                        )
+                        VALUES (?, ?, ?)
+                        ON CONFLICT(service_id) DO UPDATE
+                            SET status=excluded.status,
+                                notified_at=excluded.notified_at
+                        """,
+                        (service_id, status, now),
+                    )
+
+        _invalidate_services_cache()
+    finally:
+        with _SERVICE_RUNNING_LOCK:
+            _SERVICE_RUNNING_IDS.discard(service_id)
 
 
 def schedule_services() -> None:
@@ -367,12 +538,19 @@ def schedule_services() -> None:
             sched.remove_job(job_id)
         except Exception:
             pass
+        interval_seconds = max(30, int(svc["check_interval"] or 60))
         sched.add_job(
             lambda sid=svc["id"]: run_service_check(sid),
             "interval",
-            seconds=max(30, svc["check_interval"]),
+            seconds=interval_seconds,
             id=job_id,
             replace_existing=True,
+            max_instances=1,
+            coalesce=True,
+            misfire_grace_time=max(
+                30,
+                min(interval_seconds, 300),
+            ),
         )
 
 
@@ -382,26 +560,81 @@ def schedule_services() -> None:
 
 @router.get("/api/services")
 def api_services_list():
+    global _services_cache
+
+    cache_ttl = _performance_api_cache_seconds()
+    now_monotonic = time.monotonic()
+
+    if cache_ttl > 0:
+        with _services_cache_lock:
+            if (
+                _services_cache is not None
+                and (now_monotonic - _services_cache[0]) < cache_ttl
+            ):
+                return copy.deepcopy(_services_cache[1])
+
+    retention_days = _service_retention_days()
+    cutoff_day = (utc_now() - timedelta(days=retention_days)).date().isoformat()
+
     with db() as conn:
-        rows = conn.execute("""
-            SELECT s.*,
-                   sc.status AS last_status, sc.latency_ms AS last_latency,
-                   sc.checked_at AS last_checked, sc.info AS last_info, sc.error AS last_error,
-                   ROUND((
-                       SELECT AVG(CASE WHEN status = 'up' THEN 100.0 ELSE 0.0 END)
-                       FROM service_checks
-                       WHERE service_id = s.id
-                   ), 1) AS uptime_pct
+        rows = conn.execute(
+            """
+            WITH uptime AS (
+                SELECT
+                    service_id,
+                    SUM(up_count) AS up_count,
+                    SUM(checks_count) AS checks_count
+                FROM service_daily_rollups
+                WHERE day >= ?
+                GROUP BY service_id
+            )
+            SELECT
+                s.*,
+                sc.status AS last_status,
+                sc.latency_ms AS last_latency,
+                sc.checked_at AS last_checked,
+                sc.info AS last_info,
+                sc.error AS last_error,
+                ROUND(
+                    CASE
+                        WHEN COALESCE(u.checks_count, 0) > 0
+                        THEN u.up_count * 100.0 / u.checks_count
+                        ELSE NULL
+                    END,
+                    1
+                ) AS uptime_pct
             FROM services s
+            LEFT JOIN uptime u ON u.service_id = s.id
             LEFT JOIN service_checks sc ON sc.id = (
-                SELECT id FROM service_checks WHERE service_id=s.id ORDER BY checked_at DESC LIMIT 1
+                SELECT id
+                FROM service_checks
+                WHERE service_id = s.id
+                ORDER BY checked_at DESC
+                LIMIT 1
             )
             ORDER BY s.name
-        """).fetchall()
-    services = [dict(r) for r in rows]
+            """,
+            (cutoff_day,),
+        ).fetchall()
+
+    services = [dict(row) for row in rows]
     for item in services:
         item["expected_schedule_state"] = _service_expected_schedule_state(item)
-    return {"ok": True, "services": services}
+
+    payload = {
+        "ok": True,
+        "uptime_window_days": retention_days,
+        "services": services,
+    }
+
+    if cache_ttl > 0:
+        with _services_cache_lock:
+            _services_cache = (
+                time.monotonic(),
+                copy.deepcopy(payload),
+            )
+
+    return payload
 
 
 @router.get("/api/services/{svc_id}/history")
@@ -449,11 +682,18 @@ def api_service_create(payload: Dict[str, Any] = Body(...)):
     threading.Thread(target=run_service_check, args=(new_id,), daemon=True).start()
     sched = _get_scheduler()
     if sched:
+        interval_seconds = max(30, check_interval)
         sched.add_job(
             lambda sid=new_id: run_service_check(sid),
-            "interval", seconds=max(30, check_interval),
-            id=f"svc_{new_id}", replace_existing=True,
+            "interval",
+            seconds=interval_seconds,
+            id=f"svc_{new_id}",
+            replace_existing=True,
+            max_instances=1,
+            coalesce=True,
+            misfire_grace_time=max(30, min(interval_seconds, 300)),
         )
+    _invalidate_services_cache()
     return {"ok": True, "id": new_id}
 
 
@@ -492,11 +732,18 @@ def api_service_update(svc_id: int, payload: Dict[str, Any] = Body(...)):
         except Exception:
             pass
         if enabled:
+            interval_seconds = max(30, check_interval)
             sched.add_job(
                 lambda sid=svc_id: run_service_check(sid),
-                "interval", seconds=max(30, check_interval),
-                id=f"svc_{svc_id}", replace_existing=True,
+                "interval",
+                seconds=interval_seconds,
+                id=f"svc_{svc_id}",
+                replace_existing=True,
+                max_instances=1,
+                coalesce=True,
+                misfire_grace_time=max(30, min(interval_seconds, 300)),
             )
+    _invalidate_services_cache()
     return {"ok": True}
 
 
@@ -507,6 +754,10 @@ def api_service_delete(svc_id: int):
         if not row:
             return JSONResponse({"ok": False, "error": "Servicio no encontrado"}, status_code=404)
         conn.execute("DELETE FROM service_checks WHERE service_id=?", (svc_id,))
+        conn.execute(
+            "DELETE FROM service_daily_rollups WHERE service_id=?",
+            (svc_id,),
+        )
         conn.execute("DELETE FROM services WHERE id=?", (svc_id,))
     sched = _get_scheduler()
     if sched:
@@ -514,6 +765,7 @@ def api_service_delete(svc_id: int):
             sched.remove_job(f"svc_{svc_id}")
         except Exception:
             pass
+    _invalidate_services_cache()
     return {"ok": True}
 
 
@@ -539,14 +791,21 @@ def api_service_toggle(svc_id: int):
     sched = _get_scheduler()
     if sched:
         if new_state:
+            interval_seconds = max(30, int(row["check_interval"] or 60))
             sched.add_job(
                 lambda sid=svc_id: run_service_check(sid),
-                "interval", seconds=max(30, row["check_interval"]),
-                id=f"svc_{svc_id}", replace_existing=True,
+                "interval",
+                seconds=interval_seconds,
+                id=f"svc_{svc_id}",
+                replace_existing=True,
+                max_instances=1,
+                coalesce=True,
+                misfire_grace_time=max(30, min(interval_seconds, 300)),
             )
         else:
             try:
                 sched.remove_job(f"svc_{svc_id}")
             except Exception:
                 pass
+    _invalidate_services_cache()
     return {"ok": True, "enabled": bool(new_state)}

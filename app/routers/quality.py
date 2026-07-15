@@ -5,12 +5,14 @@ La lógica de ping (run_quality_checks, reschedule_quality) vive aquí
 para que main.py pueda importarla en startup.
 """
 
+import copy
 import csv
 import io
 import re
 import shutil
 import subprocess
 import threading
+import time
 from datetime import datetime, timedelta
 from typing import Any, Dict, List
 
@@ -43,6 +45,94 @@ _db_write_lock: threading.Lock = threading.Lock()   # compartido con scans.py vi
 def set_db_write_lock(lock: threading.Lock) -> None:
     global _db_write_lock
     _db_write_lock = lock
+
+
+_quality_history_cache_lock = threading.Lock()
+_quality_history_cache: Dict[int, tuple[float, Dict[str, Any]]] = {}
+
+
+def _performance_api_cache_seconds() -> float:
+    try:
+        value = float(cfg("performance_api_cache_seconds", "10") or 10)
+    except Exception:
+        value = 10.0
+    return max(0.0, min(60.0, value))
+
+
+def _invalidate_quality_history_cache() -> None:
+    with _quality_history_cache_lock:
+        _quality_history_cache.clear()
+
+
+def _quality_bucket_start(value: str, bucket_minutes: int) -> str:
+    dt = datetime.fromisoformat(str(value))
+    minute_floor = dt.minute - (dt.minute % bucket_minutes)
+    return dt.replace(minute=minute_floor, second=0, microsecond=0).isoformat()
+
+
+def _upsert_quality_rollups(
+    conn,
+    *,
+    target_id: int,
+    checked_at: str,
+    latency_ms: Any,
+    packet_loss: Any,
+    status: Any,
+) -> None:
+    try:
+        latency_value = float(latency_ms) if latency_ms is not None else 0.0
+    except Exception:
+        latency_value = 0.0
+
+    latency_count = 1 if latency_ms is not None else 0
+
+    try:
+        loss_value = float(packet_loss or 0)
+    except Exception:
+        loss_value = 0.0
+
+    status_value = str(status or "").lower()
+    error_count = 1 if (
+        latency_ms is None
+        or status_value in ("error", "down", "timeout")
+    ) else 0
+
+    for bucket_minutes in (5, 15, 60):
+        bucket_start = _quality_bucket_start(checked_at, bucket_minutes)
+        conn.execute(
+            """
+            INSERT INTO quality_rollups (
+                target_id,
+                bucket_minutes,
+                bucket_start,
+                sample_count,
+                latency_sum,
+                latency_count,
+                packet_loss_max,
+                error_count
+            )
+            VALUES (?, ?, ?, 1, ?, ?, ?, ?)
+            ON CONFLICT(target_id, bucket_minutes, bucket_start)
+            DO UPDATE SET
+                sample_count = sample_count + 1,
+                latency_sum = latency_sum + excluded.latency_sum,
+                latency_count = latency_count + excluded.latency_count,
+                packet_loss_max = MAX(
+                    packet_loss_max,
+                    excluded.packet_loss_max
+                ),
+                error_count = error_count + excluded.error_count
+            """,
+            (
+                target_id,
+                bucket_minutes,
+                bucket_start,
+                latency_value,
+                latency_count,
+                loss_value,
+                error_count,
+            ),
+        )
 
 
 # ══════════════════════════════════════════════════════════════
@@ -107,9 +197,17 @@ def run_quality_checks() -> None:
                         INSERT INTO quality_checks (target_id, checked_at, latency_ms, packet_loss, status)
                         VALUES (?, ?, ?, ?, ?)
                     """, (tid, now, r["latency_ms"], r["packet_loss"], r["status"]))
-                # Purgar checks > 30 días
-                cutoff = (utc_now() - timedelta(days=30)).isoformat()
-                conn.execute("DELETE FROM quality_checks WHERE checked_at < ?", (cutoff,))
+                    _upsert_quality_rollups(
+                        conn,
+                        target_id=tid,
+                        checked_at=now,
+                        latency_ms=r["latency_ms"],
+                        packet_loss=r["packet_loss"],
+                        status=r["status"],
+                    )
+                # La retención se ejecuta una vez al día desde
+                # performance_maintenance.py. Evita DELETE masivos cada 30 s.
+                _invalidate_quality_history_cache()
 
             # ── Evaluar umbral de alerta (nueva conexión, la anterior ya cerró) ──
             with db() as conn2:
@@ -353,15 +451,33 @@ def api_quality_interfaces():
 
 @router.get("/api/quality/history")
 def api_quality_history(days: int = 1, trace: str | None = None):
-    _t0 = __import__('time').perf_counter()
-    days = max(1, int(days))
-    cutoff = (utc_now() - timedelta(days=days)).isoformat()
+    days = max(1, min(365, int(days or 1)))
     bucket_minutes = 5 if days <= 1 else (15 if days <= 7 else 60)
+    cache_ttl = _performance_api_cache_seconds()
+    now_monotonic = time.monotonic()
+
+    if cache_ttl > 0:
+        with _quality_history_cache_lock:
+            cached = _quality_history_cache.get(days)
+            if cached and (now_monotonic - cached[0]) < cache_ttl:
+                return copy.deepcopy(cached[1])
+
+    cutoff = (utc_now() - timedelta(days=days)).isoformat()
+    cutoff_bucket = _quality_bucket_start(cutoff, bucket_minutes)
 
     with db() as conn:
-        settings = conn.execute("SELECT incident_streak_min FROM quality_settings WHERE id=1").fetchone()
-        incident_streak_min = max(2, int(settings["incident_streak_min"] or 3)) if settings and "incident_streak_min" in settings.keys() else 3
-        targets = conn.execute("SELECT * FROM quality_targets ORDER BY id").fetchall()
+        settings = conn.execute(
+            "SELECT incident_streak_min FROM quality_settings WHERE id=1"
+        ).fetchone()
+        incident_streak_min = (
+            max(2, int(settings["incident_streak_min"] or 3))
+            if settings and "incident_streak_min" in settings.keys()
+            else 3
+        )
+
+        targets = conn.execute(
+            "SELECT * FROM quality_targets ORDER BY id"
+        ).fetchall()
         target_map = {
             t["id"]: {
                 "id": t["id"],
@@ -374,98 +490,67 @@ def api_quality_history(days: int = 1, trace: str | None = None):
             for t in targets
         }
 
-        rows = conn.execute("""
-            SELECT target_id, checked_at, latency_ms, packet_loss, status
-            FROM quality_checks
-            WHERE checked_at >= ?
-            ORDER BY target_id ASC, checked_at ASC
-        """, (cutoff,)).fetchall()
+        rows = conn.execute(
+            """
+            SELECT
+                target_id,
+                bucket_start,
+                sample_count,
+                latency_sum,
+                latency_count,
+                packet_loss_max,
+                error_count
+            FROM quality_rollups
+            WHERE bucket_minutes = ?
+              AND bucket_start >= ?
+            ORDER BY target_id ASC, bucket_start ASC
+            """,
+            (bucket_minutes, cutoff_bucket),
+        ).fetchall()
 
-    if bucket_minutes <= 0:
-        for r in rows:
-            target = target_map.get(r["target_id"])
-            if target is None:
-                continue
-            target["data"].append({
-                "checked_at": r["checked_at"],
-                "latency_ms": r["latency_ms"],
-                "packet_loss": r["packet_loss"],
-                "status": r["status"],
-            })
-        return {"ok": True, "incident_streak_min": incident_streak_min, "targets": list(target_map.values())}
-
-    grouped = {}
-
-    for r in rows:
-        try:
-            dt = datetime.fromisoformat(str(r["checked_at"]))
-        except Exception:
-            continue
-
-        minute_floor = dt.minute - (dt.minute % bucket_minutes)
-        bucket_dt = dt.replace(minute=minute_floor, second=0, microsecond=0)
-        bucket_iso = bucket_dt.isoformat()
-        key = (r["target_id"], bucket_iso)
-
-        g = grouped.get(key)
-        if g is None:
-            g = {
-                "lat_sum": 0.0,
-                "lat_count": 0,
-                "packet_loss": 0.0,
-                "has_timeout": False,
-                "status": "ok",
-            }
-            grouped[key] = g
-
-        lat = r["latency_ms"]
-        if lat is None:
-            g["has_timeout"] = True
-        else:
-            try:
-                g["lat_sum"] += float(lat)
-                g["lat_count"] += 1
-            except Exception:
-                pass
-
-        try:
-            loss = float(r["packet_loss"] or 0)
-        except Exception:
-            loss = 0.0
-
-        if loss > g["packet_loss"]:
-            g["packet_loss"] = loss
-
-        st = str(r["status"] or "").lower()
-        if st in ("error", "down", "timeout"):
-            g["status"] = "error"
-        elif g["status"] != "error" and loss > 0:
-            g["status"] = "degraded"
-        elif g["status"] not in ("error", "degraded") and st:
-            g["status"] = st
-
-    for (target_id, bucket_iso) in sorted(grouped.keys(), key=lambda x: (x[0], x[1])):
-        g = grouped[(target_id, bucket_iso)]
-        target = target_map.get(target_id)
+    for row in rows:
+        target = target_map.get(row["target_id"])
         if target is None:
             continue
 
-        latency = round(g["lat_sum"] / g["lat_count"], 1) if g["lat_count"] else None
-        packet_loss = (
-            int(g["packet_loss"])
-            if float(g["packet_loss"]).is_integer()
-            else round(g["packet_loss"], 1)
+        latency_count = int(row["latency_count"] or 0)
+        latency = (
+            round(float(row["latency_sum"] or 0) / latency_count, 1)
+            if latency_count > 0
+            else None
         )
-        status = "error" if g["has_timeout"] else g["status"]
+
+        loss = float(row["packet_loss_max"] or 0)
+        packet_loss = int(loss) if loss.is_integer() else round(loss, 1)
+
+        if int(row["error_count"] or 0) > 0:
+            status = "error"
+        elif loss > 0:
+            status = "degraded"
+        else:
+            status = "ok"
 
         target["data"].append({
-            "checked_at": bucket_iso,
+            "checked_at": row["bucket_start"],
             "latency_ms": latency,
             "packet_loss": packet_loss,
             "status": status,
         })
 
-    return {"ok": True, "incident_streak_min": incident_streak_min, "targets": list(target_map.values())}
+    payload = {
+        "ok": True,
+        "incident_streak_min": incident_streak_min,
+        "targets": list(target_map.values()),
+    }
+
+    if cache_ttl > 0:
+        with _quality_history_cache_lock:
+            _quality_history_cache[days] = (
+                time.monotonic(),
+                copy.deepcopy(payload),
+            )
+
+    return payload
 
 
 @router.get("/api/quality/summary")

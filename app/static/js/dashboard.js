@@ -126,16 +126,6 @@ $(function () {
   // Caché de datos quality por rango (igual que quality.js)
   const _dashQCache = {};
 
-  async function _fetchDashQuality(days) {
-    try {
-      const res  = await fetch(`/api/quality/history?days=${days}&_=${Date.now()}`, { cache: 'no-store' });
-      const data = res.ok ? await res.json() : { ok: false, targets: [] };
-      if (data.ok) _dashQCache[days] = data;
-      return data;
-    } catch {
-      return { ok: false, targets: [] };
-    }
-  }
 
   function _setTextIfChanged(id, value) {
     const el = document.getElementById(id);
@@ -299,7 +289,6 @@ $(function () {
       }
 
       _renderDashboard(d, q);
-      [1, 7, 30].forEach(r => { if (r !== _dashRange && !_dashQCache[r]) _fetchDashQuality(r); });
     } catch (e) {
       console.error('[Dashboard]', e);
       const el2 = document.getElementById('dashLastUpdate');

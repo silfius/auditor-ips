@@ -788,8 +788,10 @@ _HISTORY_TABLES = {
     "host_availability_intervals",
     "host_uptime",
     "service_checks",
+    "service_daily_rollups",
     "quality_history",
     "quality_checks",
+    "quality_rollups",
     "scan_ai_reports",
     "daily_reports",
     "audit_log",
@@ -821,14 +823,21 @@ _RETENTION_MODULES = [
         "label": "Calidad de red",
         "description": "Mediciones históricas de calidad, latencia y pérdida de paquetes.",
         "default_days": 60,
-        "tables": ["quality_checks", "quality_history"],
+        "tables": [
+            "quality_checks",
+            "quality_rollups",
+            "quality_history",
+        ],
     },
     {
         "id": "services",
         "label": "Servicios y aplicaciones",
         "description": "Checks históricos de servicios monitorizados.",
         "default_days": 60,
-        "tables": ["service_checks"],
+        "tables": [
+            "service_checks",
+            "service_daily_rollups",
+        ],
     },
     {
         "id": "automation_agents",
@@ -974,10 +983,14 @@ def _quote_sqlite_identifier(name: str) -> str:
 
 _CLEANUP_TABLE_DATE_COLUMNS = {
     "host_events": "at",
+    # No eliminar intervalos abiertos solo porque started_at sea antiguo.
+    "host_availability_intervals": "ended_at",
     "audit_log": "at",
     "automation_agent_events": "at",
     "host_uptime": "date",
     "daily_reports": "generated_at",
+    "quality_rollups": "bucket_start",
+    "service_daily_rollups": "day",
 }
 
 
@@ -1015,6 +1028,12 @@ def _cleanup_date_column(cur, table: str) -> str:
             return c
 
     return ""
+
+
+def _cleanup_cutoff_value(date_column: str, cutoff_iso: str) -> str:
+    if str(date_column or "").lower() in ("day", "date"):
+        return str(cutoff_iso or "")[:10]
+    return cutoff_iso
 
 
 
@@ -1122,7 +1141,7 @@ def api_db_cleanup_run(payload: Dict[str, Any] = Body(default={})):
                       AND {qcol} <> ''
                       AND {qcol} < ?
                     """,
-                    (cutoff_iso,),
+                    (_cleanup_cutoff_value(date_col, cutoff_iso),),
                 )
                 removed = max(0, int(cur.rowcount or 0))
                 after = max(0, before - removed)
@@ -1218,7 +1237,7 @@ def api_db_retention_estimate(days: Optional[int] = None):
                           AND {qcol} <> ''
                           AND {qcol} < ?
                         """,
-                        (cutoff_iso,),
+                        (_cleanup_cutoff_value(date_col, cutoff_iso),),
                     ).fetchone()[0] or 0)
 
                     cleanup_supported = table in _HISTORY_TABLES
@@ -1372,7 +1391,7 @@ def api_db_retention_run(payload: Dict[str, Any] = Body(default={})):
                           AND {qcol} <> ''
                           AND {qcol} < ?
                         """,
-                        (cutoff_iso,),
+                        (_cleanup_cutoff_value(date_col, cutoff_iso),),
                     )
                     removed = max(0, int(cur.rowcount or 0))
                     after = max(0, before - removed)

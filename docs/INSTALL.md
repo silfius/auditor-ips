@@ -1,78 +1,129 @@
-# Instalación
+# Instalación de Auditor IPs
 
-## Alcance
+## Objetivo
 
-Instalación manual inicial de Auditor IPs V4 desde repositorio público. Por defecto se instala/configura en el clon actual; `/opt/auditor-ips` solo se usa con `--system-install`.
+La vía recomendada es un asistente guiado. No es necesario conocer Docker, certificados o notación CIDR: el instalador detecta el host, explica cada decisión y valida el resultado.
 
-Se incluye una base inicial de instalador guiado. Mientras se completa el
-instalador definitivo, tambien se mantiene el procedimiento manual con Docker
-Compose.
+## Requisito inicial
 
-## Requisitos
-
-- Linux.
-- Docker instalado.
-- Docker Compose disponible.
-- Usuario con permisos para Docker.
-- Puerto web libre, por defecto `9909`.
-- Ruta persistente para `data/`.
-
-## Instalador guiado
+Para clonar el repositorio debe existir Git:
 
 ```bash
-python3 scripts/install_auditor.py
+git --version
 ```
 
-Validacion sin arranque:
+Después:
 
 ```bash
-python3 scripts/install_auditor.py --target-dir /tmp/auditor-ips-test --yes --no-start
-```
-
-## DNS para Docker
-
-El instalador detecta DNS del host y permite configurar `DOCKER_DNS` y `DOCKER_DNS_SEARCH` para que el contenedor resuelva nombres locales:
-
-```bash
-python3 scripts/install_auditor.py --docker-dns "192.168.1.1,192.168.1.10" --docker-dns-search "lan,home"
-```
-
-No se recomienda usar DNS loopback/stub como `127.0.0.53` dentro del contenedor; usa la IP real del router o servidor DNS LAN.
-
-## Pasos manuales
-
-```bash
-git clone <URL_PUBLICA_DEL_REPOSITORIO> auditor-ips
+git clone https://github.com/silfius/auditor-ips.git
 cd auditor-ips
-cp .env.example .env
-cp docker-compose.yml.example docker-compose.yml
-mkdir -p ./data ./exports
-docker compose build
-docker compose up -d
-curl -k https://127.0.0.1:9909/api/system/healthz
+./install.sh
 ```
 
-## Primer ajuste recomendado
+Si Git no está instalado, utiliza el gestor de paquetes de tu distribución para instalarlo y repite el proceso.
 
-Edita `.env` antes de arrancar en producción:
+## Qué hace `install.sh`
 
-- `PORT`;
-- `DATA_DIR`;
-- `TLS_CERT_IP`;
-- `TLS_CERT_DNS`;
-- `PRIMARY_CIDR` / `SCAN_CIDR`;
-- `DOCKER_DNS` y `DOCKER_DNS_SEARCH` si necesitas resolver nombres locales desde Docker;
-- `ADMIN_PASSWORD_HASH`;
-- opciones de notificación.
+1. Detecta distribución y arquitectura.
+2. Comprueba Python, Docker, Docker Compose, Curl, OpenSSL e iproute2.
+3. Muestra los componentes ausentes.
+4. Solicita autorización antes de instalar paquetes o usar `sudo`.
+5. Comprueba Docker, espacio libre, escritura y red.
+6. Inicia el asistente Python.
+7. Genera `.env` y `docker-compose.yml`.
+8. Construye, arranca y valida el servicio.
+9. Comprueba `healthz` y el certificado TLS.
+10. Genera un resumen de instalación.
 
-## Comprobación de salud
+Nunca instala paquetes de forma silenciosa.
+
+## Preflight sin instalar
 
 ```bash
-curl -k https://127.0.0.1:9909/api/system/healthz
+./install.sh --check
 ```
 
-Si usas el script incluido:
+Clasifica cada comprobación como `OK`, `WARN` o `ERROR`.
+
+## Instalación automática de dependencias
+
+En Debian, Ubuntu, Linux Mint, Arch y Manjaro, el asistente puede instalar dependencias bajo autorización:
 
 ```bash
-AUDITOR_BASE_URL=https://127.0.0.1:9909 scripts/smoke_system_health.sh
+./install.sh --install-deps
 ```
+
+Si el usuario actual no puede acceder a Docker, el asistente puede utilizar `sudo docker`. Añadir el usuario al grupo `docker` es opcional y requiere abrir una nueva sesión para ser efectivo.
+
+## Perfil recomendado
+
+El asistente:
+
+- detecta interfaces IPv4;
+- marca la ruta por defecto y las interfaces virtuales;
+- permite seleccionar la interfaz conectada a la LAN;
+- propone la IP y el CIDR de esa interfaz;
+- calcula cuántas direcciones se escanearán;
+- detecta DNS LAN, públicas y loopback;
+- descarta dominios de búsqueda raíz o no válidos antes de generar Compose;
+- propone DNS privadas adecuadas;
+- valida puerto, IP, CIDR, rutas y espacio;
+- explica `network_mode: host`, `NET_RAW` y `NET_ADMIN`;
+- propone construir, arrancar y validar la aplicación.
+
+## Perfil avanzado
+
+```bash
+./install.sh --profile advanced
+```
+
+Permite revisar todos los parámetros, rutas, DNS, identidad del contenedor, cookie y TLS.
+
+## Instalación no interactiva
+
+Para pruebas controladas:
+
+```bash
+./install.sh --yes --install-deps \
+  --port 9909 \
+  --server-ip 192.168.1.20 \
+  --tls-ip 192.168.1.20 \
+  --tls-dns auditips.local \
+  --scan-cidr 192.168.1.0/24 \
+  --data-dir ./data \
+  --exports-dir ./exports \
+  --backups-dir ./data/backups
+```
+
+No uses `--yes` cuando exista configuración manual que deba revisarse.
+
+## Instalación de sistema
+
+```bash
+./install.sh --system-install
+```
+
+Utiliza `/opt/auditor-ips`. Requiere permisos administrativos para crear y mantener esa ruta.
+
+## Resultado esperado
+
+La instalación solo se declara correcta si:
+
+- Compose es válido;
+- el build termina;
+- el contenedor arranca;
+- `/api/system/healthz` responde;
+- el certificado contiene localhost, la IP y el DNS configurados.
+
+Después abre:
+
+```text
+https://IP_DEL_SERVIDOR:PUERTO/login
+```
+
+El primer administrador se crea en el asistente web inicial.
+
+## Docker existente y Compose ausente
+
+La autorización permite instalar paquetes ausentes; no autoriza a sustituir una instalación Docker existente sin una confirmación adicional.
+El asistente intenta instalar primero el plugin Compose de la distribución. Si fuera necesaria una migración a los paquetes oficiales de Docker, muestra los conflictos y solicita permiso específico.

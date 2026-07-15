@@ -25,8 +25,8 @@ import dns.reversename
 from fastapi import APIRouter, Body, Request
 from fastapi.responses import JSONResponse
 
-from config import cfg, DB_PATH, SCAN_CIDR, RETENTION_DAYS, WOL_PORT
-from database import db, purge_old_scans
+from config import cfg, DB_PATH, SCAN_CIDR, WOL_PORT
+from database import db
 from routers.discovery import (
     get_discovery_scan_jobs,
     get_discovery_source,
@@ -1284,10 +1284,7 @@ def _persist_latency_records(
         )
         conn.execute("UPDATE hosts SET last_latency_ms=? WHERE ip=?", (ms_l, ip_l))
 
-    lat_cutoff = (
-        utc_now() - timedelta(days=int(cfg("retention_days", RETENTION_DAYS)))
-    ).isoformat()
-    conn.execute("DELETE FROM host_latency WHERE scanned_at < ?", (lat_cutoff,))
+    # La retención histórica se ejecuta de forma centralizada una vez al día.
 
 
 def _run_router_primary_scan(cidr: str, prev: Dict, default_type_id: Optional[int]) -> Dict[str, Any]:
@@ -1566,7 +1563,8 @@ def _prepare_scan_cycle() -> Tuple[Dict[str, Dict[str, Any]], int, int]:
             }
             for r in prev_rows
         }
-        purged_scans = purge_old_scans(conn, int(cfg("retention_days", RETENTION_DAYS)))
+        # PERF-REST: no ejecutar DELETE históricos dentro de cada scan.
+        purged_scans = 0
         prev_online = sum(
             1 for v in prev.values() if v["status"] in ("online", "online_silent")
         )
