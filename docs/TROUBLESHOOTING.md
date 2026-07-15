@@ -1,42 +1,65 @@
 # Solución de problemas
 
-## El contenedor no arranca
+## Diagnóstico automático
 
 ```bash
-docker compose ps
-docker compose logs --tail=120 auditor_ips
+./install.sh --diagnose
 ```
 
-Revisa:
+Genera un paquete sin `.env` en claro, base de datos, claves ni tokens. Incluye sistema, Docker, Compose, red, disco, health y últimas líneas de log.
 
-- puerto ocupado;
-- permisos de `data/`;
-- `.env` mal formado;
-- Docker sin permisos;
-- falta de espacio en disco.
-
-## La salud no responde
+## Dependencias
 
 ```bash
-curl -k https://127.0.0.1:9909/api/system/healthz
+./install.sh --check
+./install.sh --install-deps
 ```
 
-Si falla:
+La instalación de paquetes siempre requiere autorización.
 
-- comprueba `PORT`;
-- revisa logs;
-- valida que el contenedor esté levantado;
-- confirma que el puerto no esté bloqueado.
+## Puerto ocupado
 
-## Problemas de certificado
+El asistente detecta el conflicto y propone un puerto libre. También puedes indicar uno:
 
-Si usas `auditips.local`, asegúrate de que:
+```bash
+./install.sh --port 9910
+```
 
-- resuelve a la IP correcta;
-- `TLS_CERT_DNS` contiene ese nombre;
-- los clientes confían en la CA local si quieres evitar aviso del navegador.
+## Docker sin permisos
 
-## Problemas de red
+El asistente puede usar `sudo docker`. Añadir el usuario al grupo `docker` es opcional y solo se aplica tras abrir una nueva sesión.
 
-Confirma que `PRIMARY_CIDR` apunta a la red correcta y que el contenedor tiene
-permisos `NET_ADMIN` y `NET_RAW`.
+## El servicio no supera healthz
+
+La instalación se considera fallida y muestra `docker compose ps` y logs. Conserva el entorno y ejecuta:
+
+```bash
+./install.sh --diagnose
+```
+
+## Nombres LAN no resueltos
+
+Revisa las DNS elegidas. Una DNS pública como `1.1.1.1` no suele conocer nombres locales; usa el router, Pi-hole o DNS LAN.
+
+## Certificado
+
+Comprueba que accedes usando la IP o DNS configurados. Si cambias esos valores, reinicia para que el entrypoint regenere el certificado de servidor manteniendo la CA local.
+
+## Docker existe pero falta Compose
+
+El asistente intenta instalar solo el plugin Compose disponible. No migra ni retira paquetes Docker existentes sin confirmación específica. Ejecuta `./install.sh --check` y repite de forma interactiva para revisar la propuesta.
+
+## Rollback y permisos de `auditor.db`
+
+La base puede estar creada por el proceso del contenedor y aparecer en el
+host como `root:root`. El asistente no intenta sobrescribir directamente ese
+fichero. Valida el backup, crea una copia temporal verificada y la sustituye
+atómicamente. Si el directorio persistente tampoco es escribible desde el
+host, realiza la restauración mediante un contenedor auxiliar.
+
+No cambies permisos de todo el directorio con `chmod -R 777`. Conserva
+`upgrade_backups/` y ejecuta de nuevo:
+
+```bash
+./install.sh --rollback
+```

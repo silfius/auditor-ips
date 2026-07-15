@@ -1,11 +1,11 @@
 {
   "repo_name": "auditor-ips",
-  "generated_at": "2026-05-29T19:00:31.684072+00:00",
+  "generated_at": "2026-07-15T08:52:48.746183+00:00",
   "source_root": "<internal-source-redacted>",
-  "snapshot_dir": "auditor-ips-20260529-210030",
-  "files_count": 111,
+  "snapshot_dir": "auditor-ips-20260715-105247",
+  "files_count": 117,
   "high_findings_count": 0,
-  "warn_findings_count": 315,
+  "warn_findings_count": 319,
   "files": [
     {
       "path": "app/scan_scheduler.py",
@@ -29,8 +29,8 @@
     },
     {
       "path": "app/config.py",
-      "size": 16062,
-      "sha256": "704df1c07a8926cdfeb841e75574c2f26578eec47e22619dea21007bf4dcb201"
+      "size": 16308,
+      "sha256": "c2217e4ed8dd034d9da67e373a984826b3e2c7388704a722a92016ccf6d6c127"
     },
     {
       "path": "app/requirements.txt",
@@ -49,8 +49,13 @@
     },
     {
       "path": "app/main.py",
-      "size": 16355,
-      "sha256": "bc0d8a6f043e6440d7c504921362c31230e0d0eb82f5675f2f713221eea51988"
+      "size": 17256,
+      "sha256": "d8c194a3d1f23ea5d7efa73c6d78abd50d421478a9c626cd1abb059fe07259cc"
+    },
+    {
+      "path": "app/test_perf01_contracts.py",
+      "size": 9667,
+      "sha256": "2b346e02b5257daa92e0f7584ea7f67f29c178458ad04705b3fc705c87f350c4"
     },
     {
       "path": "app/auditor-ips.filter.conf",
@@ -61,6 +66,11 @@
       "path": "app/fingerprint_utils.py",
       "size": 5851,
       "sha256": "b20777bc6ca8a35b9029766e7f23fc528a2006261ac9e084dd085178f2778d16"
+    },
+    {
+      "path": "app/performance_maintenance.py",
+      "size": 14701,
+      "sha256": "4cf620f3b96c675f214465ed8088a5390ff837d92b905ec83dcb297b4e1b872c"
     },
     {
       "path": "app/scan_discovery.py",
@@ -79,13 +89,18 @@
     },
     {
       "path": "app/entrypoint.sh",
-      "size": 4768,
-      "sha256": "ee0f31d3a9ef28872da9c5ba94cf8177443ce5d84058bfb4cf3e3452fdb63927"
+      "size": 3174,
+      "sha256": "b11fe4f1f68d0c9838c0d84c85183885aab83d4acc1e5a60b8ad78365a60e131"
     },
     {
       "path": "app/dockerfile",
       "size": 854,
       "sha256": "fe36fef8b314fbce0ae4efbeeb53613d21a2690078e4886d96cb31ed7db6658d"
+    },
+    {
+      "path": "app/test_perf_rest_contracts.py",
+      "size": 9834,
+      "sha256": "427530f5d278bb4f7c76010454020cb8e36c25122475a3172f3f8c8546224daf"
     },
     {
       "path": "app/auth_middleware.py",
@@ -99,8 +114,8 @@
     },
     {
       "path": "app/database.py",
-      "size": 38530,
-      "sha256": "e3a06d7fd8788b75a5a1ef42ca0009039dcca6c65417e1bfcd677059028ac933"
+      "size": 45030,
+      "sha256": "0f95a3454810d784b9e59e127fdd32dad355e55422c03770875f05db45987630"
     },
     {
       "path": "app/CHANGELOG_sesion9.md",
@@ -114,8 +129,8 @@
     },
     {
       "path": "app/templates/index.html",
-      "size": 494264,
-      "sha256": "3d64c1b7d242561697bab696aed48c982fb6eaa06f9e5c77c42e8e3529bc175d"
+      "size": 494218,
+      "sha256": "b77e782c01d810a5a977fcf629b33c93cb65bbe31ced9c8286fa3762f82d1351"
     },
     {
       "path": "app/templates/wol_public.html",
@@ -194,13 +209,13 @@
     },
     {
       "path": "app/static/js/services.js",
-      "size": 51538,
-      "sha256": "7585ea9dc8c0fe11c8383d5b08816b13e9b80aeca9040d3de4eb82a75cb2c1bb"
+      "size": 52002,
+      "sha256": "26386115f2574a6a5815a0f15ababca1bfead0f7c4a06706e4e8a580b2b77eea"
     },
     {
       "path": "app/static/js/dashboard.js",
-      "size": 66663,
-      "sha256": "11cbd735c8b051c192170fd1ea5dacc30c72147c72b519114e87f7f70899cbad"
+      "size": 66199,
+      "sha256": "27d7e260008dd44b6244f0239d164881aeba9687257e0f4390d4daa6277735d6"
     },
     {
       "path": "app/static/js/quality.js",
@@ -284,8 +299,8 @@
     },
     {
       "path": "app/routers/services.py",
-      "size": 23222,
-      "sha256": "a3eec27c7c611f5e42ce3818288870bf5b37c113373c9d5b73db5b475fcd1590"
+      "size": 30214,
+      "sha256": "4042ad6294b1b814251881c6bf5f68270f635c0cfbd6aef662a3b5c6341489d1"
     },
     {
       "path": "app/routers/daily_report.py",
@@ -299,8 +314,8 @@
     },
     {
       "path": "app/routers/system_health.py",
-      "size": 35415,
-      "sha256": "59aaa1dfcba56225f14d8e7823e843082a07a9019cb6fb27254a5ee2daa3e3a0"
+      "size": 36601,
+      "sha256": "879fe42b5b42095cea1c4af05d0227fadd70117f6a6904b5212418285088ee87"
     },
     {
       "path": "app/routers/hosts.py",
@@ -314,23 +329,23 @@
     },
     {
       "path": "app/routers/scans.py",
-      "size": 114588,
-      "sha256": "3300aeba571a155c89c861fb9aa18e5ffe66a586e00003e3e4c9918386c050dc"
+      "size": 114448,
+      "sha256": "3dea19071aed6ca9ef12d545da07b024c51e231d2f07eec4c1c7ac4bcbefb337"
     },
     {
       "path": "app/routers/config_api.py",
-      "size": 152108,
-      "sha256": "d20c65dca2dad8c9aebc36e6a255210a458d70e2c8c679f720f661839b81b383"
+      "size": 152774,
+      "sha256": "aef5a712d46f2ab9acdbb58d31667e543f7dfc5e8bfa69228cb5b77eb62fbe9a"
     },
     {
       "path": "app/routers/scripts_status.py",
-      "size": 103033,
-      "sha256": "f5919eae9cef92a546f07275bbf865f8ddeb0edaa9db3d75de54147f2f7a6ca7"
+      "size": 107431,
+      "sha256": "070d703a378907c591ecd648131b472fdb495f095a991ac6bd53d2f1e5f7ea00"
     },
     {
       "path": "app/routers/quality.py",
-      "size": 37187,
-      "sha256": "705f853cfafa4ca220d2ef28d5076ea88cab262a959c926047fd9cfb8c442854"
+      "size": 39238,
+      "sha256": "3710ea740743787567b8fd9837a23c3254e437ed782842b601b3770233df20d4"
     },
     {
       "path": "app/routers/auth.py",
@@ -339,33 +354,68 @@
     },
     {
       "path": ".env.example",
-      "size": 1543,
-      "sha256": "34bc6bc937c988ab656d2d1a1224bbb7c3d2cd3c80b030f429959a6373a1c61d"
+      "size": 993,
+      "sha256": "97fd9598407b4a858c9bdeb0439a4a3605e477dff3ab708995d30f9e91526353"
     },
     {
       "path": "docker-compose.yml.example",
-      "size": 1145,
-      "sha256": "6555c401864b6979d000493ffabc9a1ba46aa6df61b2605c13c548432ae60784"
+      "size": 1061,
+      "sha256": "cefe24cab2d0e6309aeadac15c31183fb47534d8d5cff021f86b04ec45f1a7f1"
     },
     {
       "path": ".gitignore",
-      "size": 450,
-      "sha256": "365c4ac5e1625981692019e22175551a6ff347c59b311aaa4b9df9e8e1dc24e1"
+      "size": 653,
+      "sha256": "fc9711021796160a76482884598a8a1e6cae964bd6e43a9b06a98ddfe89eebce"
+    },
+    {
+      "path": ".dockerignore",
+      "size": 216,
+      "sha256": "287db53d5ee2b0b5cc2bc4b1c9db59e5ef99bbe87e6b041a6e10632231ac2852"
     },
     {
       "path": "README.md",
-      "size": 7708,
-      "sha256": "4830e3938147294410984bdbc78a3608a4c0f9c22483f9e0149b4adf1af421b8"
+      "size": 3322,
+      "sha256": "592aeefece76d736577abae4566a5ea5141f29d9d293027d95fd11c185c46c61"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "size": 743,
+      "sha256": "c0bb5b5020cf6eb406e2e9a8a6514f0acba160c698333935bcac9972a406ada9"
+    },
+    {
+      "path": "docs/INSTALL.md",
+      "size": 3640,
+      "sha256": "998330bae0312b4e218e289d953a57044c0abdb56396e5ec5853ab6993bd9076"
+    },
+    {
+      "path": "docs/UPGRADE.md",
+      "size": 1357,
+      "sha256": "d96a1008a18bcb7e0b89a8946b6b2997545aa5a484450a286741338da7980f2d"
+    },
+    {
+      "path": "docs/BACKUP_RESTORE.md",
+      "size": 922,
+      "sha256": "0f4893f2a068e141869c729a4e134607bf2a952ac10b51bd9ce59020b185c2a0"
+    },
+    {
+      "path": "docs/CONFIGURATION.md",
+      "size": 983,
+      "sha256": "dcfcba6dd661df2b32f34fe3a2364784a972990dbccba4f697f9cf347f536fd0"
+    },
+    {
+      "path": "docs/SECURITY.md",
+      "size": 1123,
+      "sha256": "1ca340ee07630cac457823949dd79c2c0e09967b3a2ad11aa3bc2100115e064f"
+    },
+    {
+      "path": "docs/TROUBLESHOOTING.md",
+      "size": 2039,
+      "sha256": "d3e31b1e010eaff16d239ae1bd9b53744fbd90ffb2c3021a16e316191668e92c"
     },
     {
       "path": "LICENSE",
       "size": 1074,
       "sha256": "661a2dc1b702539101ffe90cc44733424fd0dca67ba3cdb80cbf5aeb47eb345c"
-    },
-    {
-      "path": "CHANGELOG.md",
-      "size": 283,
-      "sha256": "2d0dbeb4fe554f7b7ac7d11671db94ccce2c815bca1a96b3e4b36f8a4ec5b57c"
     },
     {
       "path": ".github/ISSUE_TEMPLATE/bug_report.md",
@@ -388,34 +438,29 @@
       "sha256": "b9d54ca1ea2ff167df91ac49debe87478bae372fdf03ed809940bab45e1cf77c"
     },
     {
-      "path": "docs/BACKUP_RESTORE.md",
-      "size": 796,
-      "sha256": "4e193217ec760eca461bbffd385ce6e1fef5270bb92e8b792eb7d1bcc9e60d1d"
+      "path": "install.sh",
+      "size": 13971,
+      "sha256": "b7c0fd2f61a4c1d5ce36e81ad7c76dfdc92753670b0c676051177a5d047c34cd"
     },
     {
-      "path": "docs/CONFIGURATION.md",
-      "size": 1001,
-      "sha256": "85d412863da430a0e8bef780c99804d47afa4466ddedcc99afe86ad22b5a39a8"
+      "path": "scripts/install_auditor.py",
+      "size": 66523,
+      "sha256": "db0959a41aeaf4c185fec0e670925ee9b31f0aafdd34e8f860ddc71919a56d31"
     },
     {
-      "path": "docs/INSTALL.md",
-      "size": 1961,
-      "sha256": "683e24cb43ccc29e5c84f78650ac75ff0bceda8e80868805e3fb8aef192d316b"
+      "path": "scripts/install_auditor_agent.py",
+      "size": 15709,
+      "sha256": "15353d282a2b28af9502b7ebce1a2c2e46cb595fd45ccd858d7ca76497185ae5"
     },
     {
-      "path": "docs/SECURITY.md",
-      "size": 722,
-      "sha256": "8dad406632c4efcf5851dbdbae72875345fb574f7751a024cf38fa97cb1944ee"
+      "path": "scripts/smoke_system_health.sh",
+      "size": 5253,
+      "sha256": "c79e6a6bf60c56c1717aafec8ba391d8f3628f49c7fc802cca1feb55a4f3387a"
     },
     {
-      "path": "docs/TROUBLESHOOTING.md",
-      "size": 833,
-      "sha256": "abab19361a558dedb1d37b566ee545152063b8fa299d43a1220ac47475a5feb9"
-    },
-    {
-      "path": "docs/UPGRADE.md",
-      "size": 576,
-      "sha256": "6da4feda9e4aed70e927e744bfd160461e8677478046f7dfc887a7065e65a569"
+      "path": "scripts/test_public_installer_contracts.py",
+      "size": 12829,
+      "sha256": "48d201f818e91c8fd8083b68c7b0b093aa3f3e3dcb2d8c1a656d7920a617e714"
     },
     {
       "path": "docs/SCRIPTS_INTEGRATION.md",
@@ -424,8 +469,8 @@
     },
     {
       "path": "docs/USER_MANUAL.md",
-      "size": 17105,
-      "sha256": "ec54e274e664eca65ca5f97d1fba051ef26c91d470249bb1fe0130013cc30a1e"
+      "size": 21731,
+      "sha256": "16e41cb6279888bf617a61c7d248d026a8beb32a64ff211ba800a3df4c52fe92"
     },
     {
       "path": "docs/img/calidad.png",
@@ -546,45 +591,9 @@
       "path": "docs/img/login.png",
       "size": 151367,
       "sha256": "24456d1f08b296afcf454610c2cc92f691bb06887caf1783d16b083e74d8d5dd"
-    },
-    {
-      "path": "scripts/smoke_system_health.sh",
-      "size": 5253,
-      "sha256": "c79e6a6bf60c56c1717aafec8ba391d8f3628f49c7fc802cca1feb55a4f3387a"
-    },
-    {
-      "path": "scripts/install_auditor.py",
-      "size": 44847,
-      "sha256": "ee49e76509c5b9d5c437acd3b8eccd2f5a7c46c8ebfab120560c7112b3937a49"
-    },
-    {
-      "path": "scripts/install_auditor_agent.py",
-      "size": 15709,
-      "sha256": "15353d282a2b28af9502b7ebce1a2c2e46cb595fd45ccd858d7ca76497185ae5"
     }
   ],
   "findings": [
-    {
-      "severity": "WARN",
-      "path": "README.md",
-      "line": 149,
-      "pattern": "secret_word",
-      "sample": "3. Copia el token mostrado una sola vez."
-    },
-    {
-      "severity": "WARN",
-      "path": "README.md",
-      "line": 156,
-      "pattern": "secret_word",
-      "sample": "--token-file /ruta/segura/token.txt \\"
-    },
-    {
-      "severity": "WARN",
-      "path": "README.md",
-      "line": 203,
-      "pattern": "localhost_url",
-      "sample": "curl -k https://127.0.0.1:9909/api/system/healthz"
-    },
     {
       "severity": "WARN",
       "path": "app/host_classification.py",
@@ -623,7 +632,7 @@
     {
       "severity": "WARN",
       "path": "app/config.py",
-      "line": 163,
+      "line": 168,
       "pattern": "localhost_url",
       "sample": "\"ai_ollama_url\":       os.getenv(\"OLLAMA_URL\",     \"http://localhost:11434\"),"
     },
@@ -924,9 +933,79 @@
     {
       "severity": "WARN",
       "path": "app/database.py",
-      "line": 285,
+      "line": 316,
       "pattern": "secret_word",
       "sample": "api_key TEXT NOT NULL DEFAULT '',"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 134,
+      "pattern": "secret_word",
+      "sample": "for token in ("
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 139,
+      "pattern": "secret_word",
+      "sample": "if token not in shell_text:"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 140,
+      "pattern": "secret_word",
+      "sample": "errors.append(f\"install_sh_missing_dependency_safety:{token}\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 156,
+      "pattern": "secret_word",
+      "sample": "\"ADMIN_PASSWORD_HASH\": \"legacy admin password environment variable\","
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 162,
+      "pattern": "secret_word",
+      "sample": "for token, description in forbidden.items():"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 163,
+      "pattern": "secret_word",
+      "sample": "if token in public_text:"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 164,
+      "pattern": "secret_word",
+      "sample": "errors.append(f\"forbidden:{description}:{token}\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 179,
+      "pattern": "secret_word",
+      "sample": "for token in ("
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 191,
+      "pattern": "secret_word",
+      "sample": "if token not in installer_text:"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 192,
+      "pattern": "secret_word",
+      "sample": "errors.append(f\"installer_missing_security_contract:{token}\")"
     },
     {
       "severity": "WARN",
@@ -1120,79 +1199,100 @@
     {
       "severity": "WARN",
       "path": "scripts/install_auditor.py",
-      "line": 124,
+      "line": 165,
       "pattern": "secret_word",
-      "sample": "if any(token in raw for token in [\"debian\", \"ubuntu\", \"linuxmint\", \"raspbian\"]):"
+      "sample": "if any(token in raw for token in (\"debian\", \"ubuntu\", \"linuxmint\", \"raspbian\")):"
     },
     {
       "severity": "WARN",
       "path": "scripts/install_auditor.py",
-      "line": 126,
+      "line": 167,
       "pattern": "secret_word",
-      "sample": "if any(token in raw for token in [\"arch\", \"manjaro\", \"endeavouros\"]):"
+      "sample": "if any(token in raw for token in (\"arch\", \"manjaro\", \"endeavouros\")):"
     },
     {
       "severity": "WARN",
       "path": "scripts/install_auditor.py",
-      "line": 436,
-      "pattern": "secret_word",
-      "sample": "for token in re.split(r\"\\s+\", payload):"
-    },
-    {
-      "severity": "WARN",
-      "path": "scripts/install_auditor.py",
-      "line": 437,
-      "pattern": "secret_word",
-      "sample": "token = token.strip()"
-    },
-    {
-      "severity": "WARN",
-      "path": "scripts/install_auditor.py",
-      "line": 438,
-      "pattern": "secret_word",
-      "sample": "if _is_ip_address(token):"
-    },
-    {
-      "severity": "WARN",
-      "path": "scripts/install_auditor.py",
-      "line": 439,
-      "pattern": "secret_word",
-      "sample": "dns.append(token)"
-    },
-    {
-      "severity": "WARN",
-      "path": "scripts/install_auditor.py",
-      "line": 447,
+      "line": 511,
       "pattern": "secret_word",
       "sample": "for token in re.split(r\"[,\\s]+\", payload):"
     },
     {
       "severity": "WARN",
       "path": "scripts/install_auditor.py",
-      "line": 448,
+      "line": 512,
       "pattern": "secret_word",
-      "sample": "domain = _clean_dns_domain(token)"
+      "sample": "token = token.strip()"
     },
     {
       "severity": "WARN",
       "path": "scripts/install_auditor.py",
-      "line": 829,
-      "pattern": "localhost_url",
-      "sample": "f\"curl -k https://127.0.0.1:{effective_port}/api/system/healthz\","
+      "line": 513,
+      "pattern": "secret_word",
+      "sample": "if not token:"
     },
     {
       "severity": "WARN",
       "path": "scripts/install_auditor.py",
-      "line": 993,
-      "pattern": "localhost_url",
-      "sample": "f\"curl -k https://127.0.0.1:{port}/api/system/healthz\","
+      "line": 517,
+      "pattern": "secret_word",
+      "sample": "target.append(str(ipaddress.ip_address(token)))"
     },
     {
       "severity": "WARN",
       "path": "scripts/install_auditor.py",
-      "line": 1089,
+      "line": 521,
+      "pattern": "secret_word",
+      "sample": "domain = clean_dns_search_domain(token)"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor.py",
+      "line": 888,
       "pattern": "localhost_url",
-      "sample": "healthz_url = f\"https://127.0.0.1:{port}/api/system/healthz\""
+      "sample": "url = f\"https://127.0.0.1:{port}/api/system/healthz\""
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor.py",
+      "line": 969,
+      "pattern": "secret_word",
+      "sample": "\"config\": {key: value for key, value in config.items() if not any(token in key.lower() for token in (\"password\", \"token\", \"secret\", \"webhook\", \"key\"))},"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor.py",
+      "line": 1370,
+      "pattern": "secret_word",
+      "sample": "r\"(?:password|passwd|secret|token|webhook|api[_-]?key|apikey|authorization|private[_-]?key)\","
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor.py",
+      "line": 1399,
+      "pattern": "secret_word",
+      "sample": "r\"(?im)\\b(password|passwd|secret|token|webhook|api[_-]?key|apikey|private[_-]?key)\""
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor.py",
+      "line": 1483,
+      "pattern": "localhost_url",
+      "sample": "f\"https://127.0.0.1:{port}/api/system/healthz\","
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor.py",
+      "line": 1502,
+      "pattern": "secret_word",
+      "sample": "for secret in secret_values:"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/install_auditor.py",
+      "line": 1503,
+      "pattern": "secret_word",
+      "sample": "if secret and secret in content:"
     },
     {
       "severity": "WARN",
@@ -1214,34 +1314,6 @@
       "line": 153,
       "pattern": "secret_word",
       "sample": "\"password\": os.environ.get(\"AUDITOR_SMOKE_PASS\", \"\"),"
-    },
-    {
-      "severity": "WARN",
-      "path": "docs/INSTALL.md",
-      "line": 52,
-      "pattern": "localhost_url",
-      "sample": "curl -k https://127.0.0.1:9909/api/system/healthz"
-    },
-    {
-      "severity": "WARN",
-      "path": "docs/INSTALL.md",
-      "line": 71,
-      "pattern": "localhost_url",
-      "sample": "curl -k https://127.0.0.1:9909/api/system/healthz"
-    },
-    {
-      "severity": "WARN",
-      "path": "docs/INSTALL.md",
-      "line": 77,
-      "pattern": "localhost_url",
-      "sample": "AUDITOR_BASE_URL=https://127.0.0.1:9909 scripts/smoke_system_health.sh"
-    },
-    {
-      "severity": "WARN",
-      "path": "docs/TROUBLESHOOTING.md",
-      "line": 21,
-      "pattern": "localhost_url",
-      "sample": "curl -k https://127.0.0.1:9909/api/system/healthz"
     },
     {
       "severity": "WARN",
@@ -1288,72 +1360,58 @@
     {
       "severity": "WARN",
       "path": "docs/BACKUP_RESTORE.md",
-      "line": 30,
+      "line": 21,
       "pattern": "localhost_url",
-      "sample": "curl -k https://127.0.0.1:9909/api/system/healthz"
+      "sample": "curl -kfsS https://127.0.0.1:9909/api/system/healthz"
     },
     {
       "severity": "WARN",
       "path": "docs/USER_MANUAL.md",
-      "line": 419,
+      "line": 554,
       "pattern": "secret_word",
       "sample": "4. Copiar el token generado."
     },
     {
       "severity": "WARN",
       "path": "docs/USER_MANUAL.md",
-      "line": 420,
+      "line": 555,
       "pattern": "secret_word",
       "sample": "5. Guardar el token en el host remoto de forma segura."
     },
     {
       "severity": "WARN",
       "path": "docs/USER_MANUAL.md",
-      "line": 422,
+      "line": 557,
       "pattern": "secret_word",
       "sample": "El token solo debe mostrarse al crear o rotar."
     },
     {
       "severity": "WARN",
       "path": "docs/USER_MANUAL.md",
-      "line": 434,
+      "line": 569,
       "pattern": "secret_word",
       "sample": "El instalador puede pedir el token de forma interactiva."
     },
     {
       "severity": "WARN",
       "path": "docs/USER_MANUAL.md",
-      "line": 625,
+      "line": 760,
       "pattern": "secret_word",
       "sample": "- revisar permisos de ficheros de token de agentes."
     },
     {
       "severity": "WARN",
       "path": "docs/USER_MANUAL.md",
-      "line": 636,
+      "line": 788,
       "pattern": "localhost_url",
-      "sample": "curl -k https://127.0.0.1:9909/api/system/healthz"
+      "sample": "curl -kfsS https://127.0.0.1:9909/api/system/healthz"
     },
     {
       "severity": "WARN",
       "path": "docs/USER_MANUAL.md",
-      "line": 666,
+      "line": 832,
       "pattern": "secret_word",
-      "sample": "- token correcto;"
-    },
-    {
-      "severity": "WARN",
-      "path": "docs/CONFIGURATION.md",
-      "line": 20,
-      "pattern": "secret_word",
-      "sample": "- `DISCORD_WEBHOOK_URL`: webhook opcional de Discord."
-    },
-    {
-      "severity": "WARN",
-      "path": "docs/UPGRADE.md",
-      "line": 19,
-      "pattern": "localhost_url",
-      "sample": "curl -k https://127.0.0.1:9909/api/system/healthz"
+      "sample": "- valida token y host;"
     },
     {
       "severity": "WARN",
@@ -1918,252 +1976,252 @@
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 79,
+      "line": 81,
       "pattern": "localhost_url",
       "sample": "_ENV_OLLAMA_URL    = os.getenv(\"OLLAMA_URL\",      \"http://localhost:11434\")"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 621,
+      "line": 728,
       "pattern": "secret_word",
       "sample": "\"password\", \"passwd\", \"token\", \"secret\", \"authorization:\","
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 622,
+      "line": 729,
       "pattern": "secret_word",
       "sample": "\"x-automation-agent-token\", \"webhook\", \"api_key\", \"apikey\","
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1360,
+      "line": 1489,
       "pattern": "secret_word",
       "sample": "def _automation_agent_token_hash(token: str) -> str:"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1361,
+      "line": 1490,
       "pattern": "secret_word",
       "sample": "return hashlib.sha256(str(token or \"\").encode(\"utf-8\")).hexdigest()"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1368,
+      "line": 1497,
       "pattern": "secret_word",
       "sample": "def _automation_agent_token_prefix(token: str) -> str:"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1369,
+      "line": 1498,
       "pattern": "secret_word",
       "sample": "return str(token or \"\")[:10]"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1383,
+      "line": 1512,
       "pattern": "secret_word",
       "sample": "return str(request.headers.get(\"x-automation-agent-token\") or \"\").strip()"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1445,
+      "line": 1574,
       "pattern": "secret_word",
       "sample": "token = _automation_agent_extract_token(request)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1446,
+      "line": 1575,
       "pattern": "secret_word",
       "sample": "if not token:"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1447,
+      "line": 1576,
       "pattern": "secret_word",
       "sample": "_automation_agent_audit(host_name, request, \"auth_failed\", False, \"token ausente\")"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1448,
+      "line": 1577,
       "pattern": "secret_word",
       "sample": "raise HTTPException(status_code=403, detail=\"Token de agente inválido\")"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/scripts_status.py",
-      "line": 1457,
-      "pattern": "secret_word",
-      "sample": "incoming_hash = _automation_agent_token_hash(token)"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/scripts_status.py",
-      "line": 1461,
-      "pattern": "secret_word",
-      "sample": "_automation_agent_audit(host_name, request, \"auth_failed\", False, \"token de host inválido\")"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/scripts_status.py",
-      "line": 1462,
-      "pattern": "secret_word",
-      "sample": "raise HTTPException(status_code=403, detail=\"Token de agente inválido\")"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/scripts_status.py",
-      "line": 1464,
-      "pattern": "secret_word",
-      "sample": "# Compatibilidad con bloque anterior: token global."
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/scripts_status.py",
-      "line": 1467,
-      "pattern": "secret_word",
-      "sample": "_automation_agent_audit(host_name, request, \"auth_failed\", False, \"sin token global ni agente registrado\")"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/scripts_status.py",
-      "line": 1470,
-      "pattern": "secret_word",
-      "sample": "if not secrets.compare_digest(token, expected):"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/scripts_status.py",
-      "line": 1471,
-      "pattern": "secret_word",
-      "sample": "_automation_agent_audit(host_name, request, \"auth_failed\", False, \"token global inválido\")"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/scripts_status.py",
-      "line": 1472,
-      "pattern": "secret_word",
-      "sample": "raise HTTPException(status_code=403, detail=\"Token de agente inválido\")"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/scripts_status.py",
-      "line": 1549,
-      "pattern": "secret_word",
-      "sample": "\"\"\"Crea un agente y devuelve el token una sola vez.\"\"\""
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/scripts_status.py",
-      "line": 1561,
-      "pattern": "secret_word",
-      "sample": "token = _automation_agent_new_token()"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/scripts_status.py",
-      "line": 1572,
-      "pattern": "secret_word",
-      "sample": "_automation_agent_token_hash(token),"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/scripts_status.py",
-      "line": 1573,
-      "pattern": "secret_word",
-      "sample": "_automation_agent_token_prefix(token),"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
       "line": 1586,
       "pattern": "secret_word",
-      "sample": "\"token\": token,"
+      "sample": "incoming_hash = _automation_agent_token_hash(token)"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1587,
+      "line": 1590,
       "pattern": "secret_word",
-      "sample": "\"token_prefix\": _automation_agent_token_prefix(token),"
+      "sample": "_automation_agent_audit(host_name, request, \"auth_failed\", False, \"token de host inválido\")"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1588,
+      "line": 1591,
       "pattern": "secret_word",
-      "sample": "\"warning\": \"Guarda este token ahora; no se volverá a mostrar.\","
+      "sample": "raise HTTPException(status_code=403, detail=\"Token de agente inválido\")"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1635,
+      "line": 1593,
       "pattern": "secret_word",
-      "sample": "\"\"\"Rota el token del agente y devuelve el nuevo token una sola vez.\"\"\""
+      "sample": "# Compatibilidad con bloque anterior: token global."
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1637,
+      "line": 1596,
+      "pattern": "secret_word",
+      "sample": "_automation_agent_audit(host_name, request, \"auth_failed\", False, \"sin token global ni agente registrado\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1599,
+      "pattern": "secret_word",
+      "sample": "if not secrets.compare_digest(token, expected):"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1600,
+      "pattern": "secret_word",
+      "sample": "_automation_agent_audit(host_name, request, \"auth_failed\", False, \"token global inválido\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1601,
+      "pattern": "secret_word",
+      "sample": "raise HTTPException(status_code=403, detail=\"Token de agente inválido\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1678,
+      "pattern": "secret_word",
+      "sample": "\"\"\"Crea un agente y devuelve el token una sola vez.\"\"\""
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1690,
       "pattern": "secret_word",
       "sample": "token = _automation_agent_new_token()"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1648,
+      "line": 1701,
       "pattern": "secret_word",
       "sample": "_automation_agent_token_hash(token),"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1649,
+      "line": 1702,
       "pattern": "secret_word",
       "sample": "_automation_agent_token_prefix(token),"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1656,
-      "pattern": "secret_word",
-      "sample": "_automation_agent_audit(host_name, request, \"agent_token_rotated\", True, {\"token_prefix\": _automation_agent_token_prefix(token)})"
-    },
-    {
-      "severity": "WARN",
-      "path": "app/routers/scripts_status.py",
-      "line": 1660,
+      "line": 1715,
       "pattern": "secret_word",
       "sample": "\"token\": token,"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1661,
+      "line": 1716,
       "pattern": "secret_word",
       "sample": "\"token_prefix\": _automation_agent_token_prefix(token),"
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1662,
+      "line": 1717,
       "pattern": "secret_word",
       "sample": "\"warning\": \"Guarda este token ahora; no se volverá a mostrar.\","
     },
     {
       "severity": "WARN",
       "path": "app/routers/scripts_status.py",
-      "line": 1717,
+      "line": 1764,
+      "pattern": "secret_word",
+      "sample": "\"\"\"Rota el token del agente y devuelve el nuevo token una sola vez.\"\"\""
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1766,
+      "pattern": "secret_word",
+      "sample": "token = _automation_agent_new_token()"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1777,
+      "pattern": "secret_word",
+      "sample": "_automation_agent_token_hash(token),"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1778,
+      "pattern": "secret_word",
+      "sample": "_automation_agent_token_prefix(token),"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1785,
+      "pattern": "secret_word",
+      "sample": "_automation_agent_audit(host_name, request, \"agent_token_rotated\", True, {\"token_prefix\": _automation_agent_token_prefix(token)})"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1789,
+      "pattern": "secret_word",
+      "sample": "\"token\": token,"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1790,
+      "pattern": "secret_word",
+      "sample": "\"token_prefix\": _automation_agent_token_prefix(token),"
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1791,
+      "pattern": "secret_word",
+      "sample": "\"warning\": \"Guarda este token ahora; no se volverá a mostrar.\","
+    },
+    {
+      "severity": "WARN",
+      "path": "app/routers/scripts_status.py",
+      "line": 1846,
       "pattern": "secret_word",
       "sample": "- protegida por token global legado o token específico por host;"
     },

@@ -17,6 +17,8 @@ import threading
 import socket
 import secrets
 import hashlib
+from bisect import bisect_left
+from functools import lru_cache
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo
@@ -203,6 +205,7 @@ def _read_status_files() -> list[dict]:
                 data["_status_base_dir"] = str(d)
                 data["_status_host_from_path"] = host_from_path
                 data["_status_source_from_path"] = source_from_path
+                data["_status_mtime_ns"] = f.stat().st_mtime_ns
                 results.append(data)
             except Exception:
                 pass
@@ -326,33 +329,35 @@ def _local_tzinfo():
             return timezone.utc
 
 
-def _cron_field_values(field: str, min_value: int, max_value: int) -> tuple[set[int], bool]:
-    """
-    Devuelve (valores, is_wildcard) para un campo cron.
-    Soporta:
-      *          → cualquier valor
-      */N        → cada N
-      A          → valor exacto
-      A,B,C      → lista
-      A-B        → rango
-      A-B/N      → rango con step
-    """
-    field = (field or "").strip()
-    if not field:
-        return set(), False
+_CRON_SEARCH_DAYS = (366 * 8) + 2
+
+
+def _cron_field_values(
+    field: str,
+    min_value: int,
+    max_value: int,
+    *,
+    sunday_alias: bool = False,
+) -> tuple[frozenset[int], bool]:
+    """Compila un campo cron numérico de forma estricta y cacheable."""
+    raw = str(field or "").strip()
+    if not raw:
+        raise ValueError("Campo cron vacío")
 
     values: set[int] = set()
-    is_wildcard = field == "*"
+    wildcard = raw == "*"
 
-    for raw_part in field.split(","):
+    for raw_part in raw.split(","):
         part = raw_part.strip()
         if not part:
-            continue
+            raise ValueError("Elemento cron vacío")
 
         step = 1
         if "/" in part:
-            base, step_str = part.split("/", 1)
-            step = max(1, int(step_str))
+            base, step_raw = part.split("/", 1)
+            if not step_raw.isdigit() or int(step_raw) <= 0:
+                raise ValueError(f"Paso cron inválido: {part}")
+            step = int(step_raw)
         else:
             base = part
 
@@ -360,40 +365,86 @@ def _cron_field_values(field: str, min_value: int, max_value: int) -> tuple[set[
             start, end = min_value, max_value
         elif "-" in base:
             left, right = base.split("-", 1)
+            if not left.isdigit() or not right.isdigit():
+                raise ValueError(f"Rango cron inválido: {part}")
             start, end = int(left), int(right)
+            if start > end:
+                raise ValueError(f"Rango cron descendente no soportado: {part}")
         else:
+            if not base.isdigit():
+                raise ValueError(f"Valor cron inválido: {part}")
             start = end = int(base)
 
-        start = max(min_value, start)
-        end = min(max_value, end)
-        values.update(range(start, end + 1, step))
+        if start < min_value or end > max_value:
+            raise ValueError(f"Valor cron fuera de rango: {part}")
 
-    return values, is_wildcard
+        for value in range(start, end + 1, step):
+            values.add(0 if sunday_alias and value == 7 else value)
+
+    if not values:
+        raise ValueError("Campo cron sin valores")
+    return frozenset(values), wildcard
 
 
-def _cron_matches(dt_obj: datetime, cron_expr: str) -> bool:
-    """Comprueba si un datetime local coincide con una expresión cron de 5 campos."""
-    parts = (cron_expr or "").split()
+@lru_cache(maxsize=256)
+def _compile_cron(
+    cron_expr: str,
+) -> tuple[
+    tuple[int, ...],
+    frozenset[int],
+    bool,
+    frozenset[int],
+    frozenset[int],
+    bool,
+]:
+    """
+    Compila una expresión cron estándar de cinco campos.
+
+    Mantiene el contrato histórico de Auditor IPs:
+    - domingo acepta 0 y 7;
+    - si día del mes y día de semana están restringidos, se aplica OR;
+    - expresiones informativas no cron se degradan a None en los resolvers.
+    """
+    parts = str(cron_expr or "").split()
     if len(parts) != 5:
+        raise ValueError(
+            f"Expresión cron inválida: se esperaban 5 campos y hay {len(parts)}"
+        )
+
+    minute_values, _minute_any = _cron_field_values(parts[0], 0, 59)
+    hour_values, _hour_any = _cron_field_values(parts[1], 0, 23)
+    dom_values, dom_any = _cron_field_values(parts[2], 1, 31)
+    month_values, _month_any = _cron_field_values(parts[3], 1, 12)
+    dow_values, dow_any = _cron_field_values(
+        parts[4],
+        0,
+        7,
+        sunday_alias=True,
+    )
+
+    minutes_of_day = tuple(
+        (hour * 60) + minute
+        for hour in sorted(hour_values)
+        for minute in sorted(minute_values)
+    )
+    return (
+        minutes_of_day,
+        dom_values,
+        dom_any,
+        month_values,
+        dow_values,
+        dow_any,
+    )
+
+
+def _cron_day_matches(day_value, compiled) -> bool:
+    _minutes, dom_values, dom_any, month_values, dow_values, dow_any = compiled
+    if day_value.month not in month_values:
         return False
 
-    minute_vals, minute_any = _cron_field_values(parts[0], 0, 59)
-    hour_vals, hour_any = _cron_field_values(parts[1], 0, 23)
-    dom_vals, dom_any = _cron_field_values(parts[2], 1, 31)
-    month_vals, month_any = _cron_field_values(parts[3], 1, 12)
-    dow_vals, dow_any = _cron_field_values(parts[4], 0, 7)
-
-    cron_dow = (dt_obj.weekday() + 1) % 7  # lunes=1 ... sábado=6, domingo=0
-
-    if not minute_any and dt_obj.minute not in minute_vals:
-        return False
-    if not hour_any and dt_obj.hour not in hour_vals:
-        return False
-    if not month_any and dt_obj.month not in month_vals:
-        return False
-
-    dom_match = True if dom_any else dt_obj.day in dom_vals
-    dow_match = True if dow_any else (cron_dow in dow_vals or (cron_dow == 0 and 7 in dow_vals))
+    cron_dow = (day_value.weekday() + 1) % 7
+    dom_match = True if dom_any else day_value.day in dom_values
+    dow_match = True if dow_any else cron_dow in dow_values
 
     if dom_any and dow_any:
         return True
@@ -404,59 +455,130 @@ def _cron_matches(dt_obj: datetime, cron_expr: str) -> bool:
     return dom_match or dow_match
 
 
-def _compute_next_run_from_cron(cron_expr: str, now_local: datetime | None = None) -> datetime | None:
-    """
-    Calcula la siguiente ejecución para un cron de 5 campos.
-    Búsqueda minuto a minuto; suficiente para el número pequeño de jobs monitorizados.
-    """
-    if not cron_expr:
-        return None
+def _cron_local_candidates(
+    day_value,
+    minute_of_day: int,
+    tzinfo,
+) -> tuple[datetime, ...]:
+    """Devuelve instantes locales válidos, incluidos ambos folds DST."""
+    hour, minute = divmod(minute_of_day, 60)
+    naive = datetime(
+        day_value.year,
+        day_value.month,
+        day_value.day,
+        hour,
+        minute,
+    )
+    result: list[datetime] = []
+    seen: set[float] = set()
 
+    for fold in (0, 1):
+        candidate = naive.replace(tzinfo=tzinfo, fold=fold)
+        roundtrip = candidate.astimezone(timezone.utc).astimezone(tzinfo)
+        if roundtrip.replace(tzinfo=None) != naive:
+            continue
+        stamp = candidate.timestamp()
+        if stamp in seen:
+            continue
+        seen.add(stamp)
+        result.append(candidate)
+
+    result.sort(key=lambda value: value.timestamp())
+    return tuple(result)
+
+
+def _cron_matches(dt_obj: datetime, cron_expr: str) -> bool:
+    try:
+        compiled = _compile_cron(cron_expr)
+    except (TypeError, ValueError):
+        return False
+    minute_of_day = (dt_obj.hour * 60) + dt_obj.minute
+    return (
+        minute_of_day in compiled[0]
+        and _cron_day_matches(dt_obj.date(), compiled)
+    )
+
+
+def _normalize_cron_now(now_local: datetime | None) -> datetime:
     tzinfo = _local_tzinfo()
     if now_local is None:
-        now_local = datetime.now(tzinfo)
-    else:
-        if now_local.tzinfo is None:
-            now_local = now_local.replace(tzinfo=tzinfo)
-        else:
-            now_local = now_local.astimezone(tzinfo)
+        return datetime.now(tzinfo)
+    if now_local.tzinfo is None:
+        return now_local.replace(tzinfo=tzinfo)
+    return now_local.astimezone(tzinfo)
 
-    candidate = now_local.replace(second=0, microsecond=0) + timedelta(minutes=1)
-    limit = candidate + timedelta(days=370)
 
-    while candidate <= limit:
-        if _cron_matches(candidate, cron_expr):
-            return candidate
-        candidate += timedelta(minutes=1)
+def _compute_next_run_from_cron(
+    cron_expr: str,
+    now_local: datetime | None = None,
+) -> datetime | None:
+    """Calcula la siguiente ejecución sin reinterpretar cada minuto."""
+    try:
+        compiled = _compile_cron(cron_expr)
+    except (TypeError, ValueError):
+        return None
 
+    now_local = _normalize_cron_now(now_local)
+    minutes_of_day = compiled[0]
+    current_minute = (now_local.hour * 60) + now_local.minute
+
+    for day_offset in range(_CRON_SEARCH_DAYS + 1):
+        day_value = now_local.date() + timedelta(days=day_offset)
+        if not _cron_day_matches(day_value, compiled):
+            continue
+
+        start_index = (
+            bisect_left(minutes_of_day, current_minute)
+            if day_offset == 0
+            else 0
+        )
+        for minute_of_day in minutes_of_day[start_index:]:
+            if day_offset == 0 and minute_of_day <= current_minute:
+                continue
+            for candidate in _cron_local_candidates(
+                day_value,
+                minute_of_day,
+                now_local.tzinfo,
+            ):
+                if candidate > now_local:
+                    return candidate
     return None
 
 
-def _compute_previous_run_from_cron(cron_expr: str, now_local: datetime | None = None) -> datetime | None:
-    """
-    Calcula la ejecución esperada anterior para un cron de 5 campos.
-    Se usa para derivar missed sin depender de monitor_watchdog.sh.
-    """
-    if not cron_expr:
+def _compute_previous_run_from_cron(
+    cron_expr: str,
+    now_local: datetime | None = None,
+) -> datetime | None:
+    """Calcula la ejecución anterior con saltos por fecha programada."""
+    try:
+        compiled = _compile_cron(cron_expr)
+    except (TypeError, ValueError):
         return None
 
-    tzinfo = _local_tzinfo()
-    if now_local is None:
-        now_local = datetime.now(tzinfo)
-    else:
-        if now_local.tzinfo is None:
-            now_local = now_local.replace(tzinfo=tzinfo)
-        else:
-            now_local = now_local.astimezone(tzinfo)
+    now_local = _normalize_cron_now(now_local)
+    minutes_of_day = compiled[0]
+    current_minute = (now_local.hour * 60) + now_local.minute
 
-    candidate = now_local.replace(second=0, microsecond=0) - timedelta(minutes=1)
-    limit = candidate - timedelta(days=370)
+    for day_offset in range(_CRON_SEARCH_DAYS + 1):
+        day_value = now_local.date() - timedelta(days=day_offset)
+        if not _cron_day_matches(day_value, compiled):
+            continue
 
-    while candidate >= limit:
-        if _cron_matches(candidate, cron_expr):
-            return candidate
-        candidate -= timedelta(minutes=1)
-
+        end_index = (
+            bisect_left(minutes_of_day, current_minute)
+            if day_offset == 0
+            else len(minutes_of_day)
+        )
+        for minute_of_day in reversed(minutes_of_day[:end_index]):
+            for candidate in reversed(
+                _cron_local_candidates(
+                    day_value,
+                    minute_of_day,
+                    now_local.tzinfo,
+                )
+            ):
+                if candidate < now_local:
+                    return candidate
     return None
 
 
@@ -509,40 +631,25 @@ def _status_file_mtime_dt(item: dict) -> datetime | None:
 def _controlled_stop_active_row(host_name: str, script_name: str):
     try:
         with db() as conn:
-            conn.execute("""
-            CREATE TABLE IF NOT EXISTS script_controlled_stops (
-                id           INTEGER PRIMARY KEY AUTOINCREMENT,
-                host_name    TEXT    NOT NULL DEFAULT 'Local',
-                script_name  TEXT    NOT NULL,
-                reason       TEXT    NOT NULL DEFAULT '',
-                control_type TEXT    NOT NULL DEFAULT 'controlled_incident',
-                created_at   TEXT    NOT NULL,
-                observed_start_time TEXT NOT NULL DEFAULT '',
-                cleared_at   TEXT,
-                cleared_reason TEXT NOT NULL DEFAULT ''
-            )
-            """)
-            try:
-                cols = [r["name"] for r in conn.execute("PRAGMA table_info(script_controlled_stops)").fetchall()]
-                if "observed_start_time" not in cols:
-                    conn.execute("ALTER TABLE script_controlled_stops ADD COLUMN observed_start_time TEXT NOT NULL DEFAULT ''")
-                if "control_type" not in cols:
-                    conn.execute("ALTER TABLE script_controlled_stops ADD COLUMN control_type TEXT NOT NULL DEFAULT 'controlled_incident'")
-            except Exception:
-                pass
-
             return conn.execute(
                 """
-                SELECT id, host_name, script_name, reason, control_type, created_at, observed_start_time
+                SELECT id, host_name, script_name, reason, control_type,
+                       created_at, observed_start_time
                 FROM script_controlled_stops
                 WHERE host_name=? AND script_name=? AND cleared_at IS NULL
                 ORDER BY id DESC
                 LIMIT 1
                 """,
-                (_alert_host_name(host_name), str(script_name or "").strip()),
+                (
+                    _alert_host_name(host_name),
+                    str(script_name or "").strip(),
+                ),
             ).fetchone()
     except Exception:
         return None
+
+
+_CONTROLLED_STOP_LOOKUP = object()
 
 
 def _clear_controlled_stop(host_name: str, script_name: str, reason: str) -> None:
@@ -752,7 +859,10 @@ def _item_controlled_stop_start_key(item: dict) -> str:
     return str(item.get("start_time") or item.get("last_run") or "").strip()
 
 
-def _apply_controlled_stop_override(item: dict) -> bool:
+def _apply_controlled_stop_override(
+    item: dict,
+    active_row=_CONTROLLED_STOP_LOOKUP,
+) -> bool:
     """
     Aplica una parada controlada activa como override seguro.
 
@@ -768,7 +878,11 @@ def _apply_controlled_stop_override(item: dict) -> bool:
         return False
 
     host_name = _alert_host_name(item.get("host_name") or item.get("cfg_host_name") or "Local")
-    row = _controlled_stop_active_row(host_name, script_name)
+    row = (
+        _controlled_stop_active_row(host_name, script_name)
+        if active_row is _CONTROLLED_STOP_LOOKUP
+        else active_row
+    )
     if not row:
         return False
 
@@ -881,7 +995,10 @@ def _apply_internal_watchdog_state(item: dict) -> None:
         )
 
 
-def _resolve_next_run(item: dict) -> tuple[str | None, str | None, str | None]:
+def _resolve_next_run(
+    item: dict,
+    cfg_entry: dict | None = None,
+) -> tuple[str | None, str | None, str | None]:
     """
     Devuelve (next_run, cron_expr, cron_source).
     Prioriza cron_expr real si existe; si no, usa expected_start como fallback legado.
@@ -893,17 +1010,29 @@ def _resolve_next_run(item: dict) -> tuple[str | None, str | None, str | None]:
     if cron_expr:
         cron_source = "status_json"
     else:
-        try:
-            with db() as _conn:
-                row = _conn.execute(
-                    "SELECT cron_expr, cron_source FROM monitored_scripts WHERE script_name=?",
-                    (name,),
-                ).fetchone()
-            if row and str(row["cron_expr"] or "").strip():
-                cron_expr = str(row["cron_expr"] or "").strip()
-                cron_source = str(row["cron_source"] or "").strip() or "config_ui"
-        except Exception:
-            pass
+        if cfg_entry is not None:
+            if str(cfg_entry.get("cron_expr") or "").strip():
+                cron_expr = str(cfg_entry.get("cron_expr") or "").strip()
+                cron_source = (
+                    str(cfg_entry.get("cron_source") or "").strip()
+                    or "config_ui"
+                )
+        else:
+            try:
+                with db() as _conn:
+                    row = _conn.execute(
+                        "SELECT cron_expr, cron_source "
+                        "FROM monitored_scripts WHERE script_name=?",
+                        (name,),
+                    ).fetchone()
+                if row and str(row["cron_expr"] or "").strip():
+                    cron_expr = str(row["cron_expr"] or "").strip()
+                    cron_source = (
+                        str(row["cron_source"] or "").strip()
+                        or "config_ui"
+                    )
+            except Exception:
+                pass
 
         if not cron_expr:
             override = _SCRIPT_CRON_OVERRIDES.get(name)
@@ -1779,24 +1908,187 @@ async def automation_agent_status(request: Request):
 # Endpoints — scripts
 # ─────────────────────────────────────────────────────────────────────────────
 
-@router.get("/api/scripts/status")
-def get_scripts_status():
-    items = _read_status_files()
-    result = []
+def _load_monitored_scripts_config() -> tuple[dict[str, dict], dict[str, int]]:
+    """Carga una sola vez la configuración y el orden de scripts activos."""
+    with db() as conn:
+        rows = conn.execute(
+            """
+            SELECT script_name, label, color, active,
+                   COALESCE(cron_expr, '') AS cron_expr,
+                   COALESCE(cron_source, '') AS cron_source,
+                   COALESCE(host_name, '') AS host_name,
+                   COALESCE(host_source, '') AS host_source
+            FROM monitored_scripts
+            ORDER BY sort_order ASC, id ASC
+            """
+        ).fetchall()
+
+    cfg_map: dict[str, dict] = {}
+    active_order: dict[str, int] = {}
+    for row in rows:
+        name = str(row[0] or "").strip()
+        if not name:
+            continue
+        cfg = {
+            "label": row[1],
+            "color": row[2],
+            "active": bool(row[3]),
+            "cron_expr": row[4],
+            "cron_source": row[5],
+            "host_name": row[6],
+            "host_source": row[7],
+        }
+        cfg_map[name] = cfg
+        if cfg["active"]:
+            active_order[name] = len(active_order)
+    return cfg_map, active_order
+
+
+def _status_source_authority(item: dict) -> int:
+    """Prioridad de procedencia para copias del mismo estado lógico."""
+    source = str(item.get("host_source") or "").strip().lower()
+    return {
+        "agent_api": 30,
+        "status_dir_subdir": 20,
+        "config_ui": 10,
+        "local_status_dir": 0,
+    }.get(source, 5)
+
+
+def _status_item_freshness(item: dict) -> tuple[int, float, int, int]:
+    """
+    Ordena por frescura lógica y procedencia.
+
+    Con timestamp lógico, la fecha decide primero; si dos copias publican el
+    mismo estado, prevalece el origen estructurado/agente y mtime solo rompe
+    el último empate. Sin timestamp lógico, mtime conserva su papel de señal
+    de frescura y la procedencia desempata.
+    """
+    try:
+        mtime_ns = int(item.get("_status_mtime_ns") or 0)
+    except Exception:
+        mtime_ns = 0
+    source_authority = _status_source_authority(item)
+
+    logical_raw = str(
+        item.get("updated_at")
+        or item.get("heartbeat")
+        or item.get("last_heartbeat")
+        or item.get("end_time")
+        or ""
+    ).strip()
+    logical_dt = _parse_dt_safe(logical_raw)
+    if logical_dt is not None:
+        try:
+            return (
+                2,
+                logical_dt.timestamp(),
+                source_authority,
+                mtime_ns,
+            )
+        except Exception:
+            pass
+    return 1, float(mtime_ns), source_authority, 0
+
+
+def _prepare_status_items(
+    items: list[dict],
+    cfg_map: dict[str, dict],
+    active_order: dict[str, int],
+) -> list[dict]:
+    """Filtra y deduplica antes de cron, watchdog y consultas por item."""
+    dedup: dict[str, dict] = {}
+
     for item in items:
         name = _script_name_from_file(item.get("_file", ""))
+        cfg = cfg_map.get(name, {})
+        if cfg_map and name not in active_order:
+            continue
+
         item["name"] = name
         host_name, host_source = _status_host_meta(item)
+        preserve_real_host = host_source in (
+            "status_dir_subdir",
+            "agent_api",
+        )
+        if not preserve_real_host and cfg.get("host_name"):
+            host_name = str(cfg["host_name"])
+        if not preserve_real_host and cfg.get("host_source"):
+            host_source = str(cfg["host_source"])
+
         item["host_name"] = host_name
         item["host_source"] = host_source
-        item["instance_key"] = f"{host_name}::{name}"
+        item["cfg_color"] = cfg.get("color", "")
+        item["cfg_label"] = cfg.get("label", "") or name
+        item["cfg_cron_expr"] = cfg.get("cron_expr", "")
+        item["cfg_cron_source"] = cfg.get("cron_source", "")
+        item["cfg_host_name"] = cfg.get("host_name", "")
+        item["cfg_host_source"] = cfg.get("host_source", "")
+        item["instance_key"] = f"{host_name or 'Local'}::{name}"
+        item["_perf01_cfg"] = cfg
 
-        # ── Normalizar campos reales del .status.json ──────────────────────
-        # Los scripts usan: status, start_time, end_time, error, error_messages
-        # El frontend espera: state, last_run, next_run, errors
+        key = item["instance_key"]
+        previous = dedup.get(key)
+        if (
+            previous is None
+            or _status_item_freshness(item)
+            > _status_item_freshness(previous)
+        ):
+            dedup[key] = item
 
-        # state — normalizar estados publicados por scripts externos.
-        # Algunos wrappers publican state/status=success; la UI usa ok/error/running/etc.
+    prepared = list(dedup.values())
+    prepared.sort(
+        key=lambda item: (
+            active_order.get(str(item.get("name") or ""), 9999),
+            str(item.get("host_name") or ""),
+        )
+    )
+    return prepared
+
+
+def _controlled_stop_active_map() -> dict[tuple[str, str], object]:
+    try:
+        with db() as conn:
+            rows = conn.execute(
+                """
+                SELECT id, host_name, script_name, reason, control_type,
+                       created_at, observed_start_time
+                FROM script_controlled_stops
+                WHERE cleared_at IS NULL
+                ORDER BY id DESC
+                """
+            ).fetchall()
+        active: dict[tuple[str, str], object] = {}
+        for row in rows:
+            key = (
+                _alert_host_name(row["host_name"]),
+                str(row["script_name"] or "").strip(),
+            )
+            active.setdefault(key, row)
+        return active
+    except Exception:
+        return {}
+
+
+@router.get("/api/scripts/status")
+def get_scripts_status():
+    try:
+        cfg_map, active_order = _load_monitored_scripts_config()
+    except Exception:
+        cfg_map, active_order = {}, {}
+
+    items = _prepare_status_items(
+        _read_status_files(),
+        cfg_map,
+        active_order,
+    )
+    controlled_stops = _controlled_stop_active_map()
+    result = []
+
+    for item in items:
+        name = str(item.get("name") or "")
+        cfg = item.pop("_perf01_cfg", {})
+
         raw_state = str(item.get("state") or "").strip().lower()
         raw_status = str(item.get("status") or "").strip().lower()
         effective_status = raw_state or raw_status
@@ -1804,8 +2096,11 @@ def get_scripts_status():
 
         if effective_status in ("running", "started"):
             item["state"] = "running"
-        elif effective_status in ("missed", "stalled", "controlled_stop"):
-            # Mantener estados específicos: la UI los representa de forma diferenciada.
+        elif effective_status in (
+            "missed",
+            "stalled",
+            "controlled_stop",
+        ):
             item["state"] = effective_status
         elif effective_status in ("failed", "error"):
             item["state"] = "error"
@@ -1814,28 +2109,37 @@ def get_scripts_status():
         elif ec is not None and ec != 0:
             item["state"] = "error"
         elif ec == 0:
-            # exit_code 0 = OK aunque "error": true pueda contener avisos de log.
             item["state"] = "ok"
         else:
             item["state"] = "unknown"
 
-        # last_run — usar start_time si no hay last_run
         if not item.get("last_run") and item.get("start_time"):
             item["last_run"] = item["start_time"]
 
-        # end_time — si falta pero tenemos start + duration, derivarlo.
-        if not item.get("end_time") and item.get("start_time") and item.get("duration_seconds") is not None:
+        if (
+            not item.get("end_time")
+            and item.get("start_time")
+            and item.get("duration_seconds") is not None
+        ):
             try:
-                start_dt = datetime.fromisoformat(str(item["start_time"]))
-                end_dt = start_dt + timedelta(seconds=int(item["duration_seconds"]))
-                item["end_time"] = end_dt.strftime("%Y-%m-%d %H:%M:%S")
+                start_dt = datetime.fromisoformat(
+                    str(item["start_time"])
+                )
+                end_dt = start_dt + timedelta(
+                    seconds=int(item["duration_seconds"])
+                )
+                item["end_time"] = end_dt.strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
             except Exception:
                 pass
 
-        # next_run — priorizar cron real (status_json / overrides) y
-        # dejar expected_start solo como fallback legado.
         if not item.get("next_run"):
-            resolved_next_run, cron_expr, cron_source = _resolve_next_run(item)
+            (
+                resolved_next_run,
+                cron_expr,
+                cron_source,
+            ) = _resolve_next_run(item, cfg)
             if resolved_next_run:
                 item["next_run"] = resolved_next_run
             if cron_expr:
@@ -1843,95 +2147,38 @@ def get_scripts_status():
             if cron_source:
                 item["cron_source"] = cron_source
 
-        if not _apply_controlled_stop_override(item):
+        controlled_key = (
+            _alert_host_name(
+                item.get("host_name")
+                or item.get("cfg_host_name")
+                or "Local"
+            ),
+            name,
+        )
+        if not _apply_controlled_stop_override(
+            item,
+            controlled_stops.get(controlled_key),
+        ):
             _apply_internal_watchdog_state(item)
 
-        # errors — usar error_messages, pero filtrar avisos internos del monitor
-        # que no son errores reales (aparecen aunque exit_code=0)
-        _MONITOR_NOISE = (
+        monitor_noise = (
             "[MONITOR] WARN:",
             "[MONITOR] ERROR: Ejecución completada con alertas",
         )
-        raw_errors = item.get("error_messages", item.get("errors", []))
-        real_errors = [
-            e for e in raw_errors
-            if not any(str(e).startswith(n) for n in _MONITOR_NOISE)
+        raw_errors = item.get(
+            "error_messages",
+            item.get("errors", []),
+        )
+        item["errors"] = [
+            error
+            for error in raw_errors
+            if not any(
+                str(error).startswith(noise)
+                for noise in monitor_noise
+            )
         ]
-        item["errors"] = real_errors
-
+        item.pop("_status_mtime_ns", None)
         result.append(item)
-
-    # ── Enriquecer con cfg_color, cfg_label y filtrar por monitored_scripts (S19) ──
-    try:
-        with db() as _conn:
-            cfg_rows = _conn.execute(
-                "SELECT script_name, label, color, active, "
-                "COALESCE(cron_expr, '') AS cron_expr, COALESCE(cron_source, '') AS cron_source, "
-                "COALESCE(host_name, '') AS host_name, COALESCE(host_source, '') AS host_source "
-                "FROM monitored_scripts ORDER BY sort_order ASC, id ASC"
-            ).fetchall()
-        cfg_map = {
-            r[0]: {
-                "label": r[1],
-                "color": r[2],
-                "active": r[3],
-                "cron_expr": r[4],
-                "cron_source": r[5],
-                "host_name": r[6],
-                "host_source": r[7],
-            }
-            for r in cfg_rows
-        }
-        # Si hay scripts configurados, filtrar solo los activos y respetar su orden
-        if cfg_map:
-            active_names = [name for name, v in cfg_map.items() if v["active"]]
-            active_order = {name: i for i, name in enumerate(active_names)}
-            # Filtrar activos sin colapsar duplicados por host.
-            result = [s for s in result if s.get("name") in active_order]
-            result.sort(key=lambda s: (active_order.get(s.get("name"), 9999), str(s.get("host_name") or "")))
-        # Añadir cfg_color y cfg_label a cada script del resultado
-        for s in result:
-            cfg = cfg_map.get(s["name"], {})
-            s["cfg_color"] = cfg.get("color", "")
-            s["cfg_label"] = cfg.get("label", "") or s["name"]
-            s["cfg_cron_expr"] = cfg.get("cron_expr", "")
-            s["cfg_cron_source"] = cfg.get("cron_source", "")
-            # Si el host viene de subdirectorio o agente, preservarlo; representa un origen real.
-            preserve_real_host = s.get("host_source") in ("status_dir_subdir", "agent_api")
-            if not preserve_real_host and cfg.get("host_name"):
-                s["host_name"] = cfg.get("host_name")
-            if not preserve_real_host and cfg.get("host_source"):
-                s["host_source"] = cfg.get("host_source")
-            s["cfg_host_name"] = cfg.get("host_name", "")
-            s["cfg_host_source"] = cfg.get("host_source", "")
-            s["instance_key"] = f"{s.get('host_name') or 'Local'}::{s.get('name') or ''}"
-    except Exception:
-        # Degradación elegante: si falla la BD, los scripts se muestran sin color/etiqueta
-        pass
-
-    # Deduplicar estados físicos duplicados del mismo script lógico.
-    # Caso típico: copia espejo en raíz + copia estructurada por host/script.
-    # La identidad funcional de Automatizaciones es host_name + script_name.
-    dedup = {}
-    for _item in result:
-        _key = _item.get("instance_key") or f"{_item.get('host_name') or 'Local'}::{_item.get('name') or _item.get('script_name') or ''}"
-        if _key not in dedup:
-            dedup[_key] = _item
-            continue
-
-        _prev = dedup[_key]
-        _prev_ts = str(_prev.get("updated_at") or _prev.get("heartbeat") or _prev.get("last_heartbeat") or _prev.get("end_time") or "")
-        _new_ts = str(_item.get("updated_at") or _item.get("heartbeat") or _item.get("last_heartbeat") or _item.get("end_time") or "")
-        if _new_ts > _prev_ts:
-            dedup[_key] = _item
-
-    result = list(dedup.values())
-
-    # Reaplicar parada controlada al final: el enriquecimiento de configuración puede
-    # reconstruir o pisar campos de estado. Este segundo pase garantiza el estado efectivo.
-    for _item in result:
-        if not _item.get("controlled_stop"):
-            _apply_controlled_stop_override(_item)
 
     return result
 

@@ -11,11 +11,13 @@ No consulta servicios remotos pesados.
 
 from __future__ import annotations
 
+import copy
 import json
 import os
 import platform
 import shutil
 import sqlite3
+import threading
 import time
 from datetime import datetime, timezone, timedelta
 from typing import Any, Dict
@@ -30,6 +32,16 @@ router = APIRouter()
 
 _STARTED_MONOTONIC = time.monotonic()
 _STARTED_AT = datetime.now(timezone.utc)
+_HEALTH_CACHE_LOCK = threading.Lock()
+_HEALTH_CACHE: tuple[float, Dict[str, Any]] | None = None
+
+
+def _health_cache_seconds() -> float:
+    try:
+        value = float(cfg("performance_health_cache_seconds", "15") or 15)
+    except Exception:
+        value = 15.0
+    return max(0.0, min(60.0, value))
 
 
 def _utc_now_iso() -> str:
@@ -937,21 +949,47 @@ def api_system_healthz():
     return JSONResponse(payload, status_code=200 if ok else 503)
 
 
-@router.get("/api/system/health")
-def api_system_health():
-    """Estado básico protegido para el futuro panel de salud interno."""
+def _build_system_health_payload() -> Dict[str, Any]:
     database = _db_check()
     storage = _storage_check()
     backups = _backup_check()
     scheduler = _scheduler_check()
     scans = _scan_check()
-    quality = _quality_check() if module_enabled("quality") else _disabled_module_check("quality")
-    services = _services_check() if module_enabled("services") else _disabled_module_check("services")
-    automations = _automations_check() if module_enabled("automation") else _disabled_module_check("automation")
-    agents = _agents_check() if module_enabled("agents") else _disabled_module_check("agents")
-    syncthing = _syncthing_check() if module_enabled("syncthing") else _disabled_module_check("syncthing")
-    ai = _ai_check() if module_enabled("ai") else _disabled_module_check("ai")
-    notifications = _notifications_check() if module_enabled("notifications") else _disabled_module_check("notifications")
+    quality = (
+        _quality_check()
+        if module_enabled("quality")
+        else _disabled_module_check("quality")
+    )
+    services = (
+        _services_check()
+        if module_enabled("services")
+        else _disabled_module_check("services")
+    )
+    automations = (
+        _automations_check()
+        if module_enabled("automation")
+        else _disabled_module_check("automation")
+    )
+    agents = (
+        _agents_check()
+        if module_enabled("agents")
+        else _disabled_module_check("agents")
+    )
+    syncthing = (
+        _syncthing_check()
+        if module_enabled("syncthing")
+        else _disabled_module_check("syncthing")
+    )
+    ai = (
+        _ai_check()
+        if module_enabled("ai")
+        else _disabled_module_check("ai")
+    )
+    notifications = (
+        _notifications_check()
+        if module_enabled("notifications")
+        else _disabled_module_check("notifications")
+    )
 
     parts = {
         "database": database,
@@ -975,3 +1013,31 @@ def api_system_health():
         "app": _app_info(),
         **parts,
     }
+
+
+@router.get("/api/system/health")
+def api_system_health():
+    """Estado protegido con caché breve para evitar ráfagas equivalentes."""
+    global _HEALTH_CACHE
+
+    ttl = _health_cache_seconds()
+    now_monotonic = time.monotonic()
+
+    if ttl > 0:
+        with _HEALTH_CACHE_LOCK:
+            if (
+                _HEALTH_CACHE is not None
+                and (now_monotonic - _HEALTH_CACHE[0]) < ttl
+            ):
+                return copy.deepcopy(_HEALTH_CACHE[1])
+
+    payload = _build_system_health_payload()
+
+    if ttl > 0:
+        with _HEALTH_CACHE_LOCK:
+            _HEALTH_CACHE = (
+                time.monotonic(),
+                copy.deepcopy(payload),
+            )
+
+    return payload

@@ -1,27 +1,46 @@
-# Actualización
+# Actualización y rollback
 
-## Flujo recomendado
+## Upgrade recomendado
 
-Antes de actualizar:
-
-1. Haz backup de `data/`.
-2. Revisa cambios en `.env.example` y `docker-compose.yml.example`.
-3. Actualiza el repositorio.
-4. Reconstruye el contenedor.
-5. Valida `/api/system/healthz`.
-
-Ejemplo:
+Desde la instalación existente:
 
 ```bash
-git pull --ff-only
-docker compose build
-docker compose up -d
-curl -k https://127.0.0.1:9909/api/system/healthz
+./install.sh --upgrade
 ```
+
+El asistente:
+
+1. lee la configuración local;
+2. crea un backup SQLite consistente mediante la API de SQLite;
+3. ejecuta `PRAGMA quick_check`;
+4. guarda `.env`, Compose, estado y hashes;
+5. registra el commit anterior;
+6. actualiza el repositorio con `pull --ff-only`;
+7. reconcilia la nueva plantilla Compose;
+8. reconstruye y arranca;
+9. exige `healthz` y TLS válidos;
+10. conserva el backup para rollback.
+
+## Compose modificado manualmente
+
+Si `docker-compose.yml` no coincide con el generado por el instalador, el upgrade interactivo permite:
+
+- conservarlo;
+- regenerarlo;
+- cancelar.
+
+El modo `--yes` se detiene ante cambios manuales para evitar perderlos.
+
+## Rollback
+
+```bash
+./install.sh --rollback
+```
+
+Valida primero el manifiesto, los hashes y `PRAGMA quick_check`. Después restaura `.env`, Compose y la base SQLite mediante reemplazo atómico; si el fichero o directorio pertenece al contenedor, utiliza un contenedor auxiliar con los volúmenes persistentes. Solo entonces restaura el commit anterior y vuelve a validar health y TLS.
 
 ## Precauciones
 
-- No sobrescribas `.env` sin revisar.
-- No borres `data/`.
-- Conserva backups antes de limpiezas o migraciones.
-- Revisa el changelog antes de actualizar instalaciones en uso.
+- Conserva backups fuera del servidor.
+- No borres `upgrade_backups/` hasta validar la nueva versión.
+- No actualices editando directamente ficheros bajo `app/`.

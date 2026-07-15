@@ -1,11 +1,11 @@
 # Revisión de snapshot público
 
-Este snapshot ha sido generado de forma local y no ha sido publicado.
+Este fichero registra la revisión previa del snapshot que sirve como base de publicación.
 
 ## Resultado del escaneo ligero
 
 - Hallazgos HIGH: 0
-- Hallazgos WARN: 315
+- Hallazgos WARN: 319
 
 Los hallazgos WARN pueden corresponder a documentación o nombres de variables.
 Los hallazgos HIGH deben bloquear la publicación hasta revisión.
@@ -18,19 +18,16 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - Confirmar que no hay rutas internas privadas.
 - Confirmar que no hay `.env`, bases de datos, logs, dumps ni backups.
 - Ejecutar gitleaks/trufflehog sobre el snapshot final.
-- Decidir licencia y política de contribución antes de publicar.
+- Confirmar licencia y política de contribución.
 
 ## Hallazgos
 
-- `WARN` `README.md:149` `secret_word` — 3. Copia el token mostrado una sola vez.
-- `WARN` `README.md:156` `secret_word` — --token-file /ruta/segura/token.txt \
-- `WARN` `README.md:203` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
 - `WARN` `app/host_classification.py:175` `secret_word` — for token in tokens:
 - `WARN` `app/host_classification.py:176` `secret_word` — token_norm = _norm_text(token)
 - `WARN` `app/host_classification.py:177` `secret_word` — token_compact = _compact_text(token)
 - `WARN` `app/host_classification.py:179` `secret_word` — return token
 - `WARN` `app/host_classification.py:181` `secret_word` — return token
-- `WARN` `app/config.py:163` `localhost_url` — "ai_ollama_url":       os.getenv("OLLAMA_URL",     "http://localhost:11434"),
+- `WARN` `app/config.py:168` `localhost_url` — "ai_ollama_url":       os.getenv("OLLAMA_URL",     "http://localhost:11434"),
 - `WARN` `app/device_enrichment.py:92` `secret_word` — elif any(token in os_text for token in ["windows 11", "windows 10", "windows 8", "windows 7", "microsoft windows"]):
 - `WARN` `app/main.py:239` `secret_word` — token = request.cookies.get(SESSION_COOKIE)
 - `WARN` `app/main.py:241` `secret_word` — username = validate_session(DB_PATH, token) if auth_enabled(DB_PATH) else None
@@ -73,7 +70,17 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/auth_middleware.py:266` `secret_word` — token_prefix = str(item.get("token") or "")[:8]
 - `WARN` `app/auth_middleware.py:268` `secret_word` — # Compatibilidad frontend: auth.js usa s.token.substring(0,8).
 - `WARN` `app/auth_middleware.py:269` `secret_word` — item["token"] = token_prefix
-- `WARN` `app/database.py:285` `secret_word` — api_key TEXT NOT NULL DEFAULT '',
+- `WARN` `app/database.py:316` `secret_word` — api_key TEXT NOT NULL DEFAULT '',
+- `WARN` `scripts/test_public_installer_contracts.py:134` `secret_word` — for token in (
+- `WARN` `scripts/test_public_installer_contracts.py:139` `secret_word` — if token not in shell_text:
+- `WARN` `scripts/test_public_installer_contracts.py:140` `secret_word` — errors.append(f"install_sh_missing_dependency_safety:{token}")
+- `WARN` `scripts/test_public_installer_contracts.py:156` `secret_word` — "ADMIN_PASSWORD_HASH": "legacy admin password environment variable",
+- `WARN` `scripts/test_public_installer_contracts.py:162` `secret_word` — for token, description in forbidden.items():
+- `WARN` `scripts/test_public_installer_contracts.py:163` `secret_word` — if token in public_text:
+- `WARN` `scripts/test_public_installer_contracts.py:164` `secret_word` — errors.append(f"forbidden:{description}:{token}")
+- `WARN` `scripts/test_public_installer_contracts.py:179` `secret_word` — for token in (
+- `WARN` `scripts/test_public_installer_contracts.py:191` `secret_word` — if token not in installer_text:
+- `WARN` `scripts/test_public_installer_contracts.py:192` `secret_word` — errors.append(f"installer_missing_security_contract:{token}")
 - `WARN` `scripts/install_auditor_agent.py:40` `localhost_url` — AUDITOR_URL="${AUDITOR_URL:-https://127.0.0.1:9909}"
 - `WARN` `scripts/install_auditor_agent.py:81` `secret_word` — url, token, host, script, status, exit_code, now, duration, progress, step_label, log_json, verify_tls = sys.argv[1:]
 - `WARN` `scripts/install_auditor_agent.py:100` `secret_word` — "Authorization": "Bearer " + token,
@@ -101,40 +108,37 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `scripts/install_auditor_agent.py:400` `secret_word` — token = read_token(args)
 - `WARN` `scripts/install_auditor_agent.py:416` `secret_word` — config_file, helper_path = write_config(args, server_url, host_name, token)
 - `WARN` `scripts/install_auditor_agent.py:421` `secret_word` — send_test_status(server_url, host_name, token, args.verify_tls)
-- `WARN` `scripts/install_auditor.py:124` `secret_word` — if any(token in raw for token in ["debian", "ubuntu", "linuxmint", "raspbian"]):
-- `WARN` `scripts/install_auditor.py:126` `secret_word` — if any(token in raw for token in ["arch", "manjaro", "endeavouros"]):
-- `WARN` `scripts/install_auditor.py:436` `secret_word` — for token in re.split(r"\s+", payload):
-- `WARN` `scripts/install_auditor.py:437` `secret_word` — token = token.strip()
-- `WARN` `scripts/install_auditor.py:438` `secret_word` — if _is_ip_address(token):
-- `WARN` `scripts/install_auditor.py:439` `secret_word` — dns.append(token)
-- `WARN` `scripts/install_auditor.py:447` `secret_word` — for token in re.split(r"[,\s]+", payload):
-- `WARN` `scripts/install_auditor.py:448` `secret_word` — domain = _clean_dns_domain(token)
-- `WARN` `scripts/install_auditor.py:829` `localhost_url` — f"curl -k https://127.0.0.1:{effective_port}/api/system/healthz",
-- `WARN` `scripts/install_auditor.py:993` `localhost_url` — f"curl -k https://127.0.0.1:{port}/api/system/healthz",
-- `WARN` `scripts/install_auditor.py:1089` `localhost_url` — healthz_url = f"https://127.0.0.1:{port}/api/system/healthz"
+- `WARN` `scripts/install_auditor.py:165` `secret_word` — if any(token in raw for token in ("debian", "ubuntu", "linuxmint", "raspbian")):
+- `WARN` `scripts/install_auditor.py:167` `secret_word` — if any(token in raw for token in ("arch", "manjaro", "endeavouros")):
+- `WARN` `scripts/install_auditor.py:511` `secret_word` — for token in re.split(r"[,\s]+", payload):
+- `WARN` `scripts/install_auditor.py:512` `secret_word` — token = token.strip()
+- `WARN` `scripts/install_auditor.py:513` `secret_word` — if not token:
+- `WARN` `scripts/install_auditor.py:517` `secret_word` — target.append(str(ipaddress.ip_address(token)))
+- `WARN` `scripts/install_auditor.py:521` `secret_word` — domain = clean_dns_search_domain(token)
+- `WARN` `scripts/install_auditor.py:888` `localhost_url` — url = f"https://127.0.0.1:{port}/api/system/healthz"
+- `WARN` `scripts/install_auditor.py:969` `secret_word` — "config": {key: value for key, value in config.items() if not any(token in key.lower() for token in ("password", "token", "secret", "webhook", "key"))},
+- `WARN` `scripts/install_auditor.py:1370` `secret_word` — r"(?:password|passwd|secret|token|webhook|api[_-]?key|apikey|authorization|private[_-]?key)",
+- `WARN` `scripts/install_auditor.py:1399` `secret_word` — r"(?im)\b(password|passwd|secret|token|webhook|api[_-]?key|apikey|private[_-]?key)"
+- `WARN` `scripts/install_auditor.py:1483` `localhost_url` — f"https://127.0.0.1:{port}/api/system/healthz",
+- `WARN` `scripts/install_auditor.py:1502` `secret_word` — for secret in secret_values:
+- `WARN` `scripts/install_auditor.py:1503` `secret_word` — if secret and secret in content:
 - `WARN` `scripts/smoke_system_health.sh:15` `localhost_url` — #   AUDITOR_BASE_URL=https://127.0.0.1:9909 ./LOCAL/scripts/smoke_system_health.sh
 - `WARN` `scripts/smoke_system_health.sh:18` `localhost_url` — BASE_URL="${AUDITOR_BASE_URL:-${1:-https://127.0.0.1:9909}}"
 - `WARN` `scripts/smoke_system_health.sh:153` `secret_word` — "password": os.environ.get("AUDITOR_SMOKE_PASS", ""),
-- `WARN` `docs/INSTALL.md:52` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
-- `WARN` `docs/INSTALL.md:71` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
-- `WARN` `docs/INSTALL.md:77` `localhost_url` — AUDITOR_BASE_URL=https://127.0.0.1:9909 scripts/smoke_system_health.sh
-- `WARN` `docs/TROUBLESHOOTING.md:21` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
 - `WARN` `docs/SCRIPTS_INTEGRATION.md:33` `internal_path` — /SERVER/Logs_scripts_General/
 - `WARN` `docs/SCRIPTS_INTEGRATION.md:43` `internal_path` — /SERVER/Logs_scripts_General/backup_immich_windows.status.json
 - `WARN` `docs/SCRIPTS_INTEGRATION.md:47` `internal_path` — /SERVER/Logs_scripts_General/SERVERCENTRALWI/backup_immich_windows/backup_immich_windows.status.json
 - `WARN` `docs/SCRIPTS_INTEGRATION.md:375` `internal_path` — python3 -m json.tool /SERVER/Logs_scripts_General/<script_name>.status.json
 - `WARN` `docs/SCRIPTS_INTEGRATION.md:423` `internal_path` — /SERVER/Logs_scripts_General/backup_immich_windows.status.json
 - `WARN` `docs/SCRIPTS_INTEGRATION.md:424` `internal_path` — /SERVER/Logs_scripts_General/SERVERCENTRALWI/backup_immich_windows/backup_immich_windows.status.json
-- `WARN` `docs/BACKUP_RESTORE.md:30` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
-- `WARN` `docs/USER_MANUAL.md:419` `secret_word` — 4. Copiar el token generado.
-- `WARN` `docs/USER_MANUAL.md:420` `secret_word` — 5. Guardar el token en el host remoto de forma segura.
-- `WARN` `docs/USER_MANUAL.md:422` `secret_word` — El token solo debe mostrarse al crear o rotar.
-- `WARN` `docs/USER_MANUAL.md:434` `secret_word` — El instalador puede pedir el token de forma interactiva.
-- `WARN` `docs/USER_MANUAL.md:625` `secret_word` — - revisar permisos de ficheros de token de agentes.
-- `WARN` `docs/USER_MANUAL.md:636` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
-- `WARN` `docs/USER_MANUAL.md:666` `secret_word` — - token correcto;
-- `WARN` `docs/CONFIGURATION.md:20` `secret_word` — - `DISCORD_WEBHOOK_URL`: webhook opcional de Discord.
-- `WARN` `docs/UPGRADE.md:19` `localhost_url` — curl -k https://127.0.0.1:9909/api/system/healthz
+- `WARN` `docs/BACKUP_RESTORE.md:21` `localhost_url` — curl -kfsS https://127.0.0.1:9909/api/system/healthz
+- `WARN` `docs/USER_MANUAL.md:554` `secret_word` — 4. Copiar el token generado.
+- `WARN` `docs/USER_MANUAL.md:555` `secret_word` — 5. Guardar el token en el host remoto de forma segura.
+- `WARN` `docs/USER_MANUAL.md:557` `secret_word` — El token solo debe mostrarse al crear o rotar.
+- `WARN` `docs/USER_MANUAL.md:569` `secret_word` — El instalador puede pedir el token de forma interactiva.
+- `WARN` `docs/USER_MANUAL.md:760` `secret_word` — - revisar permisos de ficheros de token de agentes.
+- `WARN` `docs/USER_MANUAL.md:788` `localhost_url` — curl -kfsS https://127.0.0.1:9909/api/system/healthz
+- `WARN` `docs/USER_MANUAL.md:832` `secret_word` — - valida token y host;
 - `WARN` `app/templates/index.html:4656` `secret_word` — Las alertas se evalúan tras cada escaneo. Acción: Discord webhook (si configurado).
 - `WARN` `app/templates/index.html:6624` `secret_word` — <input type="password" id="loginModalPass" class="form-control form-control-sm"
 - `WARN` `app/templates/index.html:6625` `secret_word` — placeholder="Contraseña" autocomplete="current-password">
@@ -215,12 +219,8 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/routers/config_api.py:752` `secret_word` — s.login(user, password)
 - `WARN` `app/routers/config_api.py:756` `secret_word` — if user and password:
 - `WARN` `app/routers/config_api.py:757` `secret_word` — s.login(user, password)
-- `WARN` `app/routers/scripts_status.py:79` `localhost_url` — _ENV_OLLAMA_URL    = os.getenv("OLLAMA_URL",      "http://localhost:11434")
-- `WARN` `app/routers/scripts_status.py:621` `secret_word` — "password", "passwd", "token", "secret", "authorization:",
-- `WARN` `app/routers/scripts_status.py:622` `secret_word` — "x-automation-agent-token", "webhook", "api_key", "apikey",
-- `WARN` `app/routers/scripts_status.py:1360` `secret_word` — def _automation_agent_token_hash(token: str) -> str:
-- `WARN` `app/routers/scripts_status.py:1361` `secret_word` — return hashlib.sha256(str(token or "").encode("utf-8")).hexdigest()
-- `WARN` `app/routers/scripts_status.py:1368` `secret_word` — def _automation_agent_token_prefix(token: str) -> str:
-- `WARN` `app/routers/scripts_status.py:1369` `secret_word` — return str(token or "")[:10]
-- ... 115 hallazgos adicionales no listados.
+- `WARN` `app/routers/scripts_status.py:81` `localhost_url` — _ENV_OLLAMA_URL    = os.getenv("OLLAMA_URL",      "http://localhost:11434")
+- `WARN` `app/routers/scripts_status.py:728` `secret_word` — "password", "passwd", "token", "secret", "authorization:",
+- `WARN` `app/routers/scripts_status.py:729` `secret_word` — "x-automation-agent-token", "webhook", "api_key", "apikey",
+- ... 119 hallazgos adicionales no listados.
 

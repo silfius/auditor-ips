@@ -5,7 +5,7 @@ services:
       dockerfile: dockerfile
     container_name: ${AUDITOR_CONTAINER_NAME:-auditor_ips}
     network_mode: "host"
-    # DNS opcional: el instalador puede insertar aqui dns/dns_search en docker-compose.yml local.
+    # Auditor IPs necesita acceso a la red LAN y paquetes ICMP/ARP.
     cap_add:
       - NET_ADMIN
       - NET_RAW
@@ -18,17 +18,14 @@ services:
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-}
       SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-1}
       SESSION_COOKIE_SAMESITE: ${SESSION_COOKIE_SAMESITE:-strict}
-
-      # TLS local. Ajustar en .env según IP/DNS de cada instalación.
       TLS_CERT_IP: ${TLS_CERT_IP:-}
       TLS_CERT_DNS: ${TLS_CERT_DNS:-auditips.local}
       SERVER_IP: ${SERVER_IP:-}
-
-      # Rutas internas del contenedor.
       SCRIPTS_STATUS_DIR: /data/scripts_status
       SCRIPTS_PROMPTS_DIR: /data/scripts_prompts
       EXPORTS_DIR: /data/exports
     volumes:
       - ${DATA_DIR:-./data}:/data
       - ${EXPORTS_HOST_DIR:-./exports}:/data/exports
+      - ${BACKUPS_HOST_DIR:-./data/backups}:/data/backups
     restart: unless-stopped

@@ -1,28 +1,33 @@
-# Local configuration
+# Local configuration and generated installer state
 .env
 .env.*
 !.env.example
+docker-compose.yml
+docker-compose.override.yml
+install_state.json
+install_summary.md
+upgrade_state.json
+upgrade_summary.md
 
-# Runtime data
+# Runtime and persistence
 data/
-LOCAL/
 exports/
-logs/
 backups/
+diagnostics/
+upgrade_backups/
+logs/
 tmp/
 temp/
 
-# Databases and dumps
+# Databases, logs and archives
 *.db
+*.db-shm
+*.db-wal
 *.sqlite
 *.sqlite3
+*.log
 *.dump
 *.bak
-
-# Logs
-*.log
-
-# Archives
 *.tar
 *.tar.gz
 *.tgz
@@ -33,19 +38,20 @@ temp/
 *.key
 *.pem
 *.crt
+*.csr
 *.p12
 *.pfx
 cookies.txt
 
-# Python / JS noise
+# Python, JS and editors
 __pycache__/
-*.pyc
+*.py[cod]
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.venv/
+venv/
 node_modules/
-
-# OS/editor noise
 .DS_Store
 Thumbs.db
 .vscode/

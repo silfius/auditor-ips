@@ -349,8 +349,28 @@ $(function() {
   let _servicesTableSnap = '';
   let _servicesSummarySnap = '';
   let _servicesEmptyState = '';
+  let _servicesLoadInFlight = false;
+
+  function _servicesPaneIsVisible() {
+    const el = document.getElementById('servicesView')
+      || document.getElementById('infraApps');
+    if (!el) return false;
+
+    for (let node = el; node; node = node.parentElement) {
+      if (
+        node.classList?.contains('tab-pane')
+        && !node.classList.contains('active')
+        && !node.classList.contains('show')
+      ) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   window.loadServices = async function loadServices() {
+    if (_servicesLoadInFlight) return;
+    _servicesLoadInFlight = true;
     try {
       const res  = await fetch('/api/services', { cache: 'no-store' });
       const data = await res.json();
@@ -419,6 +439,8 @@ $(function() {
       renderServicesTable(svcs);
     } catch(e) {
       console.error('loadServices:', e);
+    } finally {
+      _servicesLoadInFlight = false;
     }
   }
 
@@ -785,7 +807,7 @@ $(function() {
   $('#svcRefresh').on('click', loadServices);
 
   setTimeout(() => {
-    if (document.getElementById('servicesGrid')) loadServices();
+    if (_servicesPaneIsVisible()) loadServices();
   }, 600);
   // Fire on both the legacy services-tab ID and the new infra-apps-tab
   document.getElementById('services-tab')?.addEventListener('shown.bs.tab', loadServices);
@@ -803,8 +825,7 @@ $(function() {
     if (_servicesRefreshTimer) clearInterval(_servicesRefreshTimer);
     _servicesRefreshTimer = setInterval(() => {
       // servicesView may be inside infraApps subtab; check either container
-      const svEl = document.getElementById('servicesView') || document.getElementById('infraApps');
-      if (svEl?.closest('.tab-pane.show, .tab-pane.active')) loadServices();
+      if (_servicesPaneIsVisible()) loadServices();
     }, _servicesRefreshMs());
   }
   _startServicesRefreshTimer();

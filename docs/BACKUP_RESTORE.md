@@ -1,37 +1,32 @@
 # Backup y restauración
 
-## Qué guardar
+## Contenido mínimo
 
-Como mínimo:
+- base de datos y certificados de `data/`;
+- `.env`;
+- `docker-compose.yml`;
+- exportaciones necesarias;
+- manifiesto con fecha, tamaño y hash.
 
-- carpeta `data/`;
-- fichero `.env`;
-- `docker-compose.yml` adaptado;
-- certificados locales si se usan;
-- documentación local de despliegue.
+## Backup seguro
 
-## Backup básico
+Para un backup en caliente de SQLite, usa la función de backup de la aplicación o el flujo de upgrade. No copies por separado `auditor.db`, `auditor.db-wal` y `auditor.db-shm` mientras la aplicación escribe.
 
-```bash
-mkdir -p backups
-tar -czf backups/auditor-ips-data-$(date +%Y%m%d-%H%M%S).tar.gz data .env docker-compose.yml
-```
-
-## Restauración básica
-
-1. Detén el stack.
-2. Restaura `data/`, `.env` y `docker-compose.yml`.
-3. Arranca de nuevo.
-4. Comprueba `/api/system/healthz`.
+Para una copia manual completa:
 
 ```bash
 docker compose down
+tar -czf auditor-ips-backup.tar.gz data exports .env docker-compose.yml
 docker compose up -d
-curl -k https://127.0.0.1:9909/api/system/healthz
+curl -kfsS https://127.0.0.1:9909/api/system/healthz
 ```
 
-## Recomendaciones
+## Restauración
 
-- Guarda backups fuera del servidor principal.
-- Prueba restauraciones periódicamente.
-- No publiques backups: pueden contener datos de red, tokens, claves o históricos.
+1. Detén el stack.
+2. Conserva una copia del estado actual.
+3. Restaura datos, `.env` y Compose del mismo backup.
+4. Arranca el stack.
+5. Comprueba `healthz` e integridad desde la UI.
+
+Los backups pueden contener inventario de red, tokens y claves. No los publiques.

@@ -1,7 +1,7 @@
 # Manual de usuario - Auditor IPs
 
-Fecha: 2026-05-19
-Estado: primera base documental V4 con capturas iniciales
+Fecha: 2026-07-15
+Estado: manual V4 alineado con instalador público guiado
 
 ## 1. Qué es Auditor IPs
 
@@ -89,174 +89,309 @@ Auditor IPs no modifica carpetas ni ejecuta acciones remotas sobre Syncthing.
 
 ## 4. Instalación desde cero
 
-### 4.1 Requisitos
+### 4.1 Qué necesita el usuario
 
-Servidor Linux con:
+El procedimiento recomendado parte de un equipo Linux conectado a la red que se desea auditar.
 
-- Docker;
-- Docker Compose;
-- Git;
+Requisito inicial:
+
+- Git, necesario para descargar el repositorio.
+
+El asistente puede detectar e instalar bajo autorización explícita:
+
 - Python 3;
-- permisos para ejecutar Docker;
-- puerto web libre;
-- espacio suficiente para datos y backups.
+- Docker Engine;
+- Docker Compose V2;
+- Curl;
+- OpenSSL;
+- iproute2;
+- certificados CA y utilidades básicas.
 
-Distribuciones objetivo iniciales:
+Plataformas iniciales:
 
-- Debian;
-- Ubuntu;
-- Arch Linux;
-- derivadas razonables.
+- Debian, Ubuntu, Linux Mint y derivadas razonables;
+- Arch Linux, Manjaro y derivadas;
+- arquitecturas x86-64 y ARM64.
 
-### 4.2 Instalación recomendada
+En otras distribuciones, el asistente realiza el diagnóstico, pero no modifica paquetes automáticamente.
 
-Clonar el repositorio público y ejecutar el instalador:
+### 4.2 Descarga y arranque del asistente
 
 ```bash
 git clone https://github.com/silfius/auditor-ips.git
 cd auditor-ips
-python3 scripts/install_auditor.py
+./install.sh
 ```
 
-#### Instalación de usuario frente a instalación de sistema
+El punto de entrada recomendado es `install.sh`. No es necesario ejecutar directamente el script Python.
 
-Por defecto, si ejecutas el instalador desde un clon del repositorio, Auditor IPs se configura en ese propio directorio. Esta es la opción recomendada para primeras instalaciones, pruebas, instalaciones de usuario y entornos donde no quieres usar `sudo`.
-
-La instalación de sistema en `/opt/auditor-ips` queda reservada para casos en los que quieras tratar Auditor IPs como una aplicación del sistema, separada de la carpeta de trabajo del usuario. Normalmente requiere permisos de administrador y debe solicitarse de forma explícita:
+Antes de instalar, puede comprobar el host:
 
 ```bash
-sudo python3 scripts/install_auditor.py --system-install
+./install.sh --check
 ```
 
-Ventajas de instalar en la carpeta del usuario/clon:
-- no requiere permisos de administrador para crear la ruta;
-- facilita pruebas y limpieza completa de entornos temporales;
-- evita dejar restos en `/opt`.
-
-Ventajas de instalación de sistema:
-- ruta estándar para servicios persistentes;
-- separación clara respecto a descargas o clones temporales;
-- útil si varios usuarios administran el servidor.
-
-
-El instalador guía la configuración básica:
-
-- ruta de instalación;
-- ruta de datos;
-- puerto web;
-- nombre del contenedor;
-- red principal;
-- DNS para Docker, detectadas del host y modificables si necesitas resolver nombres locales;
-- certificados TLS;
-- arranque del stack Docker.
-
-
-#### DNS para Docker
-
-Durante la instalación, el asistente muestra las DNS detectadas en el host y propone las que Docker puede usar para resolver nombres locales de equipos.
-
-Esto es útil si tu red usa:
-
-- router DNS local;
-- Pi-hole;
-- DNS corporativa;
-- dominios locales como `lan` o `home`.
-
-El instalador muestra las DNS detectadas y los dominios de búsqueda. Las DNS loopback/stub como `127.0.0.53` pueden aparecer como detectadas, pero no se usan como sugerencia automática para Docker.
-
-También puedes indicarlas manualmente:
+Para autorizar la instalación de dependencias ausentes:
 
 ```bash
-python3 scripts/install_auditor.py \
-  --docker-dns "192.168.1.1,192.168.1.10" \
-  --docker-dns-search "lan,home"
+./install.sh --install-deps
 ```
 
-El resultado queda guardado en `.env` como `DOCKER_DNS` y `DOCKER_DNS_SEARCH`, y el `docker-compose.yml` local se genera con `dns:` y `dns_search:` si hay valores configurados.
+El asistente muestra qué paquetes instalará y solicita confirmación antes de usar `sudo`. No guarda ni procesa la contraseña de `sudo`.
 
-### 4.3 Instalación sin preguntas
+Si detecta una instalación Docker existente sin Compose, intenta añadir únicamente el plugin compatible de la distribución. No sustituye paquetes Docker existentes de forma silenciosa. Una migración al repositorio oficial de Docker requiere una autorización específica y muestra previamente los paquetes incompatibles que retiraría. En modo no interactivo, una sustitución potencialmente destructiva se bloquea.
 
-Para instalaciones automatizadas, el instalador soporta modo no interactivo con `--yes` y argumentos específicos.
+### 4.3 Perfiles del asistente
 
-Ejemplo orientativo:
+#### Recomendado
+
+Es el perfil predeterminado. Detecta valores seguros y pregunta únicamente lo necesario.
+
+#### Avanzado
 
 ```bash
-python3 scripts/install_auditor.py --yes
+./install.sh --profile advanced
 ```
 
-Antes de usarlo en producción conviene revisar la ayuda:
+Permite revisar todas las rutas, DNS, identidad de la instancia, cookie, TLS y opciones técnicas.
 
-```bash
-python3 scripts/install_auditor.py --help
-```
+### 4.4 Preflight
 
-### 4.4 Primer acceso
+Antes de escribir configuración, muestra una tabla con:
 
-Tras arrancar, acceder desde navegador al puerto configurado, por ejemplo:
+- sistema y arquitectura;
+- presencia de Git, Python, Docker y Compose;
+- acceso al daemon Docker;
+- espacio libre;
+- permisos de escritura;
+- interfaces IPv4;
+- disponibilidad del puerto.
+
+Estados:
+
+- `OK`: comprobación correcta;
+- `WARN`: puede continuar, pero requiere revisión;
+- `ERROR`: instalación bloqueada.
+
+### 4.5 Selección de interfaz y red
+
+El asistente enumera las interfaces detectadas e indica:
+
+- nombre;
+- IP;
+- red CIDR;
+- ruta por defecto;
+- estado;
+- si parece física o virtual.
+
+Ejemplo:
 
 ```text
-https://IP_DEL_SERVIDOR:9909
+1. enp3s0: 192.168.1.20 · red 192.168.1.0/24 · ruta por defecto
+2. wlp2s0: 192.168.18.9 · red 192.168.18.0/24
+3. macvlan0: 192.168.1.250 · red 192.168.1.0/24 · virtual
 ```
 
-Si el certificado es local o autofirmado, el navegador puede mostrar una advertencia.
+Debe seleccionarse la interfaz conectada a los dispositivos que se desean auditar. El instalador propone la IP y la red, valida el CIDR e informa del número de direcciones incluidas.
 
-### 4.5 Asistente inicial
+### 4.6 DNS
 
-En una instalación limpia, Auditor IPs muestra un asistente inicial transaccional.
+El asistente clasifica las DNS detectadas como:
 
-El asistente permite configurar:
+- LAN o privadas;
+- públicas;
+- loopback/stub.
 
-- primer usuario administrador;
-- red principal;
-- intervalo de escaneo;
-- retención inicial;
-- idioma;
-- zona horaria;
-- módulos activos;
-- notificaciones iniciales.
+Las DNS loopback, como `127.0.0.53`, no se proponen dentro del contenedor. Se prioriza una DNS de la misma LAN porque una DNS pública normalmente no resuelve nombres internos.
 
-Nada se aplica hasta confirmar el resumen final.
+Los dominios de búsqueda vacíos, raíz (`.` o `~.`), direcciones IP y marcadores técnicos de `systemd-resolved` se descartan; solo se trasladan dominios DNS válidos.
 
-Si se recarga o se abandona antes de confirmar, el entorno no queda completado parcialmente.
+### 4.7 Puerto y colisiones
 
-## 5. Actualización / upgrade
+El puerto predeterminado es `9909`. El asistente valida:
 
-### 5.1 Objetivo del upgrade
+- que sea numérico;
+- que esté entre 1 y 65535;
+- que esté libre;
+- que no exista otro contenedor con el mismo nombre.
 
-El flujo de upgrade actualiza una instalación existente conservando configuración local y datos persistentes.
+Si hay un conflicto, debe elegirse otro puerto o cancelar.
 
-Antes de actualizar una instalación real, se recomienda disponer de backup reciente.
+### 4.8 Rutas persistentes
 
-### 5.2 Upgrade guiado
+Valores habituales:
 
-Desde la instalación existente:
+```text
+Código:         ./
+Datos:          ./data
+Exportaciones:  ./exports
+Backups:        ./data/backups
+Diagnósticos:   ./diagnostics
+```
+
+El asistente crea las rutas, comprueba escritura y valida el espacio disponible. Los backups importantes deben copiarse además a otro equipo o volumen.
+
+### 4.9 Docker y capacidades de red
+
+Auditor IPs usa:
+
+```yaml
+network_mode: host
+cap_add:
+  - NET_ADMIN
+  - NET_RAW
+```
+
+Son necesarias para descubrimiento LAN, ICMP, ARP y determinadas herramientas de diagnóstico. Estas capacidades amplían el acceso del contenedor a la red del host. Por ello:
+
+- no debe exponerse directamente a Internet;
+- debe usarse en LAN o mediante VPN;
+- solo debe instalarse desde el repositorio oficial.
+
+El grupo `docker` concede privilegios elevados. El asistente puede usar `sudo docker` sin añadir al usuario al grupo. La incorporación al grupo es opcional y requiere abrir una nueva sesión.
+
+### 4.10 TLS local
+
+La primera ejecución genera:
+
+- una CA local persistente;
+- un certificado de servidor cuyo conjunto SAN coincide exactamente con localhost, la IP y el DNS configurados.
+
+Durante un upgrade, el certificado se regenera si conserva SAN antiguos o contiene entradas adicionales no configuradas.
+
+El navegador puede mostrar una advertencia hasta que se confíe en la CA local. La CA pública se guarda en:
+
+```text
+data/certs/ca.crt
+```
+
+No debe compartirse `ca.key` ni `server.key`.
+
+### 4.11 Construcción, arranque y validación
+
+En una instalación nueva, las opciones recomendadas son:
+
+- construir imagen: sí;
+- arrancar servicio: sí;
+- validar salud: sí.
+
+La instalación solo se declara correcta si:
+
+- `docker compose config` es válido;
+- la imagen se construye;
+- el contenedor arranca;
+- `/api/system/healthz` responde;
+- el certificado contiene los SAN configurados.
+
+Un fallo de salud es bloqueante y el asistente muestra estado y logs.
+
+### 4.12 Instalación no interactiva
+
+Para entornos de prueba:
 
 ```bash
-python3 scripts/install_auditor.py --upgrade
+./install.sh --yes --install-deps \
+  --port 9909 \
+  --server-ip 192.168.1.20 \
+  --tls-ip 192.168.1.20 \
+  --tls-dns auditips.local \
+  --scan-cidr 192.168.1.0/24 \
+  --data-dir ./data \
+  --exports-dir ./exports \
+  --backups-dir ./data/backups
 ```
 
-El instalador de upgrade debe:
+No se recomienda `--yes` cuando se han realizado cambios manuales en Compose.
 
-- detectar la instalación existente;
-- leer configuración local;
-- crear backup previo;
-- actualizar código;
-- validar Docker Compose;
-- reconstruir o reiniciar si procede;
-- generar resumen de upgrade.
+### 4.13 Primer acceso
 
-### 5.3 Ficheros locales que no deben subirse a Git
+El instalador muestra una URL similar a:
 
-Cada instalación mantiene sus propios ficheros locales:
+```text
+https://IP_DEL_SERVIDOR:9909/login
+```
+
+En una base limpia, el asistente web inicial configura:
+
+- primer administrador;
+- idioma;
+- zona horaria;
+- red principal;
+- intervalo de escaneo;
+- retención;
+- módulos;
+- notificaciones.
+
+El instalador del host no solicita ni almacena la contraseña del administrador.
+
+## 5. Actualización, rollback, diagnóstico y desinstalación
+
+### 5.1 Upgrade guiado
+
+```bash
+./install.sh --upgrade
+```
+
+Antes de actualizar:
+
+1. crea un backup SQLite mediante la API de backup;
+2. ejecuta `PRAGMA quick_check`;
+3. guarda hashes y manifiesto;
+4. copia `.env`, Compose y estado;
+5. registra el commit anterior.
+
+Después actualiza por `pull --ff-only`, reconcilia la plantilla Compose, reconstruye y exige health y TLS válidos.
+
+Si Compose contiene cambios manuales, el modo interactivo permite conservarlo, regenerarlo o cancelar. El modo `--yes` se detiene para evitar perder cambios.
+
+### 5.2 Rollback
+
+```bash
+./install.sh --rollback
+```
+
+Antes de detener el servicio valida el manifiesto, los hashes y `PRAGMA quick_check`. Después restaura configuración y base de datos mediante reemplazo atómico, incluso cuando `auditor.db` fue creado por el contenedor y no es escribible por el usuario del host. Si el directorio persistente tampoco permite el reemplazo directo, utiliza un contenedor auxiliar con los mismos volúmenes. Finalmente restaura el commit anterior y exige de nuevo health y TLS válidos.
+
+### 5.3 Diagnóstico
+
+```bash
+./install.sh --diagnose
+```
+
+Genera un paquete redactado con:
+
+- sistema y arquitectura;
+- Docker y Compose;
+- estado y logs recientes;
+- red y rutas;
+- disco;
+- configuración sin secretos;
+- respuesta de health.
+
+No incluye base de datos, claves privadas, tokens, webhooks ni `.env` en claro. También redacta las salidas de Compose y los logs, utiliza `compose config --no-interpolate` y verifica el contenido antes de comprimirlo.
+
+### 5.4 Desinstalación
+
+```bash
+./install.sh --uninstall
+```
+
+Modos:
+
+- quitar solo el runtime;
+- quitar código conservando datos;
+- eliminación completa con doble confirmación.
+
+### 5.5 Ficheros locales que no deben subirse a Git
 
 - `.env`;
-- `docker-compose.yml`;
+- `docker-compose.yml` generado;
 - datos persistentes;
-- certificados;
+- certificados y claves privadas;
 - backups;
+- diagnósticos sin revisar;
 - logs;
-- tokens;
-- claves.
+- tokens y webhooks.
 
 ## 6. Uso diario
 
@@ -626,59 +761,84 @@ Buenas prácticas:
 
 ## 19. Solución de problemas
 
-### 19.1 No abre la web
+### 19.1 Diagnóstico recomendado
 
-Comprobar:
+Ejecuta primero:
+
+```bash
+./install.sh --diagnose
+```
+
+El paquete resultante permite revisar el host sin compartir secretos.
+
+### 19.2 Dependencias ausentes
+
+```bash
+./install.sh --check
+./install.sh --install-deps
+```
+
+La instalación de paquetes requiere autorización y `sudo`.
+
+### 19.3 No abre la web
 
 ```bash
 docker compose ps
-docker compose logs --tail=100 auditor_ips
-curl -k https://127.0.0.1:9909/api/system/healthz
+docker compose logs --tail 150
+curl -kfsS https://127.0.0.1:9909/api/system/healthz
 ```
 
-### 19.2 Certificado no confiable
+Comprueba el puerto, firewall, IP seleccionada y estado del contenedor.
 
-Si se usa certificado local, instalar la CA local en los clientes o aceptar la advertencia de navegador si el entorno es controlado.
+### 19.4 Certificado no confiable
 
-### 19.3 El contenedor no arranca
+Es normal con una CA local. Instala `data/certs/ca.crt` únicamente en dispositivos de confianza. No instales ni compartas las claves privadas.
 
-Revisar:
+### 19.5 Puerto ocupado
+
+Repite la instalación con otro puerto:
 
 ```bash
-docker compose config
-docker compose logs --tail=200 auditor_ips
+./install.sh --port 9910
 ```
 
-### 19.4 No aparecen hosts
+### 19.6 Docker sin permisos
 
-Revisar:
+El asistente puede usar `sudo docker`. Si se añade el usuario al grupo `docker`, debe cerrarse y abrirse la sesión. Recuerda que ese grupo concede privilegios elevados.
 
-- red principal CIDR;
-- permisos de red;
-- firewall;
-- conectividad desde el contenedor;
-- configuración de escaneo.
+### 19.7 No aparecen hosts
 
-### 19.5 No llegan estados de agente
+- confirma la interfaz seleccionada;
+- confirma `SCAN_CIDR`;
+- verifica que el servidor alcanza la LAN;
+- revisa firewall y segmentación VLAN;
+- comprueba `NET_RAW` y `NET_ADMIN`.
 
-Revisar:
+### 19.8 No se resuelven nombres LAN
 
-- token correcto;
-- URL del servidor;
-- TLS/verificación;
-- conectividad desde host remoto;
-- que el agente exista y esté habilitado en Auditor IPs;
-- logs del helper.
+Usa el router, Pi-hole o DNS interna. Las DNS públicas normalmente no conocen nombres locales.
 
-### 19.6 Syncthing no muestra datos
+### 19.9 Upgrade fallido
 
-Revisar:
+No borres `upgrade_backups/`. Ejecuta:
 
-- URL API del nodo;
-- API key;
-- `verify_tls`;
-- conectividad;
-- estado del refresco backend.
+```bash
+./install.sh --rollback
+```
+
+### 19.10 No llegan estados de agente
+
+- comprueba URL y certificado;
+- valida token y host;
+- revisa hora del sistema;
+- ejecuta el envío de prueba del instalador del agente.
+
+### 19.11 Syncthing no muestra datos
+
+- confirma URL API;
+- confirma API key;
+- revisa `verify_tls`;
+- verifica que el nodo sea accesible desde el servidor.
 
 ## 20. Capturas
 

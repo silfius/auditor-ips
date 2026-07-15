@@ -385,6 +385,14 @@ def startup() -> None:
 
     lock = r_scans.get_db_write_lock()
     r_quality.set_db_write_lock(lock)
+    r_services.set_db_write_lock(lock)
+
+    from performance_maintenance import (
+        run_performance_maintenance,
+        set_db_write_lock as set_performance_db_write_lock,
+    )
+
+    set_performance_db_write_lock(lock)
 
     scan_interval = int(cfg("scan_interval", SCAN_INTERVAL_SECONDS))
 
@@ -405,6 +413,31 @@ def startup() -> None:
         minute=0,
         id="backup_job",
         replace_existing=True,
+    )
+
+    try:
+        maintenance_hour = int(
+            cfg("performance_maintenance_hour_utc", "3") or 3
+        )
+    except Exception:
+        maintenance_hour = 3
+    try:
+        maintenance_minute = int(
+            cfg("performance_maintenance_minute_utc", "30") or 30
+        )
+    except Exception:
+        maintenance_minute = 30
+
+    scheduler.add_job(
+        run_performance_maintenance,
+        "cron",
+        hour=max(0, min(23, maintenance_hour)),
+        minute=max(0, min(59, maintenance_minute)),
+        id="performance_maintenance_job",
+        replace_existing=True,
+        max_instances=1,
+        coalesce=True,
+        misfire_grace_time=3600,
     )
 
     from routers.scripts_status import check_script_alerts
