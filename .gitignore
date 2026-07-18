@@ -8,6 +8,8 @@ install_state.json
 install_summary.md
 upgrade_state.json
 upgrade_summary.md
+.auditor-ips-windows-state.json
+.auditor-ips-migrated-to.txt
 
 # Runtime and persistence
 data/

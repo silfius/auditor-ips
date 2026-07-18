@@ -1,439 +1,191 @@
-# Guía de integración de scripts externos con Auditor IPs
+# Integración de scripts y automatizaciones
 
-Fecha: 2026-05-29  
-Estado: borrador operativo V1  
-Ámbito: Automatizaciones / Procesos / scripts monitorizados
+Auditor IPs puede observar automatizaciones ejecutadas en otros procesos o equipos. No necesita asumir control remoto sobre cron, systemd o el Programador de tareas.
 
-## 1. Objetivo
+## 1. Métodos soportados
 
-Esta guía explica cómo preparar un script externo para que Auditor IPs pueda monitorizarlo sin ejecutarlo.
+| Método | Uso recomendado |
+|---|---|
+| Agente API | Hosts remotos y envío inmediato autenticado |
+| Fichero `.status.json` | Scripts locales o estados sincronizados a una carpeta persistente |
+| Integración manual mediante API | Wrappers propios que ya gestionan HTTP y secretos |
 
-Auditor IPs no debe modificar crontabs, tareas programadas ni ejecutar scripts remotos. Su función es observar estados, logs y metadatos publicados por cada script.
+El agente API es la opción preferida cuando el host remoto puede alcanzar Auditor IPs por HTTPS.
 
-La integración se basa en que cada script genere un fichero `.status.json` con información de estado.
+## 2. Identidad estable
 
-## 2. Principio principal
+Cada automatización se identifica por la combinación:
 
-Cada automatización se identifica por:
+```text
+host_name + script_name
+```
 
-    host_name + script_name
+Usa nombres técnicos estables. No cambies `script_name` en cada ejecución y no reutilices un mismo par para procesos diferentes.
 
-Ejemplo:
+## 3. Agente API remoto
 
-    SERVERCENTRALWI::backup_immich_windows
+### Crear el agente
 
-Esto permite tener el mismo nombre de script en diferentes hosts sin mezclar estados.
+1. Entra en Configuración → Procesos/Automatizaciones.
+2. Crea un agente para el host remoto.
+3. Copia el token mostrado una sola vez.
+4. Guárdalo en un fichero restringido del host remoto.
 
-## 3. Ubicación recomendada de los estados
+### Instalar el helper Linux
 
-Auditor IPs debe recibir los `.status.json` en la carpeta monitorizada.
+Desde un clon del repositorio en el host remoto:
 
-En el host Linux de Auditor IPs:
+```bash
+python3 scripts/install_auditor_agent.py \
+  --server-url https://IP_O_DNS:9909 \
+  --host-name NOMBRE_HOST
+```
 
-    /SERVER/Logs_scripts_General/
+Consulta las opciones reales:
 
-Dentro del contenedor, normalmente se ve como:
+```bash
+python3 scripts/install_auditor_agent.py --help
+```
 
-    /data/scripts_status/
+Evita pasar el token en la línea de comandos. Usa el prompt interactivo o `--token-file`.
 
-Para máxima compatibilidad, se recomienda escribir el JSON en dos ubicaciones:
+### Enviar un estado
 
-### 3.1. Copia principal en raíz
+Tras instalar el helper:
 
-    /SERVER/Logs_scripts_General/backup_immich_windows.status.json
+```bash
+auditor-agent-send-status nombre_script completed 0 "mensaje opcional" /ruta/al/log.log
+```
 
-### 3.2. Copia estructurada por host y script
+El agente solo envía estado y log al servidor; no habilita ejecución remota desde Auditor IPs.
 
-    /SERVER/Logs_scripts_General/SERVERCENTRALWI/backup_immich_windows/backup_immich_windows.status.json
+## 4. Integración mediante `.status.json`
 
-La copia en raíz ayuda a asistentes o importadores simples.  
-La copia estructurada facilita orden, logs por host/script y trazabilidad.
+La carpeta host que se monte o sincronice como estado de scripts debe corresponder con `/data/scripts_status` dentro del contenedor.
 
-## 4. Nombre del fichero
+Estructura recomendada:
 
-El fichero debe llamarse:
+```text
+<RUTA_ESTADOS>/
+└── NOMBRE_HOST/
+    └── nombre_script/
+        └── nombre_script.status.json
+```
 
-    <script_name>.status.json
+No se prescribe una ruta absoluta del host: configúrala según tu instalación y evita directorios temporales.
 
-Ejemplo:
+### Ejemplo mínimo
 
-    backup_immich_windows.status.json
+```json
+{
+  "script_name": "backup_nocturno",
+  "host_name": "servidor-01",
+  "status": "success",
+  "message": "Backup completado",
+  "start_time": "2026-07-18T02:00:00+02:00",
+  "end_time": "2026-07-18T02:08:12+02:00",
+  "updated_at": "2026-07-18T02:08:12+02:00",
+  "exit_code": 0
+}
+```
 
-El valor interno `script_name` debe coincidir con el nombre técnico usado por Auditor IPs.
+### Estados recomendados
 
-## 5. Campos mínimos recomendados
+- `running`: ejecución activa;
+- `success`, `ok` o `completed`: final correcto;
+- `error` o `failed`: final con error;
+- `missed`: ejecución esperada no observada;
+- `stalled`: ejecución sin heartbeat reciente;
+- `controlled_stop`: parada prevista.
 
-Un `.status.json` funcional debería incluir al menos:
+Para máxima interoperabilidad, publica el mismo valor en `status` y `state`.
 
-    {
-      "name": "backup_immich_windows",
-      "script_name": "backup_immich_windows",
-      "host_name": "SERVERCENTRALWI",
-      "instance_key": "SERVERCENTRALWI::backup_immich_windows",
-      "status": "success",
-      "state": "success",
-      "message": "Backup completado correctamente",
-      "start_time": "2026-05-29T20:21:27+02:00",
-      "end_time": "2026-05-29T20:27:15+02:00",
-      "heartbeat": "2026-05-29T20:27:15+02:00",
-      "last_heartbeat": "2026-05-29T20:27:15+02:00",
-      "updated_at": "2026-05-29T20:27:15+02:00",
-      "exit_code": 0
-    }
+## 5. Programación declarada
 
-## 6. Estados admitidos
+Auditor IPs no modifica el programador real. El script puede declarar:
 
-Auditor IPs debe aceptar estos estados habituales:
+```json
+{
+  "cron_expr": "22 7 * * *",
+  "cron_source": "systemd timer"
+}
+```
 
-    running
-    started
-    success
-    ok
-    completed
-    error
-    failed
-    missed
-    stalled
-    controlled_stop
+Actualiza esos campos cuando cambie la programación efectiva.
 
-Recomendación:
+## 6. Progreso y heartbeat
 
-- Durante la ejecución: `status=running`, `state=running`.
-- Al terminar bien: `status=success`, `state=success` u `ok`.
-- Al terminar mal: `status=error`, `state=error`, `exit_code` distinto de 0.
+Para procesos largos:
 
-Auditor IPs normaliza `success`, `ok` y `completed` como estado OK.
+```json
+{
+  "status": "running",
+  "heartbeat": "2026-07-18T02:05:00+02:00",
+  "updated_at": "2026-07-18T02:05:00+02:00",
+  "step_current": 3,
+  "step_total": 5,
+  "step_name": "Comprimiendo",
+  "progress_percent": 60,
+  "progress_text": "3/5 Comprimiendo"
+}
+```
 
-## 7. Cron real informado
+Actualiza el heartbeat con una frecuencia proporcional a la duración del proceso; 30–60 segundos es razonable para tareas de varios minutos.
 
-Auditor IPs no lee ni modifica el Programador de tareas, crontab ni systemd timers reales.
+## 7. Logs y artefactos
 
-Cada script debe informar su programación real mediante:
+Campos opcionales:
 
-    "cron_expr": "22 7 * * *",
-    "cron_source": "windows_task_scheduler"
+```json
+{
+  "log_file": "/ruta/al/log-actual.log",
+  "artifact_file": "/ruta/al/resultado.tar.gz",
+  "artifact_size_bytes": 209715200
+}
+```
 
-Ejemplos de `cron_source`:
+Las rutas deben ser útiles desde el entorno que consume el estado. No publiques credenciales, parámetros secretos o URLs con token.
 
-    windows_task_scheduler
-    ServerLinuxAuxiliar / root crontab
-    ServerLinuxAuxiliar / crontab usuario cpueyo
-    systemd timer
-    agente externo
+## 8. Escritura atómica
 
-Si se cambia la hora real del script, también debe actualizarse el valor publicado en el `.status.json`.
+No escribas directamente sobre el JSON final. Usa un temporal en el mismo sistema de archivos y reemplázalo al terminar:
 
-## 8. Logs
+```text
+nombre_script.status.json.tmp → nombre_script.status.json
+```
 
-Se recomienda publicar la ruta del log más reciente:
+Esto evita lecturas parciales.
 
-    "log_file": "\\\\192.168.1.253\\Logs_procesos\\SERVERCENTRALWI\\backup_immich_windows\\logs\\backup_immich_windows_20260529-202127.log"
+Ejemplo Python:
 
-Reglas:
+```python
+import json
+import os
+from pathlib import Path
 
-- No escribir contraseñas, tokens, webhooks ni claves en claro.
-- Enmascarar parámetros sensibles.
-- El log debe ser legible para diagnóstico humano.
-- Mantener un histórico razonable o aplicar retención.
+final = Path("nombre_script.status.json")
+temporary = final.with_suffix(final.suffix + ".tmp")
+temporary.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+os.replace(temporary, final)
+```
 
-## 9. Campos de backup o artefactos generados
+## 9. Seguridad
 
-Para scripts de backup, se recomienda publicar:
+- Guarda tokens con permisos restringidos.
+- No incluyas secretos en JSON ni logs.
+- Valida TLS; usa una CA local de confianza en lugar de desactivar la verificación de forma permanente.
+- Rota un token si aparece en consola, captura o log.
+- Limita el agente a envío de estado.
+- Aplica retención a logs y artefactos.
 
-    "backup_file": "\\\\192.168.1.253\\AlmacenExt\\Backups_Completos\\SERVIDOR\\VM_linux\\VM_Immich_Backup.7z",
-    "backup_size_mb": 200.5
+## 10. Checklist
 
-Si el destino usa un fichero único por proceso, el `backup_file` debe apuntar al fichero fijo final.
-
-Ejemplo:
-
-    VM_Immich_Backup.7z
-
-No es obligatorio guardar un backup por día si la política del entorno es mantener una única copia actual por VM/proceso.
-
-## 10. Progreso por fases
-
-Para scripts largos se recomienda publicar fases de ejecución.
-
-Auditor IPs puede mostrar el punto actual si el script publica:
-
-    step_current
-    step_total
-    step_name
-    progress_percent
-    progress_text
-
-Ejemplo:
-
-    {
-      "status": "running",
-      "state": "running",
-      "message": "Comprimiendo backup cifrado (6/8)",
-      "step_current": 6,
-      "step_total": 8,
-      "step_name": "Comprimiendo backup cifrado",
-      "progress_percent": 75,
-      "progress_text": "6/8 Comprimiendo backup cifrado"
-    }
-
-### 10.1. Recomendación de fases para backups Docker
-
-Ejemplo para un backup de Immich:
-
-    1/8 Validando entorno
-    2/8 Comprobando Docker
-    3/8 Parando servicio principal
-    4/8 Generando dump PostgreSQL
-    5/8 Copiando configuración
-    6/8 Comprimiendo backup cifrado
-    7/8 Moviendo backup a destino final
-    8/8 Arrancando servicio y limpiando staging
-
-Estas fases no tienen que ser exactas para todos los scripts. Lo importante es que sean estables, entendibles y útiles para saber dónde está bloqueado el proceso.
-
-## 11. Heartbeat
-
-Mientras el script está ejecutando, debe actualizar:
-
-    heartbeat
-    last_heartbeat
-    updated_at
-
-Recomendación:
-
-    cada 30-60 segundos
-
-Esto permite a Auditor IPs detectar procesos bloqueados o sin señal reciente.
-
-## 12. Escritura atómica del JSON
-
-El `.status.json` debe escribirse de forma atómica:
-
-1. Crear un fichero temporal.
-2. Escribir JSON completo.
-3. Reemplazar el fichero final.
-
-Ejemplo conceptual:
-
-    status.tmp -> status.json
-
-Esto evita que Auditor IPs lea un JSON incompleto mientras el script lo está escribiendo.
-
-## 13. Ejemplo de ciclo de vida
-
-### Inicio
-
-    status = running
-    state = running
-    start_time = ahora
-    step_current = 1
-    step_total = 8
-    step_name = Validando entorno
-    progress_percent = 12
-
-### Durante la ejecución
-
-    heartbeat = ahora
-    updated_at = ahora
-    step_current = 6
-    step_name = Comprimiendo backup cifrado
-    progress_percent = 75
-
-### Final correcto
-
-    status = success
-    state = success
-    end_time = ahora
-    exit_code = 0
-    step_current = 8
-    step_total = 8
-    step_name = Backup completado
-    progress_percent = 100
-
-### Final con error
-
-    status = error
-    state = error
-    end_time = ahora
-    exit_code = código real
-    message = descripción corta del fallo
-    step_current = fase donde falló
-    step_name = nombre de la fase donde falló
-
-## 14. Checklist para integrar un script
-
-Antes de dar un script de alta en Auditor IPs:
-
-- El script genera `<script_name>.status.json`.
-- El JSON contiene `script_name`.
-- El JSON contiene `host_name`.
-- El JSON contiene `status` o `state`.
-- El JSON contiene `heartbeat` o `updated_at`.
-- Si tiene programación, publica `cron_expr`.
-- Si tiene programación, publica `cron_source`.
-- Si genera log, publica `log_file`.
-- Si genera backup, publica `backup_file` y `backup_size_mb`.
-- Si es largo, publica `step_current`, `step_total`, `step_name` y `progress_percent`.
-- No hay secretos en JSON ni logs.
-- El JSON se escribe de forma atómica.
-- La copia en raíz existe si se quiere máxima compatibilidad.
-- La copia estructurada por host/script existe si se quiere orden operativo.
-
-## 15. Errores habituales
-
-### 15.1. El script aparece como Local
-
-Causa probable:
-
-- Falta `host_name`.
-- El asistente no está leyendo el JSON completo.
-- Solo se deduce el host por ruta y el fichero está en raíz.
-
-Solución:
-
-    añadir "host_name": "NOMBRE_HOST"
-
-### 15.2. El estado aparece como Desconocido
-
-Causa probable:
-
-- `state` contiene un valor no normalizado.
-- Falta `exit_code`.
-- El script publica `success` pero Auditor IPs no lo normaliza.
-
-Valores recomendados:
-
-    running
-    success
-    error
-
-### 15.3. La próxima ejecución no cuadra
-
-Causa probable:
-
-- El Programador de tareas o crontab real cambió.
-- El `.env` o configuración del wrapper sigue publicando el cron antiguo.
-
-Solución:
-
-    actualizar cron_expr en la configuración del script y regenerar el .status.json.
-
-### 15.4. El script aparece duplicado
-
-Causa probable:
-
-- Existe copia en raíz y copia en subcarpeta.
-- Auditor IPs no está deduplicando por `host_name + script_name`.
-
-Solución esperada en Auditor IPs:
-
-    deduplicar por instance_key.
-
-### 15.5. No se ven fases
-
-Causa probable:
-
-- El script no publica `step_current`, `step_total` o `step_name`.
-- Auditor IPs no está pintando esos campos.
-- El navegador tiene caché de JS.
-
-Solución:
-
-    publicar campos de progreso y recargar sin caché.
-
-## 16. Buenas prácticas para Windows
-
-- Usar rutas UNC para destinos de red.
-- No depender de unidades mapeadas si la tarea se ejecuta sin sesión interactiva.
-- Ejecutar el Programador de tareas con un usuario que tenga acceso a:
-  - Docker Desktop;
-  - rutas UNC de backup;
-  - rutas UNC de logs;
-  - carpeta del script.
-- Publicar `cron_source=windows_task_scheduler`.
-- Sincronizar manualmente `cron_expr` cuando cambie la tarea.
-- No usar comandos Linux en CMD, como `grep`, `tail` o `clear`.
-
-## 17. Buenas prácticas para Linux
-
-- Usar rutas absolutas.
-- Publicar `cron_source` con el origen real:
-  - root crontab;
-  - crontab de usuario;
-  - systemd timer;
-  - script lanzado por otro scheduler.
-- Validar JSON con:
-
-    python3 -m json.tool /ruta/script.status.json
-
-- Validar detección en Auditor IPs desde el contenedor si procede.
-
-## 18. Validación rápida en Auditor IPs
-
-En el host Linux:
-
-    python3 -m json.tool /SERVER/Logs_scripts_General/<script_name>.status.json
-
-Dentro del contenedor:
-
-    docker compose exec -T auditor_ips sh -lc 'ls -l /data/scripts_status'
-
-Para comprobar estados desde backend, usar el entorno PRE y las funciones internas del router solo en desarrollo.
-
-## 19. Criterio de documentación para nuevas integraciones
-
-Cada integración nueva debe documentar:
-
-- nombre técnico del script;
-- host;
-- ruta real del script;
-- scheduler real;
-- cron informado;
-- ruta de logs;
-- ruta del `.status.json`;
-- fases publicadas si existen;
-- política de backup o retención;
-- comandos de validación;
-- recuperación básica ante fallo.
-
-## 20. Ejemplo aplicado: Immich Windows
-
-Nombre técnico:
-
-    backup_immich_windows
-
-Host:
-
-    SERVERCENTRALWI
-
-Scheduler:
-
-    Windows Task Scheduler
-
-Cron informado:
-
-    22 7 * * *
-
-Destino del backup:
-
-    \\192.168.1.253\AlmacenExt\Backups_Completos\SERVIDOR\VM_linux\VM_Immich_Backup.7z
-
-Estados publicados:
-
-    /SERVER/Logs_scripts_General/backup_immich_windows.status.json
-    /SERVER/Logs_scripts_General/SERVERCENTRALWI/backup_immich_windows/backup_immich_windows.status.json
-
-Fases publicadas:
-
-    1/8 Validando entorno
-    2/8 Comprobando Docker
-    3/8 Parando immich-server
-    4/8 Generando dump PostgreSQL
-    5/8 Copiando configuración
-    6/8 Comprimiendo backup cifrado
-    7/8 Moviendo backup a destino final
-    8/8 Arrancando immich-server y limpiando staging
-
-Resultado esperado:
-
-    Auditor IPs muestra estado OK, próxima ejecución, log, programación y progreso por fases durante la ejecución.
+- `host_name` y `script_name` son estables.
+- Existe `status` o `state`.
+- Se publican `updated_at` o `heartbeat`.
+- `exit_code` refleja el resultado real.
+- Los procesos largos publican progreso.
+- El JSON es UTF-8 válido y se escribe atómicamente.
+- Los logs no contienen secretos.
+- La hora y zona horaria del host son correctas.
+- El token puede rotarse sin modificar el script principal.

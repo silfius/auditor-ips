@@ -2,9 +2,62 @@
 
 Auditor IPs es una aplicación web self-hosted para inventariar, auditar y supervisar una red local desde un panel único.
 
-## Repositorio público
+Este repositorio público es el canal oficial de distribución para instalaciones externas. La documentación de `main` describe únicamente capacidades y comandos presentes en el propio repositorio.
 
-Este repositorio es el canal oficial de distribución para instalaciones externas. El desarrollo se mantiene en un repositorio privado y se publica mediante snapshots saneados, reproducibles y escaneados antes de cada actualización.
+## Instalar un nuevo site
+
+Hay tres vías soportadas:
+
+| Método | Plataforma | Cuándo usarlo |
+|---|---|---|
+| Asistente Linux | Linux x86-64 o ARM64 | Opción recomendada para un servidor permanente y máxima capacidad de descubrimiento LAN |
+| Asistente Windows | Windows 11 x64 | Cuando el servidor debe ejecutarse con Docker Desktop y backend WSL2 |
+| Instalación manual | Linux o Windows | Cuando se necesita controlar directamente `.env`, Compose, rutas y ciclo de arranque |
+
+Consulta primero los [prerrequisitos](installers/PREREQUISITES.md) y la [guía de instalación](docs/INSTALL.md).
+
+### Linux — asistente recomendado
+
+```bash
+git clone https://github.com/silfius/auditor-ips.git
+cd auditor-ips
+./install.sh
+```
+
+Comprobación previa y mantenimiento:
+
+```bash
+./install.sh --check
+./install.sh --diagnose
+./install.sh --upgrade
+./install.sh --rollback
+./install.sh --uninstall
+```
+
+`install.sh` puede instalar dependencias en familias compatibles, pero siempre solicita autorización antes de usar `sudo` o retirar paquetes Docker conflictivos.
+
+### Windows 11 — asistente
+
+Requiere Docker Desktop abierto, WSL 2.1.5 o posterior, backend WSL2 y contenedores Linux. El instalador no instala estas dependencias ni reinicia Windows.
+
+```powershell
+git clone https://github.com/silfius/auditor-ips.git
+Set-Location auditor-ips
+.\installers\windows\install.ps1 -CheckOnly
+.\installers\windows\install.ps1
+```
+
+La regla de firewall es una acción separada y requiere PowerShell elevado:
+
+```powershell
+.\installers\windows\firewall.ps1 -Port 9909
+```
+
+Windows usa red bridge de Docker Desktop y publica el puerto HTTPS. El perfil registrado es `windows_desktop` con `DISCOVERY_MODE=l3_compat`; no se presume paridad de capa 2 con Linux.
+
+### Instalación manual
+
+La instalación manual está descrita paso a paso en [docs/INSTALLATION_MANUAL.md](docs/INSTALLATION_MANUAL.md). Incluye plantillas, variables, almacenamiento, TLS, validación y diferencias entre plataformas.
 
 ## Funciones principales
 
@@ -18,41 +71,6 @@ Este repositorio es el canal oficial de distribución para instalaciones externa
 - salud interna, backups, retención y mantenimiento de la base de datos;
 - informes y notificaciones opcionales.
 
-## Instalación recomendada
-
-El usuario solo necesita clonar el repositorio y ejecutar el asistente:
-
-```bash
-git clone https://github.com/silfius/auditor-ips.git
-cd auditor-ips
-./install.sh
-```
-
-`install.sh` comprueba el host, explica las dependencias ausentes y solicita autorización antes de instalar paquetes o usar `sudo`.
-
-Acciones disponibles:
-
-```bash
-./install.sh --check
-./install.sh --diagnose
-./install.sh --upgrade
-./install.sh --rollback
-./install.sh --uninstall
-```
-
-El modo recomendado detecta interfaces, IP, red, DNS, rutas, puerto y capacidad del host. El modo avanzado permite revisar todos los parámetros.
-
-## Requisitos
-
-- Linux x86-64 o ARM64;
-- Debian, Ubuntu, Linux Mint, Arch, Manjaro o derivada razonable;
-- Git para clonar el repositorio;
-- acceso a Internet durante la instalación;
-- acceso a la LAN que se desea auditar;
-- autorización `sudo` si faltan dependencias.
-
-El asistente puede instalar Python, Docker Engine, Docker Compose V2, Curl, OpenSSL e iproute2 bajo autorización explícita. En distribuciones no reconocidas mostrará los requisitos sin modificar el sistema.
-
 ## Primer acceso
 
 Al terminar, el instalador muestra una dirección similar a:
@@ -61,26 +79,32 @@ Al terminar, el instalador muestra una dirección similar a:
 https://IP_DEL_SERVIDOR:9909/login
 ```
 
-En una instalación limpia, el asistente web inicial crea el primer administrador y configura idioma, zona horaria, red, retención, módulos y notificaciones. El instalador del host no solicita ni almacena contraseñas de administrador.
+En una instalación limpia, el asistente web inicial crea el primer administrador y configura idioma, zona horaria, red, retención, módulos y notificaciones. Los instaladores del host no solicitan ni almacenan la contraseña del administrador de Auditor IPs.
 
 ## Seguridad
 
 - No expongas Auditor IPs directamente a Internet.
 - Limita el acceso a la LAN o a una VPN.
-- El contenedor usa `network_mode: host`, `NET_RAW` y `NET_ADMIN` para diagnóstico y descubrimiento LAN.
 - Conserva `.env`, datos, backups, tokens y certificados privados fuera de Git.
-- El HTTPS inicial usa una CA local; consulta el manual para instalarla en los clientes.
+- El HTTPS inicial utiliza una CA local.
+- Revisa las implicaciones de Docker, `NET_RAW` y `NET_ADMIN` antes de instalar.
+- En Windows, las carpetas operativas y el volumen Docker se conservan por defecto durante la desinstalación.
 
 ## Documentación
 
+- [Instalación rápida](docs/INSTALL.md)
+- [Manual de instalación](docs/INSTALLATION_MANUAL.md)
+- [Prerrequisitos](installers/PREREQUISITES.md)
+- [Instalador Windows](installers/windows/README.md)
 - [Manual de usuario](docs/USER_MANUAL.md)
-- [Instalación](docs/INSTALL.md)
-- [Actualización](docs/UPGRADE.md)
+- [Actualización y rollback](docs/UPGRADE.md)
 - [Backup y restauración](docs/BACKUP_RESTORE.md)
 - [Configuración](docs/CONFIGURATION.md)
 - [Seguridad](docs/SECURITY.md)
 - [Solución de problemas](docs/TROUBLESHOOTING.md)
 - [Integración de scripts](docs/SCRIPTS_INTEGRATION.md)
+
+Los enlaces relativos y los comandos documentados se comprueban mediante `scripts/test_documentation_contracts.py`.
 
 ## Colaboración
 
