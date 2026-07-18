@@ -1,0 +1,49 @@
+services:
+  auditor_ips:
+    build:
+      context: ./app
+      dockerfile: dockerfile
+    container_name: ${AUDITOR_CONTAINER_NAME:-auditor_ips}
+    restart: unless-stopped
+    ports:
+      - "${PORT:-9909}:${PORT:-9909}"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    env_file:
+      - .env
+    environment:
+      PORT: ${PORT:-9909}
+      DB_PATH: ${DB_PATH:-/data/auditor.db}
+      AUDITOR_INSTANCE_ID: ${AUDITOR_INSTANCE_ID:-}
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-1}
+      SESSION_COOKIE_SAMESITE: ${SESSION_COOKIE_SAMESITE:-strict}
+      TLS_CERT_IP: ${TLS_CERT_IP:-}
+      TLS_CERT_DNS: ${TLS_CERT_DNS:-auditips.local}
+      SERVER_IP: ${SERVER_IP:-}
+      SCAN_CIDR: ${SCAN_CIDR:-192.168.1.0/24}
+      NETWORK_INTERFACE: ""
+      DISCOVERY_PROBE_IP: ""
+      PLATFORM_PROFILE: windows_desktop
+      DISCOVERY_MODE: l3_compat
+      EXPORTS_DIR: /data/exports
+      SCRIPTS_STATUS_DIR: /data/scripts_status
+      SCRIPTS_PROMPTS_DIR: /data/scripts_prompts
+    volumes:
+      - type: volume
+        source: auditor_data
+        target: /data
+      - type: bind
+        source: ${EXPORTS_HOST_DIR:-./exports}
+        target: /data/exports
+      - type: bind
+        source: ${BACKUPS_HOST_DIR:-./backups}
+        target: /data/backups
+      - type: bind
+        source: ${DIAGNOSTICS_HOST_DIR:-./diagnostics}
+        target: /data/diagnostics
+
+volumes:
+  auditor_data:
+    name: ${DATA_VOLUME:-auditor_ips_data}
