@@ -29,6 +29,10 @@ REQUIRED_FILES = {
     "installers/windows/diagnose.ps1",
     "installers/windows/firewall.ps1",
     "installers/windows/uninstall.ps1",
+    ".env.example",
+    "docker-compose.yml.example",
+    "installers/windows/env.windows.example",
+    "installers/windows/docker-compose.windows.yml.example",
 }
 
 NORMATIVE_DOCS = {
@@ -201,6 +205,39 @@ def main() -> int:
             "./install.sh",
             ".\\installers\\windows\\install.ps1",
             "docs/INSTALLATION_MANUAL.md",
+            "installers/PREREQUISITES.md",
+        ),
+        "docs/INSTALL.md": (
+            "Paso 1 — comprobar prerrequisitos",
+            "Resumen Linux",
+            "Resumen Windows",
+            "INSTALLATION_MANUAL.md",
+        ),
+        "docs/INSTALLATION_MANUAL.md": (
+            "# Instalación manual con Docker Compose",
+            "# Linux: ejemplo completo",
+            "# Windows: ejemplo completo",
+            "`.env` completo de ejemplo",
+            "`docker-compose.yml` completo de ejemplo",
+            "Qué falta después de Compose",
+            "AUDITOR_INSTANCE_ID",
+            "SESSION_COOKIE_NAME",
+            "NETWORK_INTERFACE",
+            "DATA_VOLUME",
+            "docker compose config --quiet",
+        ),
+        "installers/PREREQUISITES.md": (
+            "## Linux x86_64/amd64 y arm64/aarch64",
+            "## Windows 11 AMD64/x86-64",
+            "WSL `2.1.5` o posterior",
+            "8 GB de RAM",
+            "Docker Compose V2",
+            "2 GiB libres como mínimo",
+        ),
+        "installers/README.md": (
+            "# Instalación asistida",
+            "Linux — asistente principal",
+            "Windows — asistente específico",
         ),
         "docs/UPGRADE.md": (
             "Windows no implementa upgrade ni rollback de versión",
@@ -222,6 +259,44 @@ def main() -> int:
         for phrase in phrases:
             if phrase not in text:
                 errors.append(f"required_phrase_missing:{item}:{phrase}")
+
+
+    manual_text = (root / "docs/INSTALLATION_MANUAL.md").read_text(
+        encoding="utf-8", errors="replace"
+    )
+    if re.search(r"(?m)^##?\s+.*Asistente Linux", manual_text):
+        errors.append("manual_installation_mixes_linux_assistant")
+    if re.search(r"(?m)^##?\s+.*Asistente Windows", manual_text):
+        errors.append("manual_installation_mixes_windows_assistant")
+
+    install_entry_text = (root / "docs/INSTALL.md").read_text(
+        encoding="utf-8", errors="replace"
+    )
+    if re.search(r"(?m)^services:\s*$", install_entry_text):
+        errors.append("install_entry_contains_full_compose")
+
+    prerequisites_text = (root / "installers/PREREQUISITES.md").read_text(
+        encoding="utf-8", errors="replace"
+    )
+    for platform_heading in (
+        "## Linux x86_64/amd64 y arm64/aarch64",
+        "## Windows 11 AMD64/x86-64",
+    ):
+        if platform_heading not in prerequisites_text:
+            errors.append(f"prerequisite_platform_missing:{platform_heading}")
+
+    linux_compose = (root / "docker-compose.yml.example").read_text(
+        encoding="utf-8", errors="replace"
+    )
+    windows_compose = (
+        root / "installers/windows/docker-compose.windows.yml.example"
+    ).read_text(encoding="utf-8", errors="replace")
+    for phrase in ("network_mode: \"host\"", "NET_ADMIN", "NET_RAW"):
+        if phrase not in linux_compose:
+            errors.append(f"linux_compose_contract_missing:{phrase}")
+    for phrase in ("ports:", "DATA_VOLUME", "DISCOVERY_MODE: l3_compat"):
+        if phrase not in windows_compose:
+            errors.append(f"windows_compose_contract_missing:{phrase}")
 
     if "-PurgeData" not in all_normative:
         errors.append("windows_purge_data_contract_not_documented")

@@ -184,10 +184,10 @@ def validate_platform() -> list[str]:
 def validate_commands() -> None:
     missing = [name for name in ("git", "python3", "curl", "openssl", "ip", "tar", "docker") if not command_exists(name)]
     if missing:
-        raise RuntimeError("Faltan comandos requeridos: " + ", ".join(missing) + ". Ejecuta ./install.sh.")
+        raise RuntimeError("Faltan comandos requeridos: " + ", ".join(missing) + ". Ejecuta ./installers/linux/install.sh.")
     result = run_cmd(docker_cmd("compose", "version"), capture=True)
     if result.returncode != 0:
-        raise RuntimeError("Docker Compose V2 no está disponible. Ejecuta ./install.sh --install-deps.")
+        raise RuntimeError("Docker Compose V2 no está disponible. Ejecuta ./installers/linux/install.sh --install-deps.")
     result = run_cmd(docker_cmd("info"), capture=True)
     if result.returncode != 0:
         raise RuntimeError("No se puede acceder al daemon Docker. Revisa permisos o el servicio Docker.")
@@ -405,7 +405,7 @@ def default_target_dir(args: argparse.Namespace) -> Path:
     if args.system_install:
         return Path(DEFAULT_SYSTEM_TARGET_DIR).resolve()
     cwd = Path.cwd().resolve()
-    if (cwd / "app").is_dir() and ((cwd / "scripts" / "install_auditor.py").exists() or (cwd / "DOC_ONLINE" / "scripts" / "install_auditor.py").exists()):
+    if (cwd / "app").is_dir() and (cwd / "installers" / "linux" / "install_auditor.py").exists():
         return cwd
     return (Path.home() / "auditor-ips").resolve()
 
@@ -631,7 +631,7 @@ def clone_or_update_repo(repo_url: str, branch: str, target_dir: Path, dry_run: 
         run_cmd(["git", "pull", "--ff-only", "origin", branch], cwd=target_dir, check=True)
         return
     if target_dir.exists() and any(target_dir.iterdir()):
-        markers = [target_dir / "app", target_dir / ".env.example", target_dir / "docker-compose.yml.example"]
+        markers = [target_dir / "app", target_dir / "installers" / "linux" / "env.linux.example", target_dir / "installers" / "linux" / "docker-compose.linux.yml.example"]
         if all(path.exists() for path in markers):
             note("Fuentes existentes sin .git detectadas; se utiliza la carpeta actual.")
             return
@@ -853,13 +853,15 @@ def build_configuration(target_dir: Path, args: argparse.Namespace) -> dict[str,
         "SESSION_TTL_HOURS": str(args.session_ttl_hours),
         "SCAN_RETENTION_DAYS": str(args.scan_retention_days),
         "INSTALLATION_PROFILE": profile,
+        "PLATFORM_PROFILE": "linux_native",
+        "DISCOVERY_MODE": "full",
     }
 
 def write_local_config(target_dir: Path, args: argparse.Namespace, config: dict[str, str]) -> None:
-    env_template = target_dir / ".env.example"
-    compose_template = target_dir / "docker-compose.yml.example"
+    env_template = target_dir / "installers" / "linux" / "env.linux.example"
+    compose_template = target_dir / "installers" / "linux" / "docker-compose.linux.yml.example"
     if not env_template.exists() or not compose_template.exists():
-        raise RuntimeError("Faltan .env.example o docker-compose.yml.example.")
+        raise RuntimeError("Faltan installers/linux/env.linux.example o installers/linux/docker-compose.linux.yml.example.")
     for key in ("DATA_DIR", "EXPORTS_HOST_DIR", "BACKUPS_HOST_DIR", "DIAGNOSTICS_HOST_DIR"):
         path = resolve_host_path(target_dir, config[key])
         path.mkdir(parents=True, exist_ok=True)
@@ -960,7 +962,11 @@ def write_install_state(target_dir: Path, args: argparse.Namespace, config: dict
     head_result = run_cmd(["git", "rev-parse", "HEAD"], cwd=target_dir, capture=True)
     compose_path = target_dir / "docker-compose.yml"
     state = {
-        "schema_version": 2,
+        "schema_version": 3,
+        "platform": "linux_native",
+        "installer": "installers/linux/install.sh",
+        "env_template": "installers/linux/env.linux.example",
+        "compose_template": "installers/linux/docker-compose.linux.yml.example",
         "installed_at": datetime.now(timezone.utc).isoformat(),
         "repo_url": args.repo_url,
         "branch": args.branch,
@@ -1048,9 +1054,9 @@ def load_install_state(target_dir: Path) -> dict[str, object]:
 
 def reconcile_env(target_dir: Path) -> dict[str, str]:
     env_path = target_dir / ".env"
-    template_path = target_dir / ".env.example"
+    template_path = target_dir / "installers" / "linux" / "env.linux.example"
     if not template_path.exists():
-        raise RuntimeError("La nueva versión no contiene .env.example.")
+        raise RuntimeError("La nueva versión no contiene installers/linux/env.linux.example.")
     existing = read_env_file(env_path)
     rendered = render_env(template_path.read_text(encoding="utf-8"), existing)
     env_path.write_text(rendered, encoding="utf-8")
@@ -1061,9 +1067,9 @@ def reconcile_env(target_dir: Path) -> dict[str, str]:
 
 def reconcile_compose(target_dir: Path, env_values: dict[str, str], args: argparse.Namespace) -> None:
     compose_path = target_dir / "docker-compose.yml"
-    template_path = target_dir / "docker-compose.yml.example"
+    template_path = target_dir / "installers" / "linux" / "docker-compose.linux.yml.example"
     if not template_path.exists():
-        raise RuntimeError("La nueva versión no contiene docker-compose.yml.example.")
+        raise RuntimeError("La nueva versión no contiene installers/linux/docker-compose.linux.yml.example.")
     candidate = render_compose(template_path.read_text(encoding="utf-8"), env_values)
     current_hash = sha256_file(compose_path)
     state = load_install_state(target_dir)

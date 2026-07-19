@@ -21,6 +21,8 @@ services:
       TLS_CERT_IP: ${TLS_CERT_IP:-}
       TLS_CERT_DNS: ${TLS_CERT_DNS:-auditips.local}
       SERVER_IP: ${SERVER_IP:-}
+      PLATFORM_PROFILE: ${PLATFORM_PROFILE:-linux_native}
+      DISCOVERY_MODE: ${DISCOVERY_MODE:-full}
       SCRIPTS_STATUS_DIR: /data/scripts_status
       SCRIPTS_PROMPTS_DIR: /data/scripts_prompts
       EXPORTS_DIR: /data/exports

@@ -38,7 +38,7 @@ Las carpetas operativas Windows deben quedar fuera de `InstallRoot`.
 
 ## Variables principales
 
-La referencia completa está en [INSTALLATION_MANUAL.md](INSTALLATION_MANUAL.md#6-variables-principales). Las variables de mayor impacto son:
+La referencia completa está en [INSTALLATION_MANUAL.md](INSTALLATION_MANUAL.md#variables-de-configuración). Las variables de mayor impacto son:
 
 - `AUDITOR_INSTANCE_ID` y `SESSION_COOKIE_NAME`;
 - `PORT`;

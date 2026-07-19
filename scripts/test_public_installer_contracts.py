@@ -104,6 +104,94 @@ def load_installer_module(path: Path) -> types.ModuleType:
     return module
 
 
+
+def check_windows_contract(root: Path) -> list[str]:
+    errors: list[str] = []
+    windows = root / "installers" / "windows"
+    required = {
+        "README.md", "common.ps1", "storage.ps1", "install.ps1",
+        "migrate-installation.ps1", "diagnose.ps1", "firewall.ps1",
+        "uninstall.ps1", "env.windows.example",
+        "docker-compose.windows.yml.example", "tests/validate.ps1",
+        "tests/test_contracts.ps1", "tests/test_mocked.ps1",
+        "tests/test_real_payload.ps1",
+    }
+    for rel in required:
+        if not (windows / rel).is_file():
+            errors.append(f"windows_missing:{rel}")
+
+    if errors:
+        return errors
+
+    install = (windows / "install.ps1").read_text(encoding="utf-8-sig", errors="replace")
+    common = (windows / "common.ps1").read_text(encoding="utf-8-sig", errors="replace")
+    storage = (windows / "storage.ps1").read_text(encoding="utf-8-sig", errors="replace")
+    uninstall = (windows / "uninstall.ps1").read_text(encoding="utf-8-sig", errors="replace")
+    env_text = (windows / "env.windows.example").read_text(encoding="utf-8-sig", errors="replace")
+    compose = (windows / "docker-compose.windows.yml.example").read_text(
+        encoding="utf-8-sig", errors="replace"
+    )
+
+    for token in (
+        "PLATFORM_PROFILE=windows_desktop",
+        "DISCOVERY_MODE=l3_compat",
+        "Assert-AuditorWindows11Amd64",
+        "Wait-AuditorHealth",
+        "Assert-AuditorTlsSan",
+        "Assert-AuditorBindMounts",
+    ):
+        if token not in install:
+            errors.append(f"windows_install_contract_missing:{token}")
+
+    for token in ("22631", "RuntimeInformation"):
+        if token not in common:
+            errors.append(f"windows_platform_contract_missing:{token}")
+
+    if "microsoft-standard-WSL2" not in install:
+        errors.append("windows_platform_contract_missing:microsoft-standard-WSL2")
+
+    for token in (
+        "New-AuditorStagedInstallation",
+        "Get-AuditorFileSha256",
+        "Remove-AuditorOwnedInstallation",
+    ):
+        if token not in storage:
+            errors.append(f"windows_storage_contract_missing:{token}")
+
+    if "PurgeData" not in uninstall or '"volume", "rm"' not in uninstall:
+        errors.append("windows_uninstall_purge_contract_missing")
+
+    for forbidden in ("winget", "Restart-Computer", "-Upgrade", "-Rollback"):
+        if forbidden in install:
+            errors.append(f"windows_install_forbidden:{forbidden}")
+
+    for token in ("PLATFORM_PROFILE=windows_desktop", "DISCOVERY_MODE=l3_compat"):
+        if token not in env_text:
+            errors.append(f"windows_env_missing:{token}")
+
+    for token in ("PLATFORM_PROFILE:", "DISCOVERY_MODE:", "ports:"):
+        if token not in compose:
+            errors.append(f"windows_compose_missing:{token}")
+
+    config = (root / "app" / "config.py").read_text(encoding="utf-8", errors="replace")
+    discovery = (root / "app" / "scan_discovery.py").read_text(
+        encoding="utf-8", errors="replace"
+    )
+    for token in ("PLATFORM_PROFILE", "DISCOVERY_MODE", "windows_desktop", "l3_compat"):
+        if token not in config:
+            errors.append(f"runtime_config_missing:{token}")
+
+    for token in (
+        'if DISCOVERY_MODE != "full":\n        return []',
+        'if DISCOVERY_MODE != "full":\n        return ""',
+        'if DISCOVERY_MODE != "full":\n        return {}',
+    ):
+        if token not in discovery:
+            errors.append(
+                f"runtime_discovery_guard_missing:{token.splitlines()[-1].strip()}"
+            )
+    return errors
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", default=".")
@@ -342,6 +430,8 @@ def main() -> int:
 
     for artifact in compiled_artifacts(root):
         errors.append(f"compiled_artifact_created:{artifact}")
+
+    errors.extend(check_windows_contract(root))
 
     if errors:
         for error in errors:

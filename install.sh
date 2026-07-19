@@ -3,15 +3,12 @@
 /usr/bin/clear 2>/dev/null || true
 
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" 2>/dev/null && pwd)"
-if [ -d "$SCRIPT_DIR/app" ] && [ -f "$SCRIPT_DIR/scripts/install_auditor.py" ]; then
-    REPO_DIR="$SCRIPT_DIR"
-    PY_INSTALLER="$SCRIPT_DIR/scripts/install_auditor.py"
-elif [ -d "$SCRIPT_DIR/../../app" ] && [ -f "$SCRIPT_DIR/install_auditor.py" ]; then
-    REPO_DIR="$(CDPATH= cd -- "$SCRIPT_DIR/../.." 2>/dev/null && pwd)"
-    PY_INSTALLER="$SCRIPT_DIR/install_auditor.py"
-else
-    REPO_DIR="$(CDPATH= cd -- "$SCRIPT_DIR/.." 2>/dev/null && pwd)"
-    PY_INSTALLER="$SCRIPT_DIR/scripts/install_auditor.py"
+REPO_DIR="$(CDPATH= cd -- "$SCRIPT_DIR/../.." 2>/dev/null && pwd)"
+PY_INSTALLER="$SCRIPT_DIR/install_auditor.py"
+
+if [ ! -d "$REPO_DIR/app" ] || [ ! -f "$PY_INSTALLER" ]; then
+    printf 'ERROR: estructura de instalación incompleta bajo %s\n' "$REPO_DIR" >&2
+    return 1 2>/dev/null || true
 fi
 ASSUME_YES=0
 ALLOW_INSTALL_DEPS=0
@@ -64,7 +61,7 @@ usage() {
 Auditor IPs — asistente de instalación
 
 Uso:
-  ./install.sh [acción] [opciones del instalador]
+  ./installers/linux/install.sh [acción] [opciones del instalador]
 
 Acciones:
   --check        Comprueba host, dependencias, Docker, red y almacenamiento.
@@ -78,7 +75,7 @@ Opciones bootstrap:
   --yes          Usa respuestas seguras por defecto.
   --help         Muestra esta ayuda.
 
-El resto de argumentos se envía a scripts/install_auditor.py.
+El resto de argumentos se envía a installers/linux/install_auditor.py.
 USAGE
 }
 
@@ -283,7 +280,7 @@ install_docker_debian_official() {
 }
 
 install_arch_dependencies() {
-    sudo pacman -Sy --needed --noconfirm \
+    sudo pacman -S --needed --noconfirm \
       git python curl ca-certificates openssl iproute2 tar docker docker-compose || return 1
     return 0
 }

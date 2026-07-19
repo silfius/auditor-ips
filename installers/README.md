@@ -1,22 +1,60 @@
-# Instaladores
+# Instalación asistida
 
-Este directorio contiene los componentes específicos de plataforma y el contrato común de prerrequisitos.
+Este directorio documenta únicamente los asistentes. Para editar `.env` y Compose directamente, usa la [guía de instalación manual](../docs/INSTALLATION_MANUAL.md).
 
-## Fuente de verdad
+Prerrequisitos detallados: revisa los [requisitos de Linux o Windows](PREREQUISITES.md) antes de ejecutar cualquier asistente.
 
-- Requisitos comunes: [`PREREQUISITES.md`](PREREQUISITES.md)
-- Instalación guiada Linux: [`../install.sh`](../install.sh)
-- Instalador Python Linux: [`../scripts/install_auditor.py`](../scripts/install_auditor.py)
-- Instalación Windows: [`windows/README.md`](windows/README.md)
-- Manual detallado: [`../docs/INSTALLATION_MANUAL.md`](../docs/INSTALLATION_MANUAL.md)
+## Linux — asistente principal
 
-No existe un segundo instalador Linux dentro de `installers/`: el punto de entrada público y compatible sigue siendo `./install.sh` en la raíz del repositorio.
+El punto de entrada Linux está en la raíz del repositorio:
 
-## Matriz resumida
+```bash
+./install.sh --check
+./install.sh
+```
 
-| Plataforma | Arquitectura | Runtime | Instalación de dependencias |
-|---|---|---|---|
-| Linux | x86_64/amd64 y arm64/aarch64 | Docker Engine + Compose V2 | Opcional y siempre autorizada |
-| Windows 11 | AMD64/x86-64 | Docker Desktop + WSL2 + contenedores Linux | No incluida |
+El asistente:
 
-Windows 10, Windows Server y Windows ARM64 están fuera del contrato actual del instalador Windows de Auditor IPs, aunque Docker pueda admitir otros escenarios.
+1. identifica sistema y arquitectura;
+2. comprueba comandos, Docker, Compose, permisos, espacio, red y puerto;
+3. solicita autorización antes de usar `sudo` o instalar dependencias;
+4. propone interfaz, IP, CIDR, DNS, TLS, identidad y almacenamiento;
+5. genera `.env` y `docker-compose.yml`;
+6. construye y arranca;
+7. valida health HTTPS y SAN TLS;
+8. escribe `install_state.json` e `install_summary.md`.
+
+Acciones disponibles:
+
+```bash
+./install.sh --check
+./install.sh --install-deps
+./install.sh --diagnose
+./install.sh --upgrade
+./install.sh --rollback
+./install.sh --uninstall
+```
+
+La instalación automática de dependencias está implementada para familias Debian/Ubuntu/Linux Mint y Arch/Manjaro. En otras distribuciones, instala los requisitos manualmente y repite `./install.sh --check`.
+
+## Windows — asistente específico
+
+La implementación vive en [`windows/`](windows/README.md):
+
+```powershell
+.\installers\windows\install.ps1 -CheckOnly
+.\installers\windows\install.ps1
+```
+
+El asistente Windows no instala Docker Desktop, WSL, Git ni actualizaciones del sistema. Firewall, diagnóstico, migración y desinstalación son acciones separadas.
+
+## Qué vía usar
+
+| Situación | Vía |
+|---|---|
+| Servidor Linux permanente | Asistente Linux |
+| Windows 11 con Docker Desktop | Asistente Windows |
+| Compose administrado por el operador | Instalación manual |
+| Reubicación de un site Windows existente | Migrador Windows |
+
+No existe un segundo instalador Linux bajo `installers/linux/`; el contrato público Linux sigue siendo `./install.sh`.

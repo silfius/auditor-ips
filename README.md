@@ -6,39 +6,33 @@ Este repositorio público es el canal oficial de distribución para instalacione
 
 ## Instalar un nuevo site
 
-Hay tres vías soportadas:
+Sigue este orden:
 
-| Método | Plataforma | Cuándo usarlo |
+1. revisa los [prerrequisitos de Linux o Windows](installers/PREREQUISITES.md);
+2. elige instalación asistida o manual en la [guía de inicio](docs/INSTALL.md);
+3. completa el procedimiento de la plataforma elegida;
+4. valida Compose, el contenedor, HTTPS y el primer acceso.
+
+### Métodos disponibles
+
+| Método | Plataforma | Recomendación |
 |---|---|---|
 | Asistente Linux | Linux x86-64 o ARM64 | Opción recomendada para un servidor permanente y máxima capacidad de descubrimiento LAN |
-| Asistente Windows | Windows 11 x64 | Cuando el servidor debe ejecutarse con Docker Desktop y backend WSL2 |
-| Instalación manual | Linux o Windows | Cuando se necesita controlar directamente `.env`, Compose, rutas y ciclo de arranque |
+| Asistente Windows | Windows 11 x64 | Opción recomendada cuando el servidor debe ejecutarse con Docker Desktop y backend WSL2 |
+| Instalación manual | Linux o Windows | Para administradores que necesitan controlar directamente `.env`, Compose, rutas y ciclo de arranque |
 
-Consulta primero los [prerrequisitos](installers/PREREQUISITES.md) y la [guía de instalación](docs/INSTALL.md).
-
-### Linux — asistente recomendado
+### Inicio rápido Linux
 
 ```bash
 git clone https://github.com/silfius/auditor-ips.git
 cd auditor-ips
+./install.sh --check
 ./install.sh
 ```
 
-Comprobación previa y mantenimiento:
+### Inicio rápido Windows 11
 
-```bash
-./install.sh --check
-./install.sh --diagnose
-./install.sh --upgrade
-./install.sh --rollback
-./install.sh --uninstall
-```
-
-`install.sh` puede instalar dependencias en familias compatibles, pero siempre solicita autorización antes de usar `sudo` o retirar paquetes Docker conflictivos.
-
-### Windows 11 — asistente
-
-Requiere Docker Desktop abierto, WSL 2.1.5 o posterior, backend WSL2 y contenedores Linux. El instalador no instala estas dependencias ni reinicia Windows.
+Docker Desktop debe estar abierto, usar contenedores Linux y tener WSL2 operativo.
 
 ```powershell
 git clone https://github.com/silfius/auditor-ips.git
@@ -47,17 +41,16 @@ Set-Location auditor-ips
 .\installers\windows\install.ps1
 ```
 
-La regla de firewall es una acción separada y requiere PowerShell elevado:
-
-```powershell
-.\installers\windows\firewall.ps1 -Port 9909
-```
-
-Windows usa red bridge de Docker Desktop y publica el puerto HTTPS. El perfil registrado es `windows_desktop` con `DISCOVERY_MODE=l3_compat`; no se presume paridad de capa 2 con Linux.
-
 ### Instalación manual
 
-La instalación manual está descrita paso a paso en [docs/INSTALLATION_MANUAL.md](docs/INSTALLATION_MANUAL.md). Incluye plantillas, variables, almacenamiento, TLS, validación y diferencias entre plataformas.
+La [guía manual con Docker Compose](docs/INSTALLATION_MANUAL.md) contiene ejemplos completos y comentados de:
+
+- `.env` para Linux y Windows;
+- `docker-compose.yml` para Linux y Windows;
+- carpetas persistentes;
+- identidad del site y cookie;
+- IP, CIDR, DNS y TLS;
+- firewall, validación y primer acceso.
 
 ## Funciones principales
 
@@ -73,7 +66,7 @@ La instalación manual está descrita paso a paso en [docs/INSTALLATION_MANUAL.m
 
 ## Primer acceso
 
-Al terminar, el instalador muestra una dirección similar a:
+Al terminar, la aplicación queda disponible en una dirección similar a:
 
 ```text
 https://IP_DEL_SERVIDOR:9909/login
@@ -92,14 +85,20 @@ En una instalación limpia, el asistente web inicial crea el primer administrado
 
 ## Documentación
 
-- [Instalación rápida](docs/INSTALL.md)
-- [Manual de instalación](docs/INSTALLATION_MANUAL.md)
-- [Prerrequisitos](installers/PREREQUISITES.md)
+### Instalación
+
+- [Punto de entrada](docs/INSTALL.md)
+- [Prerrequisitos por plataforma](installers/PREREQUISITES.md)
+- [Instalación asistida](installers/README.md)
+- [Instalación manual con ejemplos completos](docs/INSTALLATION_MANUAL.md)
 - [Instalador Windows](installers/windows/README.md)
+
+### Operación
+
 - [Manual de usuario](docs/USER_MANUAL.md)
+- [Configuración](docs/CONFIGURATION.md)
 - [Actualización y rollback](docs/UPGRADE.md)
 - [Backup y restauración](docs/BACKUP_RESTORE.md)
-- [Configuración](docs/CONFIGURATION.md)
 - [Seguridad](docs/SECURITY.md)
 - [Solución de problemas](docs/TROUBLESHOOTING.md)
 - [Integración de scripts](docs/SCRIPTS_INTEGRATION.md)

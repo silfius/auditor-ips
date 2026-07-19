@@ -1,11 +1,11 @@
 {
-  "repo_name": "auditor-ips",
-  "generated_at": "2026-07-15T08:52:48.746183+00:00",
+  "repo_name": "auditor-ips-resume-closure",
+  "generated_at": "2026-07-19T10:18:25.762659+00:00",
   "source_root": "<internal-source-redacted>",
-  "snapshot_dir": "auditor-ips-20260715-105247",
-  "files_count": 117,
+  "snapshot_dir": "auditor-ips-resume-closure-20260719-121823",
+  "files_count": 141,
   "high_findings_count": 0,
-  "warn_findings_count": 319,
+  "warn_findings_count": 369,
   "files": [
     {
       "path": "app/scan_scheduler.py",
@@ -29,8 +29,8 @@
     },
     {
       "path": "app/config.py",
-      "size": 16308,
-      "sha256": "c2217e4ed8dd034d9da67e373a984826b3e2c7388704a722a92016ccf6d6c127"
+      "size": 16867,
+      "sha256": "d5706b723815a7cc83def82971e729665ef5e5fb9d7cfe5eb4ccbdc4d36ab25f"
     },
     {
       "path": "app/requirements.txt",
@@ -74,8 +74,8 @@
     },
     {
       "path": "app/scan_discovery.py",
-      "size": 17307,
-      "sha256": "a21855814ac641f38762c924b63a8c82d0172ac6f026456e71eb4071c22ebf87"
+      "size": 17752,
+      "sha256": "9649274ee0f59d31aedf27df2dc74f8ed17e436e44899776b19d3891fcbb0caa"
     },
     {
       "path": "app/test_endpoints.py",
@@ -353,16 +353,6 @@
       "sha256": "3a8471001070b308f6667237b0114cad730ea44eded1292af4050019deec7836"
     },
     {
-      "path": ".env.example",
-      "size": 993,
-      "sha256": "97fd9598407b4a858c9bdeb0439a4a3605e477dff3ab708995d30f9e91526353"
-    },
-    {
-      "path": "docker-compose.yml.example",
-      "size": 1061,
-      "sha256": "cefe24cab2d0e6309aeadac15c31183fb47534d8d5cff021f86b04ec45f1a7f1"
-    },
-    {
       "path": ".gitignore",
       "size": 653,
       "sha256": "fc9711021796160a76482884598a8a1e6cae964bd6e43a9b06a98ddfe89eebce"
@@ -374,43 +364,53 @@
     },
     {
       "path": "README.md",
-      "size": 3322,
-      "sha256": "592aeefece76d736577abae4566a5ea5141f29d9d293027d95fd11c185c46c61"
+      "size": 4212,
+      "sha256": "2fba6d463cffdfa51c564b0116c1be2cfa1545db489d8c1d1ab7b29d99e4388e"
     },
     {
       "path": "CHANGELOG.md",
-      "size": 743,
-      "sha256": "c0bb5b5020cf6eb406e2e9a8a6514f0acba160c698333935bcac9972a406ada9"
+      "size": 1441,
+      "sha256": "bd96bd6272b0370f9a8882580968a765c5c42c2fcd5806debc59946b04709454"
+    },
+    {
+      "path": "docs/README.md",
+      "size": 2719,
+      "sha256": "03efdbf09e93d2a91e74086996ef4317468506697b540d3de34efd9e2db54f1f"
     },
     {
       "path": "docs/INSTALL.md",
-      "size": 3640,
-      "sha256": "998330bae0312b4e218e289d953a57044c0abdb56396e5ec5853ab6993bd9076"
+      "size": 4224,
+      "sha256": "b03b879279ce1379605cd8c12abdd6cc01235bc4ded9389788063d29ee4daec2"
     },
     {
       "path": "docs/UPGRADE.md",
-      "size": 1357,
-      "sha256": "d96a1008a18bcb7e0b89a8946b6b2997545aa5a484450a286741338da7980f2d"
+      "size": 2307,
+      "sha256": "08b9796c110ad878cc770ad634a322062a7f1faac3f3bc24bcf838b1f1f97a71"
     },
     {
       "path": "docs/BACKUP_RESTORE.md",
-      "size": 922,
-      "sha256": "0f4893f2a068e141869c729a4e134607bf2a952ac10b51bd9ce59020b185c2a0"
+      "size": 2594,
+      "sha256": "6e38c708e3c3bf6f97ca83966708857134258dcab30d1903e34fa0164f90722b"
     },
     {
       "path": "docs/CONFIGURATION.md",
-      "size": 983,
-      "sha256": "dcfcba6dd661df2b32f34fe3a2364784a972990dbccba4f697f9cf347f536fd0"
+      "size": 2799,
+      "sha256": "20ae81f0ed550238ff9691467b0fe51bb3b8dfeebd499476774d2e474ecba8d1"
     },
     {
       "path": "docs/SECURITY.md",
-      "size": 1123,
-      "sha256": "1ca340ee07630cac457823949dd79c2c0e09967b3a2ad11aa3bc2100115e064f"
+      "size": 2135,
+      "sha256": "3a84f0f5d8c4c4c0a956423ca3224b6b5570d9ea742f23c75ca2730a7461bf25"
     },
     {
       "path": "docs/TROUBLESHOOTING.md",
-      "size": 2039,
-      "sha256": "d3e31b1e010eaff16d239ae1bd9b53744fbd90ffb2c3021a16e316191668e92c"
+      "size": 5967,
+      "sha256": "ba3acc29d4f8b29677c7d33a9128c567712eba2cb6e86540a3ab1766dc2c3c3e"
+    },
+    {
+      "path": "docs/SCRIPTS_INTEGRATION.md",
+      "size": 5195,
+      "sha256": "36e1d698edb221a373e78ba82716ab1621cc74e68c3e0a3bb1fbfb2724b11499"
     },
     {
       "path": "LICENSE",
@@ -439,13 +439,23 @@
     },
     {
       "path": "install.sh",
-      "size": 13971,
-      "sha256": "b7c0fd2f61a4c1d5ce36e81ad7c76dfdc92753670b0c676051177a5d047c34cd"
+      "size": 13782,
+      "sha256": "b13ee08b292df2f4d74f6d36784572fd15949a210d7da951a8adde9818f00c58"
+    },
+    {
+      "path": ".env.example",
+      "size": 1087,
+      "sha256": "15f8b6510000efc562f1af2fa2039aea0218b13314634ed4081f64a64411731d"
+    },
+    {
+      "path": "docker-compose.yml.example",
+      "size": 1165,
+      "sha256": "00714692b740f4673981d2498964372b3a524c21a5e1dc9eee464e9145f0cdf6"
     },
     {
       "path": "scripts/install_auditor.py",
-      "size": 66523,
-      "sha256": "db0959a41aeaf4c185fec0e670925ee9b31f0aafdd34e8f860ddc71919a56d31"
+      "size": 67082,
+      "sha256": "eaaba7120f0411456371a7d3a1414ef566a6410276e00944e27b486eedfb8cb5"
     },
     {
       "path": "scripts/install_auditor_agent.py",
@@ -459,18 +469,128 @@
     },
     {
       "path": "scripts/test_public_installer_contracts.py",
-      "size": 12829,
-      "sha256": "48d201f818e91c8fd8083b68c7b0b093aa3f3e3dcb2d8c1a656d7920a617e714"
+      "size": 16437,
+      "sha256": "6d1849b69dde9899a37cd8f013b0c54a556947b63c99fa7952d44405714ca593"
     },
     {
-      "path": "docs/SCRIPTS_INTEGRATION.md",
-      "size": 11476,
-      "sha256": "2fd4d32d068cb650c380f1e4eee9e8965a97ddc8ae7433782aa310388b3d6fc4"
+      "path": "scripts/test_documentation_contracts.py",
+      "size": 10802,
+      "sha256": "b58c0d6586e187017f4c1444eca426cbae2517014f12d0a86744420dbebc0b0e"
+    },
+    {
+      "path": "installers/README.md",
+      "size": 2045,
+      "sha256": "43059e830454ae609ce3043116cf1b15a15a8c1b7e185840a7eed5bc13b9566f"
+    },
+    {
+      "path": "installers/PREREQUISITES.md",
+      "size": 6385,
+      "sha256": "1dbd83253d899e77547e6d72d075072869b82d7283a8c45c570f48898a61fbe4"
+    },
+    {
+      "path": "installers/windows/README.md",
+      "size": 4170,
+      "sha256": "4ec0bf19a44f340219ef35d2f4367339064d1b4742040315acb919db64e6e421"
+    },
+    {
+      "path": "installers/windows/common.ps1",
+      "size": 34155,
+      "sha256": "4944f460382edfedddd37b6ddd19f113346928b084140795b8fa5643a6f9f59b"
+    },
+    {
+      "path": "installers/windows/diagnose-windows.cmd",
+      "size": 123,
+      "sha256": "325a77cf0868587362e94dd5c2f1761c0e0e04f92ea24130d5ffbbc6fa8cfabc"
+    },
+    {
+      "path": "installers/windows/diagnose.ps1",
+      "size": 3561,
+      "sha256": "fcaeedce3c17874de32ebffcdd9bc315cbd98e3bf76fcd23aeec882cd65b7d78"
+    },
+    {
+      "path": "installers/windows/docker-compose.windows.yml.example",
+      "size": 1488,
+      "sha256": "fb32d184e120e68544f10dea2e1f5393388643a14a7e415cabf401c3e7d30e50"
+    },
+    {
+      "path": "installers/windows/env.windows.example",
+      "size": 949,
+      "sha256": "2f99cd4e5c0b7fbe1b5f82f9df1d48bc9d71cc565ce1d583af85057f197a2a7d"
+    },
+    {
+      "path": "installers/windows/firewall.ps1",
+      "size": 2188,
+      "sha256": "e3534f9947a4e8b9d53489a39d9ad566a1f14ccf18f5d730d35d1888d76561ea"
+    },
+    {
+      "path": "installers/windows/install-windows.cmd",
+      "size": 122,
+      "sha256": "fe1f7bb91becb36ad34affccf97911962351bf79ad7057debad9f108c68f8600"
+    },
+    {
+      "path": "installers/windows/install.ps1",
+      "size": 11916,
+      "sha256": "c48ea42f409ca4351381aa36d4aa1a40daf088752600bd9efdae063f2642df18"
+    },
+    {
+      "path": "installers/windows/migrate-installation-windows.cmd",
+      "size": 135,
+      "sha256": "cdc7cda259981edead938e6058ad7eff4b6ea0d73946ddad9c1444a6a05adbdc"
+    },
+    {
+      "path": "installers/windows/migrate-installation.ps1",
+      "size": 12028,
+      "sha256": "addf87391370752d9f3dac150b5a1fce83ade5ea7878a2b648682013b88e8986"
+    },
+    {
+      "path": "installers/windows/storage.ps1",
+      "size": 31229,
+      "sha256": "c4ce0025ff5241aa352cebbcf7df34db099828aabebc30c108231bfff678d29b"
+    },
+    {
+      "path": "installers/windows/tests/test_contracts.ps1",
+      "size": 14157,
+      "sha256": "7565c625fdfa596f3e1aea9f689cd2e2d1e11409d007f927391bf853de725f6f"
+    },
+    {
+      "path": "installers/windows/tests/test_mocked.ps1",
+      "size": 23073,
+      "sha256": "b8634f7ad100d664af66cd836c078b4be0a180fdc029f47fd8bbf479ad166856"
+    },
+    {
+      "path": "installers/windows/tests/test_real_payload.ps1",
+      "size": 11267,
+      "sha256": "3b9f9624c396699a2f38d78f28cd98da271cdc52e5aba5b25f712e274b8c9a39"
+    },
+    {
+      "path": "installers/windows/tests/validate.ps1",
+      "size": 4148,
+      "sha256": "f9adbec3e91bef55743834891ab390b9c63f393ac6185ce0607677f7b143852d"
+    },
+    {
+      "path": "installers/windows/uninstall-windows.cmd",
+      "size": 124,
+      "sha256": "4e39bb4284dc96cb793910a81ef59f020bca526d5210936b2000577445a7cbd5"
+    },
+    {
+      "path": "installers/windows/uninstall.ps1",
+      "size": 4403,
+      "sha256": "9cb8a5ab05cf01b4b725eb9e7debb7497c1b2d15107c8732d02ea47a6e630dd7"
+    },
+    {
+      "path": "installers/windows/validate-windows.cmd",
+      "size": 682,
+      "sha256": "8690b1f75482c794ab66dee8c8b56be0f77994218c228090adfb121125b1f601"
     },
     {
       "path": "docs/USER_MANUAL.md",
-      "size": 21731,
-      "sha256": "16e41cb6279888bf617a61c7d248d026a8beb32a64ff211ba800a3df4c52fe92"
+      "size": 9218,
+      "sha256": "cfde2b3ee07a6419dc0d981ea53c0341f373e582fc8827f3dde248e5fa302740"
+    },
+    {
+      "path": "docs/INSTALLATION_MANUAL.md",
+      "size": 12997,
+      "sha256": "08d4ee48d07c39361bd9bf9b5d6f5b5b4670a0e40987a12d1b016c31cbf85773"
     },
     {
       "path": "docs/img/calidad.png",
@@ -632,7 +752,7 @@
     {
       "severity": "WARN",
       "path": "app/config.py",
-      "line": 168,
+      "line": 181,
       "pattern": "localhost_url",
       "sample": "\"ai_ollama_url\":       os.getenv(\"OLLAMA_URL\",     \"http://localhost:11434\"),"
     },
@@ -940,70 +1060,217 @@
     {
       "severity": "WARN",
       "path": "scripts/test_public_installer_contracts.py",
-      "line": 134,
+      "line": 135,
       "pattern": "secret_word",
       "sample": "for token in ("
     },
     {
       "severity": "WARN",
       "path": "scripts/test_public_installer_contracts.py",
-      "line": 139,
+      "line": 143,
       "pattern": "secret_word",
-      "sample": "if token not in shell_text:"
+      "sample": "if token not in install:"
     },
     {
       "severity": "WARN",
       "path": "scripts/test_public_installer_contracts.py",
-      "line": 140,
+      "line": 144,
       "pattern": "secret_word",
-      "sample": "errors.append(f\"install_sh_missing_dependency_safety:{token}\")"
+      "sample": "errors.append(f\"windows_install_contract_missing:{token}\")"
     },
     {
       "severity": "WARN",
       "path": "scripts/test_public_installer_contracts.py",
-      "line": 156,
+      "line": 146,
       "pattern": "secret_word",
-      "sample": "\"ADMIN_PASSWORD_HASH\": \"legacy admin password environment variable\","
+      "sample": "for token in (\"22631\", \"RuntimeInformation\"):"
     },
     {
       "severity": "WARN",
       "path": "scripts/test_public_installer_contracts.py",
-      "line": 162,
+      "line": 147,
       "pattern": "secret_word",
-      "sample": "for token, description in forbidden.items():"
+      "sample": "if token not in common:"
     },
     {
       "severity": "WARN",
       "path": "scripts/test_public_installer_contracts.py",
-      "line": 163,
+      "line": 148,
       "pattern": "secret_word",
-      "sample": "if token in public_text:"
+      "sample": "errors.append(f\"windows_platform_contract_missing:{token}\")"
     },
     {
       "severity": "WARN",
       "path": "scripts/test_public_installer_contracts.py",
-      "line": 164,
-      "pattern": "secret_word",
-      "sample": "errors.append(f\"forbidden:{description}:{token}\")"
-    },
-    {
-      "severity": "WARN",
-      "path": "scripts/test_public_installer_contracts.py",
-      "line": 179,
+      "line": 153,
       "pattern": "secret_word",
       "sample": "for token in ("
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 158,
+      "pattern": "secret_word",
+      "sample": "if token not in storage:"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 159,
+      "pattern": "secret_word",
+      "sample": "errors.append(f\"windows_storage_contract_missing:{token}\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 168,
+      "pattern": "secret_word",
+      "sample": "for token in (\"PLATFORM_PROFILE=windows_desktop\", \"DISCOVERY_MODE=l3_compat\"):"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 169,
+      "pattern": "secret_word",
+      "sample": "if token not in env_text:"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 170,
+      "pattern": "secret_word",
+      "sample": "errors.append(f\"windows_env_missing:{token}\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 172,
+      "pattern": "secret_word",
+      "sample": "for token in (\"PLATFORM_PROFILE:\", \"DISCOVERY_MODE:\", \"ports:\"):"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 173,
+      "pattern": "secret_word",
+      "sample": "if token not in compose:"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 174,
+      "pattern": "secret_word",
+      "sample": "errors.append(f\"windows_compose_missing:{token}\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 180,
+      "pattern": "secret_word",
+      "sample": "for token in (\"PLATFORM_PROFILE\", \"DISCOVERY_MODE\", \"windows_desktop\", \"l3_compat\"):"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 181,
+      "pattern": "secret_word",
+      "sample": "if token not in config:"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 182,
+      "pattern": "secret_word",
+      "sample": "errors.append(f\"runtime_config_missing:{token}\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 184,
+      "pattern": "secret_word",
+      "sample": "for token in ("
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 189,
+      "pattern": "secret_word",
+      "sample": "if token not in discovery:"
     },
     {
       "severity": "WARN",
       "path": "scripts/test_public_installer_contracts.py",
       "line": 191,
       "pattern": "secret_word",
+      "sample": "f\"runtime_discovery_guard_missing:{token.splitlines()[-1].strip()}\""
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 222,
+      "pattern": "secret_word",
+      "sample": "for token in ("
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 227,
+      "pattern": "secret_word",
+      "sample": "if token not in shell_text:"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 228,
+      "pattern": "secret_word",
+      "sample": "errors.append(f\"install_sh_missing_dependency_safety:{token}\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 244,
+      "pattern": "secret_word",
+      "sample": "\"ADMIN_PASSWORD_HASH\": \"legacy admin password environment variable\","
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 250,
+      "pattern": "secret_word",
+      "sample": "for token, description in forbidden.items():"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 251,
+      "pattern": "secret_word",
+      "sample": "if token in public_text:"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 252,
+      "pattern": "secret_word",
+      "sample": "errors.append(f\"forbidden:{description}:{token}\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 267,
+      "pattern": "secret_word",
+      "sample": "for token in ("
+    },
+    {
+      "severity": "WARN",
+      "path": "scripts/test_public_installer_contracts.py",
+      "line": 279,
+      "pattern": "secret_word",
       "sample": "if token not in installer_text:"
     },
     {
       "severity": "WARN",
       "path": "scripts/test_public_installer_contracts.py",
-      "line": 192,
+      "line": 280,
       "pattern": "secret_word",
       "sample": "errors.append(f\"installer_missing_security_contract:{token}\")"
     },
@@ -1198,6 +1465,13 @@
     },
     {
       "severity": "WARN",
+      "path": "scripts/test_documentation_contracts.py",
+      "line": 56,
+      "pattern": "internal_path",
+      "sample": "\"/SERVER/\","
+    },
+    {
+      "severity": "WARN",
       "path": "scripts/install_auditor.py",
       "line": 165,
       "pattern": "secret_word",
@@ -1248,49 +1522,49 @@
     {
       "severity": "WARN",
       "path": "scripts/install_auditor.py",
-      "line": 888,
+      "line": 890,
       "pattern": "localhost_url",
       "sample": "url = f\"https://127.0.0.1:{port}/api/system/healthz\""
     },
     {
       "severity": "WARN",
       "path": "scripts/install_auditor.py",
-      "line": 969,
+      "line": 975,
       "pattern": "secret_word",
       "sample": "\"config\": {key: value for key, value in config.items() if not any(token in key.lower() for token in (\"password\", \"token\", \"secret\", \"webhook\", \"key\"))},"
     },
     {
       "severity": "WARN",
       "path": "scripts/install_auditor.py",
-      "line": 1370,
+      "line": 1376,
       "pattern": "secret_word",
       "sample": "r\"(?:password|passwd|secret|token|webhook|api[_-]?key|apikey|authorization|private[_-]?key)\","
     },
     {
       "severity": "WARN",
       "path": "scripts/install_auditor.py",
-      "line": 1399,
+      "line": 1405,
       "pattern": "secret_word",
       "sample": "r\"(?im)\\b(password|passwd|secret|token|webhook|api[_-]?key|apikey|private[_-]?key)\""
     },
     {
       "severity": "WARN",
       "path": "scripts/install_auditor.py",
-      "line": 1483,
+      "line": 1489,
       "pattern": "localhost_url",
       "sample": "f\"https://127.0.0.1:{port}/api/system/healthz\","
     },
     {
       "severity": "WARN",
       "path": "scripts/install_auditor.py",
-      "line": 1502,
+      "line": 1508,
       "pattern": "secret_word",
       "sample": "for secret in secret_values:"
     },
     {
       "severity": "WARN",
       "path": "scripts/install_auditor.py",
-      "line": 1503,
+      "line": 1509,
       "pattern": "secret_word",
       "sample": "if secret and secret in content:"
     },
@@ -1317,101 +1591,122 @@
     },
     {
       "severity": "WARN",
-      "path": "docs/SCRIPTS_INTEGRATION.md",
-      "line": 33,
-      "pattern": "internal_path",
-      "sample": "/SERVER/Logs_scripts_General/"
+      "path": "docs/INSTALL.md",
+      "line": 104,
+      "pattern": "localhost_url",
+      "sample": "curl -kfsS https://127.0.0.1:9909/api/system/healthz"
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/INSTALL.md",
+      "line": 110,
+      "pattern": "localhost_url",
+      "sample": "curl.exe -k --fail https://127.0.0.1:9909/api/system/healthz"
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/TROUBLESHOOTING.md",
+      "line": 61,
+      "pattern": "localhost_url",
+      "sample": "curl -kfsS https://127.0.0.1:9909/api/system/healthz"
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/TROUBLESHOOTING.md",
+      "line": 67,
+      "pattern": "localhost_url",
+      "sample": "curl.exe -k https://127.0.0.1:9909/api/system/healthz"
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/TROUBLESHOOTING.md",
+      "line": 192,
+      "pattern": "secret_word",
+      "sample": "- comprueba URL, certificado y token;"
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/TROUBLESHOOTING.md",
+      "line": 196,
+      "pattern": "secret_word",
+      "sample": "- rota el token si pudo exponerse."
     },
     {
       "severity": "WARN",
       "path": "docs/SCRIPTS_INTEGRATION.md",
-      "line": 43,
-      "pattern": "internal_path",
-      "sample": "/SERVER/Logs_scripts_General/backup_immich_windows.status.json"
+      "line": 31,
+      "pattern": "secret_word",
+      "sample": "3. Copia el token mostrado una sola vez."
     },
     {
       "severity": "WARN",
       "path": "docs/SCRIPTS_INTEGRATION.md",
-      "line": 47,
-      "pattern": "internal_path",
-      "sample": "/SERVER/Logs_scripts_General/SERVERCENTRALWI/backup_immich_windows/backup_immich_windows.status.json"
+      "line": 50,
+      "pattern": "secret_word",
+      "sample": "Evita pasar el token en la línea de comandos. Usa el prompt interactivo o `--token-file`."
     },
     {
       "severity": "WARN",
       "path": "docs/SCRIPTS_INTEGRATION.md",
-      "line": 375,
-      "pattern": "internal_path",
-      "sample": "python3 -m json.tool /SERVER/Logs_scripts_General/<script_name>.status.json"
+      "line": 147,
+      "pattern": "secret_word",
+      "sample": "Las rutas deben ser útiles desde el entorno que consume el estado. No publiques credenciales, parámetros secretos o URLs con token."
     },
     {
       "severity": "WARN",
       "path": "docs/SCRIPTS_INTEGRATION.md",
-      "line": 423,
-      "pattern": "internal_path",
-      "sample": "/SERVER/Logs_scripts_General/backup_immich_windows.status.json"
+      "line": 177,
+      "pattern": "secret_word",
+      "sample": "- Rota un token si aparece en consola, captura o log."
     },
     {
       "severity": "WARN",
       "path": "docs/SCRIPTS_INTEGRATION.md",
-      "line": 424,
-      "pattern": "internal_path",
-      "sample": "/SERVER/Logs_scripts_General/SERVERCENTRALWI/backup_immich_windows/backup_immich_windows.status.json"
+      "line": 191,
+      "pattern": "secret_word",
+      "sample": "- El token puede rotarse sin modificar el script principal."
     },
     {
       "severity": "WARN",
       "path": "docs/BACKUP_RESTORE.md",
-      "line": 21,
+      "line": 30,
       "pattern": "localhost_url",
       "sample": "curl -kfsS https://127.0.0.1:9909/api/system/healthz"
     },
     {
       "severity": "WARN",
-      "path": "docs/USER_MANUAL.md",
-      "line": 554,
-      "pattern": "secret_word",
-      "sample": "4. Copiar el token generado."
-    },
-    {
-      "severity": "WARN",
-      "path": "docs/USER_MANUAL.md",
-      "line": 555,
-      "pattern": "secret_word",
-      "sample": "5. Guardar el token en el host remoto de forma segura."
-    },
-    {
-      "severity": "WARN",
-      "path": "docs/USER_MANUAL.md",
-      "line": 557,
-      "pattern": "secret_word",
-      "sample": "El token solo debe mostrarse al crear o rotar."
-    },
-    {
-      "severity": "WARN",
-      "path": "docs/USER_MANUAL.md",
-      "line": 569,
-      "pattern": "secret_word",
-      "sample": "El instalador puede pedir el token de forma interactiva."
-    },
-    {
-      "severity": "WARN",
-      "path": "docs/USER_MANUAL.md",
-      "line": 760,
-      "pattern": "secret_word",
-      "sample": "- revisar permisos de ficheros de token de agentes."
-    },
-    {
-      "severity": "WARN",
-      "path": "docs/USER_MANUAL.md",
-      "line": 788,
+      "path": "docs/INSTALLATION_MANUAL.md",
+      "line": 187,
       "pattern": "localhost_url",
       "sample": "curl -kfsS https://127.0.0.1:9909/api/system/healthz"
     },
     {
       "severity": "WARN",
+      "path": "docs/INSTALLATION_MANUAL.md",
+      "line": 360,
+      "pattern": "localhost_url",
+      "sample": "curl.exe -k --fail https://127.0.0.1:9909/api/system/healthz"
+    },
+    {
+      "severity": "WARN",
       "path": "docs/USER_MANUAL.md",
-      "line": 832,
+      "line": 174,
       "pattern": "secret_word",
-      "sample": "- valida token y host;"
+      "sample": "3. Copia el token mostrado."
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/USER_MANUAL.md",
+      "line": 197,
+      "pattern": "secret_word",
+      "sample": "Rota el token si pudo aparecer en una consola, captura o log."
+    },
+    {
+      "severity": "WARN",
+      "path": "docs/CONFIGURATION.md",
+      "line": 70,
+      "pattern": "localhost_url",
+      "sample": "https://127.0.0.1:PUERTO/api/system/healthz"
     },
     {
       "severity": "WARN",
@@ -2826,6 +3121,181 @@
       "line": 5551,
       "pattern": "secret_word",
       "sample": "$inp.attr('type', show ? 'text' : 'password');"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/install.ps1",
+      "line": 274,
+      "pattern": "secret_word",
+      "sample": "try { Remove-AuditorOwnedInstallation -Path $activeRoot -Token $stage.Token } catch { Write-AuditorWarning $_.Exception.Message }"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/install.ps1",
+      "line": 276,
+      "pattern": "secret_word",
+      "sample": "try { Remove-AuditorOwnedInstallation -Path $stage.Path -Token $stage.Token } catch { Write-AuditorWarning $_.Exception.Message }"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/common.ps1",
+      "line": 204,
+      "pattern": "secret_word",
+      "sample": "$token = [Guid]::NewGuid().ToString(\"N\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/common.ps1",
+      "line": 205,
+      "pattern": "secret_word",
+      "sample": "$stdoutPath = Join-Path ([System.IO.Path]::GetTempPath()) ($token + \".stdout\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/common.ps1",
+      "line": 206,
+      "pattern": "secret_word",
+      "sample": "$stderrPath = Join-Path ([System.IO.Path]::GetTempPath()) ($token + \".stderr\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/common.ps1",
+      "line": 933,
+      "pattern": "localhost_url",
+      "sample": "(\"https://127.0.0.1:{0}/api/system/healthz\" -f $Port)"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/storage.ps1",
+      "line": 515,
+      "pattern": "secret_word",
+      "sample": "$token = [Guid]::NewGuid().ToString(\"N\")"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/storage.ps1",
+      "line": 516,
+      "pattern": "secret_word",
+      "sample": "$stagePath = Join-Path $parent (\"AuditorIPsStage-\" + $token)"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/storage.ps1",
+      "line": 518,
+      "pattern": "secret_word",
+      "sample": "Write-Utf8NoBom -Path (Join-Path $stagePath \".auditor-install-owner\") -Text $token"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/storage.ps1",
+      "line": 521,
+      "pattern": "secret_word",
+      "sample": "return [pscustomobject]@{ Path = $stagePath; Token = $token }"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/storage.ps1",
+      "line": 523,
+      "pattern": "secret_word",
+      "sample": "try { Remove-AuditorOwnedInstallation -Path $stagePath -Token $token } catch { }"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/storage.ps1",
+      "line": 544,
+      "pattern": "secret_word",
+      "sample": "[Parameter(Mandatory = $true)][string]$Token"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/storage.ps1",
+      "line": 551,
+      "pattern": "secret_word",
+      "sample": "if ([System.IO.File]::ReadAllText($marker).Trim() -ne $Token) {"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/diagnose.ps1",
+      "line": 20,
+      "pattern": "secret_word",
+      "sample": "'(?im)^(\\s*[^:=\\r\\n]*(?:PASSWORD|PASSWD|SECRET|TOKEN|WEBHOOK|API_KEY|PRIVATE_KEY)[^:=\\r\\n]*\\s*[:=]\\s*).*$',"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/migrate-installation.ps1",
+      "line": 253,
+      "pattern": "secret_word",
+      "sample": "try { Remove-AuditorOwnedInstallation -Path $targetRoot -Token $stage.Token } catch { Write-AuditorWarning $_.Exception.Message }"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/migrate-installation.ps1",
+      "line": 255,
+      "pattern": "secret_word",
+      "sample": "try { Remove-AuditorOwnedInstallation -Path $stage.Path -Token $stage.Token } catch { Write-AuditorWarning $_.Exception.Message }"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/tests/test_mocked.ps1",
+      "line": 72,
+      "pattern": "secret_word",
+      "sample": "DISCORD_WEBHOOK_URL=https://example.invalid/secret"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/tests/test_mocked.ps1",
+      "line": 382,
+      "pattern": "secret_word",
+      "sample": "if ($migratedEnv -notmatch 'DISCORD_WEBHOOK_URL=https://example.invalid/secret') { throw \"migration_secret_not_preserved\" }"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/tests/test_real_payload.ps1",
+      "line": 130,
+      "pattern": "secret_word",
+      "sample": "param([Parameter(Mandatory = $true)][string]$Token)"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/tests/test_real_payload.ps1",
+      "line": 147,
+      "pattern": "secret_word",
+      "sample": "$probe = Join-Path $root (\"AuditorIPsValidationProbe-\" + $Token)"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/tests/test_real_payload.ps1",
+      "line": 151,
+      "pattern": "secret_word",
+      "sample": "Write-Utf8NoBom -Path $marker -Text $Token"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/tests/test_real_payload.ps1",
+      "line": 152,
+      "pattern": "secret_word",
+      "sample": "if ([System.IO.File]::ReadAllText($marker).Trim() -ne $Token) {"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/tests/test_real_payload.ps1",
+      "line": 161,
+      "pattern": "secret_word",
+      "sample": "if ([System.IO.File]::ReadAllText($marker).Trim() -eq $Token) {"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/tests/test_real_payload.ps1",
+      "line": 192,
+      "pattern": "secret_word",
+      "sample": "Remove-AuditorOwnedInstallation -Path $stage.Path -Token $stage.Token"
+    },
+    {
+      "severity": "WARN",
+      "path": "installers/windows/tests/test_real_payload.ps1",
+      "line": 210,
+      "pattern": "secret_word",
+      "sample": "$driveRoot = Get-WritableFixedDriveRoot -Token $testToken"
     }
   ]
 }

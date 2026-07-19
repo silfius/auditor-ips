@@ -1,112 +1,174 @@
 # Prerrequisitos de instalación
 
-Este documento define el contrato de plataforma de Auditor IPs. Cumplir los requisitos de Docker no implica automáticamente que una plataforma esté soportada por el instalador del proyecto.
+Este documento responde únicamente a la pregunta: **¿está preparado el sistema para instalar Auditor IPs?**
 
-## Matriz de soporte
+Cumplir los requisitos de Docker no implica automáticamente que una plataforma esté soportada por el instalador del proyecto.
 
-| Plataforma | Arquitecturas del proyecto | Runtime | Estado |
+## Matriz de soporte del proyecto
+
+| Plataforma | Arquitecturas | Runtime | Estado |
 |---|---|---|---|
 | Linux de 64 bits | x86_64/amd64 y arm64/aarch64 | Docker Engine y Compose V2 | Soportado |
 | Windows 11 23H2+ | AMD64/x86-64 | Docker Desktop, WSL2 y contenedores Linux | Soportado |
 | Windows 11 ARM64 | — | — | Fuera de alcance actual |
 | Windows 10 | — | — | Fuera de alcance del instalador del proyecto |
-| Windows Server | — | — | No soportado por Docker Desktop |
+| Windows Server | — | — | Fuera de alcance |
 
 ## Requisitos comunes
 
-- Acceso a la LAN que se desea auditar.
-- IPv4 estable o reserva DHCP para el servidor.
-- Puerto HTTPS libre; el valor predeterminado es `9909`.
-- Acceso saliente HTTPS para clonar el repositorio, descargar paquetes e imágenes y construir la imagen inicial.
-- Almacenamiento persistente para la base, certificados y backups.
-- Capacidad para ejecutar contenedores Linux.
-- Git si se instala mediante `git clone`.
+Antes de elegir Linux o Windows, confirma:
 
-El proyecto considera **2 GiB libres como mínimo** y **5 GiB recomendados** en el destino de instalación, sin contar el crecimiento de backups y exportaciones.
+- acceso a la LAN que se desea auditar;
+- IPv4 estable o reserva DHCP para el servidor;
+- puerto HTTPS libre; el predeterminado es `9909`;
+- acceso saliente HTTPS para Git, paquetes, imágenes y build inicial;
+- almacenamiento persistente para base, certificados y backups;
+- capacidad para ejecutar contenedores Linux;
+- Git si se instala mediante `git clone`;
+- copia de seguridad externa prevista desde el inicio.
 
-## Windows 11 AMD64/x86-64
-
-### Sistema y hardware
-
-- Windows 11 de 64 bits, versión 23H2 o posterior, build `22631+`.
-- Arquitectura nativa AMD64/x86-64. ARM64, x86 y emulación cruzada se rechazan.
-- Procesador con SLAT, virtualización habilitada en BIOS/UEFI y al menos 8 GB de RAM.
-- Servicio Windows `LanmanServer` habilitado según los requisitos de Docker Desktop.
-
-El preflight contrasta la arquitectura expuesta por .NET, las variables nativas de Windows y `Win32_Processor`. Una discrepancia detiene la instalación antes de consultar Docker.
-
-### Software previo
-
-- Docker Desktop para Windows x86_64, instalado, iniciado y con licencia aceptada cuando corresponda.
-- Backend WSL2 habilitado.
-- WSL `2.1.5` o posterior; se recomienda la versión estable más reciente.
-- Docker Desktop configurado para contenedores Linux.
-- `docker.exe`, `docker compose` y `curl.exe` disponibles en `PATH`.
-- Windows PowerShell 5.1. PowerShell 7 es opcional y permite una segunda ejecución del validador.
-
-El instalador de Auditor IPs **no** instala Docker Desktop, WSL, Git ni actualizaciones del sistema; tampoco reinicia Windows.
-
-### Red y almacenamiento
-
-- Rutas absolutas en unidades locales fijas y con espacio suficiente.
-- No se admiten rutas UNC, unidades extraíbles, ubicaciones de nube ni directorios bajo TEMP, TMP o Descargas.
-- La base de datos y los certificados se guardan en el volumen Docker `auditor_ips_data`.
-- Instalación, exportaciones, backups y diagnósticos deben estar en rutas permanentes; las carpetas operativas quedan fuera del directorio de código.
-- La regla de firewall es independiente y requiere PowerShell elevado.
-
-### Verificación previa
-
-```powershell
-wsl --version
-docker version
-docker compose version
-docker info --format '{{.OSType}}'
-.\installers\windows\install.ps1 -CheckOnly
-```
-
-La validación técnica adicional está disponible mediante:
-
-```powershell
-.\installers\windows\validate-windows.cmd
-```
-
-En un clon Git, el validador verifica scripts, contratos y pruebas sin exigir el manifiesto externo de un ZIP de release. En un paquete de release, verifica además `BUNDLE_MANIFEST.sha256` cuando está presente.
+El proyecto exige **2 GiB libres como mínimo** y recomienda **5 GiB libres** en el destino de instalación, sin contar el crecimiento de backups, exportaciones e imágenes Docker.
 
 ## Linux x86_64/amd64 y arm64/aarch64
 
-### Sistema
+### Sistema y arquitectura
 
-- Linux de 64 bits con `/etc/os-release`.
-- Arquitectura x86_64/amd64 o arm64/aarch64.
-- Docker Engine activo y Docker Compose V2 (`docker compose`).
-- `git`, `python3`, `curl`, `ca-certificates`, `openssl`, `iproute2` (`ip`) y `tar`.
-- Acceso al daemon Docker con el usuario actual o mediante `sudo`.
+- Linux de 64 bits con `/etc/os-release`;
+- arquitectura x86_64/amd64 o arm64/aarch64;
+- Docker Engine activo;
+- Docker Compose V2, invocable como `docker compose`;
+- `git`, `python3`, `curl`, `ca-certificates`, `openssl`, `iproute2` (`ip`) y `tar`;
+- acceso al daemon Docker con el usuario actual o mediante `sudo`.
 
-La instalación automática de dependencias contempla familias Debian/Ubuntu/Linux Mint y Arch/Manjaro. En otras distribuciones, el asistente no modifica paquetes, pero puede continuar si los comandos requeridos ya existen.
+### Distribuciones
 
-### Permisos y firewall
+El asistente puede instalar dependencias con autorización explícita en:
 
-- `sudo` solo es necesario para instalar dependencias, iniciar o habilitar Docker o usar `--system-install`.
-- La pertenencia al grupo `docker` concede privilegios equivalentes a administración del host; no se añade al usuario sin autorización.
-- Revisa las reglas del host y las implicaciones de Docker. En redes bridge, los puertos publicados pueden no seguir exclusivamente las reglas de UFW; en Linux Auditor IPs usa red host, donde Docker no crea reglas de publicación de puertos.
+- Debian;
+- Ubuntu;
+- Linux Mint;
+- Arch Linux;
+- Manjaro;
+- derivadas razonables de esas familias.
 
-### Verificación previa
+En otras distribuciones, el asistente no modifica paquetes. La instalación sigue siendo posible si todos los comandos requeridos ya están disponibles.
+
+### Permisos
+
+- `sudo` solo es necesario para instalar dependencias, iniciar o habilitar Docker o usar `--system-install`;
+- pertenecer al grupo `docker` equivale prácticamente a disponer de privilegios administrativos sobre el host;
+- el asistente no añade al usuario al grupo Docker sin autorización;
+- si se usa Docker con `sudo`, mantén ese criterio en las operaciones posteriores.
+
+### Red y firewall
+
+Linux usa `network_mode: host` y capacidades `NET_ADMIN` y `NET_RAW` para diagnóstico y descubrimiento LAN. El puerto configurado queda escuchando directamente en el host; revisa el firewall del sistema y limita el acceso a la LAN o VPN.
+
+### Comprobación previa Linux
+
+Desde el clon:
 
 ```bash
 uname -m
-. /etc/os-release && printf '%s %s\n' "$ID" "$VERSION_ID"
+. /etc/os-release && printf 'Distribución: %s %s\n' "$ID" "$VERSION_ID"
+command -v git python3 curl openssl ip tar docker
 docker version
 docker compose version
+docker info >/dev/null
 ./install.sh --check
 ```
 
-Para autorizar dependencias ausentes:
+Para autorizar la instalación guiada de dependencias ausentes:
 
 ```bash
 ./install.sh --install-deps
 ```
 
 `--yes` no autoriza por sí solo retirar paquetes Docker conflictivos.
+
+## Windows 11 AMD64/x86-64
+
+### Sistema y hardware
+
+- Windows 11 de 64 bits, versión 23H2 o posterior, build `22631+`;
+- arquitectura nativa AMD64/x86-64;
+- procesador de 64 bits con SLAT;
+- virtualización habilitada en BIOS/UEFI;
+- al menos 8 GB de RAM;
+- servicio Windows `LanmanServer` habilitado y con inicio automático.
+
+El instalador del proyecto rechaza ARM64, x86 y emulación cruzada.
+
+### Software previo
+
+Debe estar instalado y operativo antes de ejecutar Auditor IPs:
+
+- Docker Desktop para Windows x86_64;
+- backend WSL2;
+- WSL `2.1.5` o posterior;
+- Docker Desktop configurado para contenedores Linux;
+- Git;
+- `docker.exe`, `docker compose` y `curl.exe` disponibles en `PATH`;
+- Windows PowerShell 5.1; PowerShell 7 es opcional.
+
+El instalador de Auditor IPs **no** instala Docker Desktop, WSL, Git ni actualizaciones del sistema; tampoco reinicia Windows.
+
+### Red, rutas y almacenamiento
+
+- usa rutas absolutas en unidades locales fijas;
+- no uses UNC, unidades extraíbles, carpetas sincronizadas con nube, TEMP, TMP o Descargas;
+- conserva instalación, exportaciones, backups y diagnósticos en rutas permanentes;
+- deja las carpetas operativas fuera del directorio de código;
+- la base y los certificados viven en el volumen Docker `auditor_ips_data`;
+- la regla de firewall es independiente y requiere PowerShell elevado.
+
+### Comprobación previa Windows
+
+En PowerShell:
+
+```powershell
+Get-ComputerInfo | Select-Object WindowsProductName, WindowsVersion, OsBuildNumber, OsArchitecture
+wsl --version
+docker version
+docker compose version
+docker info --format '{{.OSType}}'
+Get-Service LanmanServer
+.\installers\windows\install.ps1 -CheckOnly
+```
+
+Resultado esperado:
+
+```text
+Windows 11 x64 23H2 o posterior
+WSL 2.1.5 o posterior
+Docker OSType: linux
+LanmanServer: Running
+CheckOnly: sin errores bloqueantes
+```
+
+Validación técnica adicional:
+
+```powershell
+.\installers\windows\validate-windows.cmd
+```
+
+En un clon Git, el validador no exige un manifiesto externo. En un ZIP de release, verifica `BUNDLE_MANIFEST.sha256` cuando está presente.
+
+## Antes de continuar
+
+No ejecutes el instalador si queda pendiente alguno de estos puntos:
+
+- arquitectura no soportada;
+- Docker o Compose no accesibles;
+- Docker Desktop usando contenedores Windows;
+- WSL ausente o desactualizado;
+- puerto ocupado sin decidir uno alternativo;
+- rutas temporales o no persistentes;
+- IP del servidor inestable;
+- falta de espacio mínimo;
+- ausencia de una estrategia de backup.
+
+Cuando todo sea correcto, vuelve al [punto de entrada de instalación](../docs/INSTALL.md).
 
 ## Referencias oficiales
 
@@ -115,7 +177,6 @@ Consultadas el 18 de julio de 2026:
 - Docker Desktop para Windows: <https://docs.docker.com/desktop/setup/install/windows-install/>
 - Backend WSL2 de Docker Desktop: <https://docs.docker.com/desktop/features/wsl/>
 - Docker Engine: <https://docs.docker.com/engine/install/>
-- Docker Engine en Ubuntu y consideraciones de firewall: <https://docs.docker.com/engine/install/ubuntu/>
-- Filtrado de paquetes y firewalls de Docker: <https://docs.docker.com/engine/network/packet-filtering-firewalls/>
+- Docker Compose en Linux: <https://docs.docker.com/compose/install/linux/>
 - Postinstalación de Docker Engine: <https://docs.docker.com/engine/install/linux-postinstall/>
 - Comandos de WSL: <https://learn.microsoft.com/windows/wsl/basic-commands>
