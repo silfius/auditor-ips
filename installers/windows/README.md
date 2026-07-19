@@ -8,7 +8,6 @@ Consulta [`../PREREQUISITES.md`](../PREREQUISITES.md). Resumen:
 
 - Windows 11 23H2+, build 22631 o superior;
 - arquitectura AMD64/x86-64;
-- ARM64 no está soportado en este release;
 - Docker Desktop abierto;
 - backend WSL2 y contenedores Linux;
 - WSL 2.1.5 o posterior;

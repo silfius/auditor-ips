@@ -5,15 +5,17 @@ Este fichero registra la revisión previa del snapshot que sirve como base de pu
 ## Resultado del escaneo ligero
 
 - Hallazgos HIGH: 0
-- Hallazgos WARN: 319
+- Hallazgos WARN: 369
 
 Los hallazgos WARN pueden corresponder a documentación o nombres de variables.
 Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 
 ## Comprobaciones manuales obligatorias
 
-- Revisar `.env.example`.
-- Revisar `docker-compose.yml.example`.
+- Revisar `installers/linux/env.linux.example`.
+- Revisar `installers/linux/docker-compose.linux.yml.example`.
+- Revisar `installers/windows/env.windows.example`.
+- Revisar `installers/windows/docker-compose.windows.yml.example`.
 - Revisar documentación pública.
 - Confirmar que no hay rutas internas privadas.
 - Confirmar que no hay `.env`, bases de datos, logs, dumps ni backups.
@@ -27,7 +29,7 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/host_classification.py:177` `secret_word` — token_compact = _compact_text(token)
 - `WARN` `app/host_classification.py:179` `secret_word` — return token
 - `WARN` `app/host_classification.py:181` `secret_word` — return token
-- `WARN` `app/config.py:168` `localhost_url` — "ai_ollama_url":       os.getenv("OLLAMA_URL",     "http://localhost:11434"),
+- `WARN` `app/config.py:181` `localhost_url` — "ai_ollama_url":       os.getenv("OLLAMA_URL",     "http://localhost:11434"),
 - `WARN` `app/device_enrichment.py:92` `secret_word` — elif any(token in os_text for token in ["windows 11", "windows 10", "windows 8", "windows 7", "microsoft windows"]):
 - `WARN` `app/main.py:239` `secret_word` — token = request.cookies.get(SESSION_COOKIE)
 - `WARN` `app/main.py:241` `secret_word` — username = validate_session(DB_PATH, token) if auth_enabled(DB_PATH) else None
@@ -71,16 +73,37 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/auth_middleware.py:268` `secret_word` — # Compatibilidad frontend: auth.js usa s.token.substring(0,8).
 - `WARN` `app/auth_middleware.py:269` `secret_word` — item["token"] = token_prefix
 - `WARN` `app/database.py:316` `secret_word` — api_key TEXT NOT NULL DEFAULT '',
-- `WARN` `scripts/test_public_installer_contracts.py:134` `secret_word` — for token in (
-- `WARN` `scripts/test_public_installer_contracts.py:139` `secret_word` — if token not in shell_text:
-- `WARN` `scripts/test_public_installer_contracts.py:140` `secret_word` — errors.append(f"install_sh_missing_dependency_safety:{token}")
-- `WARN` `scripts/test_public_installer_contracts.py:156` `secret_word` — "ADMIN_PASSWORD_HASH": "legacy admin password environment variable",
-- `WARN` `scripts/test_public_installer_contracts.py:162` `secret_word` — for token, description in forbidden.items():
-- `WARN` `scripts/test_public_installer_contracts.py:163` `secret_word` — if token in public_text:
-- `WARN` `scripts/test_public_installer_contracts.py:164` `secret_word` — errors.append(f"forbidden:{description}:{token}")
-- `WARN` `scripts/test_public_installer_contracts.py:179` `secret_word` — for token in (
-- `WARN` `scripts/test_public_installer_contracts.py:191` `secret_word` — if token not in installer_text:
-- `WARN` `scripts/test_public_installer_contracts.py:192` `secret_word` — errors.append(f"installer_missing_security_contract:{token}")
+- `WARN` `scripts/test_public_installer_contracts.py:135` `secret_word` — for token in (
+- `WARN` `scripts/test_public_installer_contracts.py:143` `secret_word` — if token not in install:
+- `WARN` `scripts/test_public_installer_contracts.py:144` `secret_word` — errors.append(f"windows_install_contract_missing:{token}")
+- `WARN` `scripts/test_public_installer_contracts.py:146` `secret_word` — for token in ("22631", "RuntimeInformation"):
+- `WARN` `scripts/test_public_installer_contracts.py:147` `secret_word` — if token not in common:
+- `WARN` `scripts/test_public_installer_contracts.py:148` `secret_word` — errors.append(f"windows_platform_contract_missing:{token}")
+- `WARN` `scripts/test_public_installer_contracts.py:153` `secret_word` — for token in (
+- `WARN` `scripts/test_public_installer_contracts.py:158` `secret_word` — if token not in storage:
+- `WARN` `scripts/test_public_installer_contracts.py:159` `secret_word` — errors.append(f"windows_storage_contract_missing:{token}")
+- `WARN` `scripts/test_public_installer_contracts.py:168` `secret_word` — for token in ("PLATFORM_PROFILE=windows_desktop", "DISCOVERY_MODE=l3_compat"):
+- `WARN` `scripts/test_public_installer_contracts.py:169` `secret_word` — if token not in env_text:
+- `WARN` `scripts/test_public_installer_contracts.py:170` `secret_word` — errors.append(f"windows_env_missing:{token}")
+- `WARN` `scripts/test_public_installer_contracts.py:172` `secret_word` — for token in ("PLATFORM_PROFILE:", "DISCOVERY_MODE:", "ports:"):
+- `WARN` `scripts/test_public_installer_contracts.py:173` `secret_word` — if token not in compose:
+- `WARN` `scripts/test_public_installer_contracts.py:174` `secret_word` — errors.append(f"windows_compose_missing:{token}")
+- `WARN` `scripts/test_public_installer_contracts.py:180` `secret_word` — for token in ("PLATFORM_PROFILE", "DISCOVERY_MODE", "windows_desktop", "l3_compat"):
+- `WARN` `scripts/test_public_installer_contracts.py:181` `secret_word` — if token not in config:
+- `WARN` `scripts/test_public_installer_contracts.py:182` `secret_word` — errors.append(f"runtime_config_missing:{token}")
+- `WARN` `scripts/test_public_installer_contracts.py:184` `secret_word` — for token in (
+- `WARN` `scripts/test_public_installer_contracts.py:189` `secret_word` — if token not in discovery:
+- `WARN` `scripts/test_public_installer_contracts.py:191` `secret_word` — f"runtime_discovery_guard_missing:{token.splitlines()[-1].strip()}"
+- `WARN` `scripts/test_public_installer_contracts.py:222` `secret_word` — for token in (
+- `WARN` `scripts/test_public_installer_contracts.py:227` `secret_word` — if token not in shell_text:
+- `WARN` `scripts/test_public_installer_contracts.py:228` `secret_word` — errors.append(f"install_sh_missing_dependency_safety:{token}")
+- `WARN` `scripts/test_public_installer_contracts.py:244` `secret_word` — "ADMIN_PASSWORD_HASH": "legacy admin password environment variable",
+- `WARN` `scripts/test_public_installer_contracts.py:250` `secret_word` — for token, description in forbidden.items():
+- `WARN` `scripts/test_public_installer_contracts.py:251` `secret_word` — if token in public_text:
+- `WARN` `scripts/test_public_installer_contracts.py:252` `secret_word` — errors.append(f"forbidden:{description}:{token}")
+- `WARN` `scripts/test_public_installer_contracts.py:267` `secret_word` — for token in (
+- `WARN` `scripts/test_public_installer_contracts.py:279` `secret_word` — if token not in installer_text:
+- `WARN` `scripts/test_public_installer_contracts.py:280` `secret_word` — errors.append(f"installer_missing_security_contract:{token}")
 - `WARN` `scripts/install_auditor_agent.py:40` `localhost_url` — AUDITOR_URL="${AUDITOR_URL:-https://127.0.0.1:9909}"
 - `WARN` `scripts/install_auditor_agent.py:81` `secret_word` — url, token, host, script, status, exit_code, now, duration, progress, step_label, log_json, verify_tls = sys.argv[1:]
 - `WARN` `scripts/install_auditor_agent.py:100` `secret_word` — "Authorization": "Bearer " + token,
@@ -108,6 +131,7 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `scripts/install_auditor_agent.py:400` `secret_word` — token = read_token(args)
 - `WARN` `scripts/install_auditor_agent.py:416` `secret_word` — config_file, helper_path = write_config(args, server_url, host_name, token)
 - `WARN` `scripts/install_auditor_agent.py:421` `secret_word` — send_test_status(server_url, host_name, token, args.verify_tls)
+- `WARN` `scripts/test_documentation_contracts.py:56` `internal_path` — "/SERVER/",
 - `WARN` `scripts/install_auditor.py:165` `secret_word` — if any(token in raw for token in ("debian", "ubuntu", "linuxmint", "raspbian")):
 - `WARN` `scripts/install_auditor.py:167` `secret_word` — if any(token in raw for token in ("arch", "manjaro", "endeavouros")):
 - `WARN` `scripts/install_auditor.py:511` `secret_word` — for token in re.split(r"[,\s]+", payload):
@@ -115,30 +139,33 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `scripts/install_auditor.py:513` `secret_word` — if not token:
 - `WARN` `scripts/install_auditor.py:517` `secret_word` — target.append(str(ipaddress.ip_address(token)))
 - `WARN` `scripts/install_auditor.py:521` `secret_word` — domain = clean_dns_search_domain(token)
-- `WARN` `scripts/install_auditor.py:888` `localhost_url` — url = f"https://127.0.0.1:{port}/api/system/healthz"
-- `WARN` `scripts/install_auditor.py:969` `secret_word` — "config": {key: value for key, value in config.items() if not any(token in key.lower() for token in ("password", "token", "secret", "webhook", "key"))},
-- `WARN` `scripts/install_auditor.py:1370` `secret_word` — r"(?:password|passwd|secret|token|webhook|api[_-]?key|apikey|authorization|private[_-]?key)",
-- `WARN` `scripts/install_auditor.py:1399` `secret_word` — r"(?im)\b(password|passwd|secret|token|webhook|api[_-]?key|apikey|private[_-]?key)"
-- `WARN` `scripts/install_auditor.py:1483` `localhost_url` — f"https://127.0.0.1:{port}/api/system/healthz",
-- `WARN` `scripts/install_auditor.py:1502` `secret_word` — for secret in secret_values:
-- `WARN` `scripts/install_auditor.py:1503` `secret_word` — if secret and secret in content:
+- `WARN` `scripts/install_auditor.py:890` `localhost_url` — url = f"https://127.0.0.1:{port}/api/system/healthz"
+- `WARN` `scripts/install_auditor.py:975` `secret_word` — "config": {key: value for key, value in config.items() if not any(token in key.lower() for token in ("password", "token", "secret", "webhook", "key"))},
+- `WARN` `scripts/install_auditor.py:1376` `secret_word` — r"(?:password|passwd|secret|token|webhook|api[_-]?key|apikey|authorization|private[_-]?key)",
+- `WARN` `scripts/install_auditor.py:1405` `secret_word` — r"(?im)\b(password|passwd|secret|token|webhook|api[_-]?key|apikey|private[_-]?key)"
+- `WARN` `scripts/install_auditor.py:1489` `localhost_url` — f"https://127.0.0.1:{port}/api/system/healthz",
+- `WARN` `scripts/install_auditor.py:1508` `secret_word` — for secret in secret_values:
+- `WARN` `scripts/install_auditor.py:1509` `secret_word` — if secret and secret in content:
 - `WARN` `scripts/smoke_system_health.sh:15` `localhost_url` — #   AUDITOR_BASE_URL=https://127.0.0.1:9909 ./LOCAL/scripts/smoke_system_health.sh
 - `WARN` `scripts/smoke_system_health.sh:18` `localhost_url` — BASE_URL="${AUDITOR_BASE_URL:-${1:-https://127.0.0.1:9909}}"
 - `WARN` `scripts/smoke_system_health.sh:153` `secret_word` — "password": os.environ.get("AUDITOR_SMOKE_PASS", ""),
-- `WARN` `docs/SCRIPTS_INTEGRATION.md:33` `internal_path` — /SERVER/Logs_scripts_General/
-- `WARN` `docs/SCRIPTS_INTEGRATION.md:43` `internal_path` — /SERVER/Logs_scripts_General/backup_immich_windows.status.json
-- `WARN` `docs/SCRIPTS_INTEGRATION.md:47` `internal_path` — /SERVER/Logs_scripts_General/SERVERCENTRALWI/backup_immich_windows/backup_immich_windows.status.json
-- `WARN` `docs/SCRIPTS_INTEGRATION.md:375` `internal_path` — python3 -m json.tool /SERVER/Logs_scripts_General/<script_name>.status.json
-- `WARN` `docs/SCRIPTS_INTEGRATION.md:423` `internal_path` — /SERVER/Logs_scripts_General/backup_immich_windows.status.json
-- `WARN` `docs/SCRIPTS_INTEGRATION.md:424` `internal_path` — /SERVER/Logs_scripts_General/SERVERCENTRALWI/backup_immich_windows/backup_immich_windows.status.json
-- `WARN` `docs/BACKUP_RESTORE.md:21` `localhost_url` — curl -kfsS https://127.0.0.1:9909/api/system/healthz
-- `WARN` `docs/USER_MANUAL.md:554` `secret_word` — 4. Copiar el token generado.
-- `WARN` `docs/USER_MANUAL.md:555` `secret_word` — 5. Guardar el token en el host remoto de forma segura.
-- `WARN` `docs/USER_MANUAL.md:557` `secret_word` — El token solo debe mostrarse al crear o rotar.
-- `WARN` `docs/USER_MANUAL.md:569` `secret_word` — El instalador puede pedir el token de forma interactiva.
-- `WARN` `docs/USER_MANUAL.md:760` `secret_word` — - revisar permisos de ficheros de token de agentes.
-- `WARN` `docs/USER_MANUAL.md:788` `localhost_url` — curl -kfsS https://127.0.0.1:9909/api/system/healthz
-- `WARN` `docs/USER_MANUAL.md:832` `secret_word` — - valida token y host;
+- `WARN` `docs/INSTALL.md:104` `localhost_url` — curl -kfsS https://127.0.0.1:9909/api/system/healthz
+- `WARN` `docs/INSTALL.md:110` `localhost_url` — curl.exe -k --fail https://127.0.0.1:9909/api/system/healthz
+- `WARN` `docs/TROUBLESHOOTING.md:61` `localhost_url` — curl -kfsS https://127.0.0.1:9909/api/system/healthz
+- `WARN` `docs/TROUBLESHOOTING.md:67` `localhost_url` — curl.exe -k https://127.0.0.1:9909/api/system/healthz
+- `WARN` `docs/TROUBLESHOOTING.md:192` `secret_word` — - comprueba URL, certificado y token;
+- `WARN` `docs/TROUBLESHOOTING.md:196` `secret_word` — - rota el token si pudo exponerse.
+- `WARN` `docs/SCRIPTS_INTEGRATION.md:31` `secret_word` — 3. Copia el token mostrado una sola vez.
+- `WARN` `docs/SCRIPTS_INTEGRATION.md:50` `secret_word` — Evita pasar el token en la línea de comandos. Usa el prompt interactivo o `--token-file`.
+- `WARN` `docs/SCRIPTS_INTEGRATION.md:147` `secret_word` — Las rutas deben ser útiles desde el entorno que consume el estado. No publiques credenciales, parámetros secretos o URLs con token.
+- `WARN` `docs/SCRIPTS_INTEGRATION.md:177` `secret_word` — - Rota un token si aparece en consola, captura o log.
+- `WARN` `docs/SCRIPTS_INTEGRATION.md:191` `secret_word` — - El token puede rotarse sin modificar el script principal.
+- `WARN` `docs/BACKUP_RESTORE.md:30` `localhost_url` — curl -kfsS https://127.0.0.1:9909/api/system/healthz
+- `WARN` `docs/INSTALLATION_MANUAL.md:187` `localhost_url` — curl -kfsS https://127.0.0.1:9909/api/system/healthz
+- `WARN` `docs/INSTALLATION_MANUAL.md:360` `localhost_url` — curl.exe -k --fail https://127.0.0.1:9909/api/system/healthz
+- `WARN` `docs/USER_MANUAL.md:174` `secret_word` — 3. Copia el token mostrado.
+- `WARN` `docs/USER_MANUAL.md:197` `secret_word` — Rota el token si pudo aparecer en una consola, captura o log.
+- `WARN` `docs/CONFIGURATION.md:70` `localhost_url` — https://127.0.0.1:PUERTO/api/system/healthz
 - `WARN` `app/templates/index.html:4656` `secret_word` — Las alertas se evalúan tras cada escaneo. Acción: Discord webhook (si configurado).
 - `WARN` `app/templates/index.html:6624` `secret_word` — <input type="password" id="loginModalPass" class="form-control form-control-sm"
 - `WARN` `app/templates/index.html:6625` `secret_word` — placeholder="Contraseña" autocomplete="current-password">
@@ -197,30 +224,5 @@ Los hallazgos HIGH deben bloquear la publicación hasta revisión.
 - `WARN` `app/routers/scans.py:166` `secret_word` — webhook, data=data,
 - `WARN` `app/routers/scans.py:233` `secret_word` — token = _vapid_jwt(sub["endpoint"], vapid_pub, vapid_priv)
 - `WARN` `app/routers/scans.py:234` `secret_word` — if token:
-- `WARN` `app/routers/scans.py:235` `secret_word` — headers["Authorization"] = f"vapid t={token},k={vapid_pub}"
-- `WARN` `app/routers/scans.py:1114` `localhost_url` — ollama_url = _cfg("ollama_url", "http://localhost:11434")
-- `WARN` `app/routers/config_api.py:316` `secret_word` — "discord_webhook": "Webhook Discord legacy",
-- `WARN` `app/routers/config_api.py:317` `secret_word` — "discord_webhook_info": "Webhook Discord informativo",
-- `WARN` `app/routers/config_api.py:318` `secret_word` — "discord_webhook_alerts": "Webhook Discord alertas",
-- `WARN` `app/routers/config_api.py:644` `secret_word` — api_key = cfg("ai_gemini_key", "").strip()
-- `WARN` `app/routers/config_api.py:646` `secret_word` — if not api_key:
-- `WARN` `app/routers/config_api.py:648` `secret_word` — url = f"https://generativelanguage.googleapis.com/v1beta/models/{urllib.parse.quote(model)}:generateContent?key={urllib.parse.quote(api_key)}"
-- `WARN` `app/routers/config_api.py:656` `secret_word` — api_key = cfg("ai_mistral_key", "").strip()
-- `WARN` `app/routers/config_api.py:658` `secret_word` — if not api_key:
-- `WARN` `app/routers/config_api.py:662` `secret_word` — req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}, method="POST")
-- `WARN` `app/routers/config_api.py:668` `localhost_url` — base_url = (cfg("ai_ollama_url", "http://localhost:11434") or "http://localhost:11434").rstrip("/")
-- `WARN` `app/routers/config_api.py:696` `secret_word` — webhook = discord_webhook_for_channel(channel)
-- `WARN` `app/routers/config_api.py:697` `secret_word` — if not webhook:
-- `WARN` `app/routers/config_api.py:699` `secret_word` — return JSONResponse({"ok": False, "error": f"No hay webhook Discord {label} configurado"}, status_code=400)
-- `WARN` `app/routers/config_api.py:726` `secret_word` — password = cfg("smtp_pass",  "")
-- `WARN` `app/routers/config_api.py:743` `secret_word` — if user and password:
-- `WARN` `app/routers/config_api.py:744` `secret_word` — s.login(user, password)
-- `WARN` `app/routers/config_api.py:751` `secret_word` — if user and password:
-- `WARN` `app/routers/config_api.py:752` `secret_word` — s.login(user, password)
-- `WARN` `app/routers/config_api.py:756` `secret_word` — if user and password:
-- `WARN` `app/routers/config_api.py:757` `secret_word` — s.login(user, password)
-- `WARN` `app/routers/scripts_status.py:81` `localhost_url` — _ENV_OLLAMA_URL    = os.getenv("OLLAMA_URL",      "http://localhost:11434")
-- `WARN` `app/routers/scripts_status.py:728` `secret_word` — "password", "passwd", "token", "secret", "authorization:",
-- `WARN` `app/routers/scripts_status.py:729` `secret_word` — "x-automation-agent-token", "webhook", "api_key", "apikey",
-- ... 119 hallazgos adicionales no listados.
+- ... 169 hallazgos adicionales no listados.
 

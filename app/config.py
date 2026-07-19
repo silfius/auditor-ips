@@ -22,6 +22,17 @@ SCAN_CIDR             = os.getenv("SCAN_CIDR",             "192.168.1.0/24")
 SCAN_INTERVAL_SECONDS = int(os.getenv("SCAN_INTERVAL_SECONDS", "900"))
 DNS_SERVER            = os.getenv("DNS_SERVER",            "").strip()
 
+PLATFORM_PROFILE = os.getenv("PLATFORM_PROFILE", "linux_native").strip().lower()
+if PLATFORM_PROFILE not in {"linux_native", "windows_desktop"}:
+    PLATFORM_PROFILE = "linux_native"
+
+DISCOVERY_MODE = os.getenv(
+    "DISCOVERY_MODE",
+    "full" if PLATFORM_PROFILE == "linux_native" else "l3_compat",
+).strip().lower()
+if DISCOVERY_MODE not in {"full", "l3_compat", "web_only"}:
+    DISCOVERY_MODE = "full" if PLATFORM_PROFILE == "linux_native" else "l3_compat"
+
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL", "").strip()
 NOTIFY_NEW          = os.getenv("NOTIFY_NEW",    "1").strip() == "1"
 NOTIFY_ONLINE       = os.getenv("NOTIFY_ONLINE", "0").strip() == "1"
@@ -64,6 +75,8 @@ def cfg_defaults() -> Dict[str, Any]:
     return {
         "scan_cidr":           SCAN_CIDR,
         "scan_interval":       str(SCAN_INTERVAL_SECONDS),
+        "platform_profile":    PLATFORM_PROFILE,
+        "discovery_mode":      DISCOVERY_MODE,
         "dns_server":          DNS_SERVER,
         "discord_webhook":     DISCORD_WEBHOOK_URL,
         "discord_webhook_info": "",

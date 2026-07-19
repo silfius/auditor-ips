@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import dns.resolver
 import dns.reversename
 
-from config import cfg
+from config import cfg, PLATFORM_PROFILE, DISCOVERY_MODE
 from utils import utc_now
 
 
@@ -352,11 +352,21 @@ def resolve_ptr(ip: str) -> Optional[str]:
         return None
 
 
+def discovery_capability() -> Dict[str, str]:
+    """Devuelve el perfil efectivo de plataforma y discovery."""
+    return {
+        "platform_profile": PLATFORM_PROFILE,
+        "discovery_mode": DISCOVERY_MODE,
+    }
+
+
 def get_local_ips_in_cidr(cidr: str) -> List[Dict[str, Optional[str]]]:
     """
     Retorna las IPs locales del servidor que caen dentro del CIDR dado.
     nmap nunca reporta el propio host — las inyectamos manualmente.
     """
+    if DISCOVERY_MODE != "full":
+        return []
     try:
         import ipaddress as _ipa
         import json as _json
@@ -404,6 +414,8 @@ def auto_detect_interface(cidr: str) -> str:
     Busca qué interfaz local tiene una IP dentro de ese rango.
     Retorna el nombre de interfaz o '' si no encuentra.
     """
+    if DISCOVERY_MODE != "full":
+        return ""
     try:
         import ipaddress as _ipa
         import json as _json
@@ -441,7 +453,7 @@ def run_nmap_ping_sweep(cidr: str, interface: str = "") -> str:
     Ping sweep rápido.
     La interfaz se auto-detecta por CIDR si no se especifica explícitamente.
     """
-    iface = interface.strip() if interface else auto_detect_interface(cidr)
+    iface = (interface.strip() if interface else auto_detect_interface(cidr)) if DISCOVERY_MODE == "full" else ""
 
     cmd = [
         "nmap",
@@ -513,6 +525,8 @@ def parse_nmap(output: str) -> List[Dict[str, Optional[str]]]:
 
 
 def read_arp_cache() -> Dict[str, str]:
+    if DISCOVERY_MODE != "full":
+        return {}
     try:
         p = subprocess.run(["ip", "neigh"], capture_output=True, text=True)
         out = p.stdout or ""
